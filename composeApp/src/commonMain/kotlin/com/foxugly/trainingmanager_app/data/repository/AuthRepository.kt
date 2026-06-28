@@ -6,6 +6,7 @@ import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.api.UserProfile
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
+import kotlinx.coroutines.CancellationException
 
 class AuthRepository(
     private val api: TrainingManagerApi,
@@ -23,6 +24,7 @@ class AuthRepository(
             tokenStorage.setRemember(remember)
             api.getMe().getOrThrow()
         }.onFailure {
+            if (it is CancellationException) throw it
             AppLogger.error(tag, "Login failed: ${it.message}", it)
         }
     }
@@ -30,9 +32,14 @@ class AuthRepository(
     suspend fun logout(): Result<Unit> {
         AppLogger.info(tag, "Logout requested")
         val refreshToken = tokenStorage.getRefreshToken()
-        val result = if (refreshToken != null) api.logout(refreshToken) else Result.success(Unit)
+        if (refreshToken != null) {
+            api.logout(refreshToken).onFailure {
+                if (it is CancellationException) throw it
+                AppLogger.error(tag, "Logout API call failed (tokens cleared locally): ${it.message}", it)
+            }
+        }
         tokenStorage.clearAuthTokens()
-        return result
+        return Result.success(Unit)
     }
 
     suspend fun getCurrentUser(): Result<UserProfile> = api.getMe()
@@ -53,6 +60,7 @@ class AuthRepository(
                 true
             },
             onFailure = {
+                if (it is CancellationException) throw it
                 AppLogger.error(tag, "Startup token refresh failed", it)
                 tokenStorage.clearAuthTokens()
                 false

@@ -71,9 +71,56 @@ class AuthRepositoryTest {
 
     @Test
     fun hasRefreshTokenReflectsStore() = runTest {
-        assertFalse(AuthRepository(
-            TrainingManagerApi(FakeTokenStore(), baseUrl = "https://test/api/v1/", engine = MockEngine { respond("", HttpStatusCode.OK) }),
-            FakeTokenStore(),
-        ).hasRefreshToken())
+        val engineEmpty = MockEngine { respond("", HttpStatusCode.OK) }
+        val storeEmpty = FakeTokenStore()
+        val apiEmpty = TrainingManagerApi(storeEmpty, baseUrl = "https://test/api/v1/", engine = engineEmpty)
+        assertFalse(AuthRepository(apiEmpty, storeEmpty).hasRefreshToken())
+        apiEmpty.close()
+
+        val engineSeeded = MockEngine { respond("", HttpStatusCode.OK) }
+        val storeSeeded = FakeTokenStore(refresh = "r1")
+        val apiSeeded = TrainingManagerApi(storeSeeded, baseUrl = "https://test/api/v1/", engine = engineSeeded)
+        assertTrue(AuthRepository(apiSeeded, storeSeeded).hasRefreshToken())
+        apiSeeded.close()
+    }
+
+    @Test
+    fun logoutClearsTokens() = runTest {
+        val store = FakeTokenStore(access = "acc", refresh = "ref")
+        val engine = MockEngine { request ->
+            when {
+                request.url.encodedPath.endsWith("/auth/logout/") ->
+                    respond("", HttpStatusCode.OK, jsonHeader)
+                else -> respond("", HttpStatusCode.NotFound)
+            }
+        }
+        val api = TrainingManagerApi(store, baseUrl = "https://test/api/v1/", engine = engine)
+        val repo = AuthRepository(api, store)
+
+        val result = repo.logout()
+
+        assertTrue(result.isSuccess, "${result.exceptionOrNull()}")
+        assertTrue(store.cleared)
+        api.close()
+    }
+
+    @Test
+    fun logoutSucceedsEvenWhenApiFails() = runTest {
+        val store = FakeTokenStore(access = "acc", refresh = "ref")
+        val engine = MockEngine { request ->
+            when {
+                request.url.encodedPath.endsWith("/auth/logout/") ->
+                    respond("Internal Server Error", HttpStatusCode.InternalServerError, jsonHeader)
+                else -> respond("", HttpStatusCode.NotFound)
+            }
+        }
+        val api = TrainingManagerApi(store, baseUrl = "https://test/api/v1/", engine = engine)
+        val repo = AuthRepository(api, store)
+
+        val result = repo.logout()
+
+        assertTrue(result.isSuccess, "logout() must return success even when API fails")
+        assertTrue(store.cleared, "tokens must be cleared even when API fails")
+        api.close()
     }
 }
