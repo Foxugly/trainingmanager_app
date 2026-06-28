@@ -20,9 +20,10 @@ interface TokenStore {
 }
 
 /** Adapts the platform [TokenStorage] to [TokenStore] (pure commonMain — no
- * expect/actual change, so no iOS-side risk). Internal: all callers (DI
- * wiring in androidMain / iosMain) are within the same `:composeApp` module. */
-internal class TokenStorageStore(private val storage: TokenStorage) : TokenStore {
+ * expect/actual change, so no iOS-side risk). Used by the platform entry
+ * points (MainActivity / MainViewController) to bridge the expect class into
+ * the DI graph. */
+class TokenStorageStore(private val storage: TokenStorage) : TokenStore {
     override fun getAccessToken(): String? = storage.getAccessToken()
     override fun setAccessToken(token: String?) = storage.setAccessToken(token)
     override fun getRefreshToken(): String? = storage.getRefreshToken()
