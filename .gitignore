@@ -1,0 +1,11 @@
+.gradle/
+build/
+/local.properties
+/keystore.properties
+*.keystore
+.idea/
+.kotlin/
+.DS_Store
+captures/
+xcuserdata/
+*.xcworkspace/xcuserdata/
