@@ -28,6 +28,7 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.errors.IOException
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
@@ -79,7 +80,7 @@ class TrainingManagerApi(
         install(languageInterceptor.plugin)
     }
 
-    val client = if (engine != null) HttpClient(engine, clientConfig) else HttpClient(clientConfig)
+    private val client = if (engine != null) HttpClient(engine, clientConfig) else HttpClient(clientConfig)
 
     override fun close() {
         client.close()
@@ -111,7 +112,7 @@ class TrainingManagerApi(
         if (!response.status.isSuccess() && response.status != HttpStatusCode.Unauthorized) {
             throw response.toApiException("logout")
         }
-    }
+    }.onFailure { if (it is CancellationException) throw it }
 
     // Thin stub — a real register DTO comes from OpenAPI codegen in a later plan.
     suspend fun register(body: Map<String, String?>): Result<Unit> = apiCall {
@@ -153,7 +154,8 @@ class TrainingManagerApi(
             }
             response.decodeBody<T>(name, json)
         }
-    }.recoverCatching { throwable ->
+    }.onFailure { if (it is CancellationException) throw it }
+    .recoverCatching { throwable ->
         // Surface transport failures as NetworkException so the UI can tell
         // "offline / timed out" apart from an HTTP or decoding error.
         throw when (throwable) {
