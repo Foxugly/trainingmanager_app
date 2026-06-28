@@ -167,8 +167,17 @@ class TrainingManagerApi(
                 NetworkException(NetworkErrorKind.OFFLINE, "Could not reach the server.", throwable)
             else -> throwable
         }
-    }.onFailure {
-        AppLogger.error(tag, "API call failed: ${it.message}", it)
+    }.onFailure { e ->
+        if (e is CancellationException) throw e
+        // Log only safe, non-secret detail — never the raw response body or message
+        // (ResponseDecodingException / ApiException embed up to 500 chars of body).
+        val detail = when (e) {
+            is ApiException -> "ApiException status=${e.statusCode}"
+            is ResponseDecodingException -> "ResponseDecodingException status=${e.statusCode}"
+            is NetworkException -> "NetworkException kind=${e.kind}"
+            else -> e::class.simpleName ?: "error"
+        }
+        AppLogger.error(tag, "API call failed: $detail")
     }
 
     private fun logResponse(operation: String, response: HttpResponse) {
@@ -179,7 +188,7 @@ class TrainingManagerApi(
     }
 
     private suspend fun HttpResponse.toApiException(operation: String): ApiException {
-        val errorBody = runCatching { bodyAsText() }.getOrDefault("")
+        val errorBody = runCatching { bodyAsText() }.getOrElse { if (it is CancellationException) throw it else "" }
         return ApiException(
             statusCode = status.value,
             operation = operation,
