@@ -1,5 +1,6 @@
 package com.foxugly.trainingmanager_app.data.storage
 
+import com.foxugly.trainingmanager_app.diagnostics.AppLogger
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
@@ -33,12 +34,22 @@ import platform.Security.kSecReturnData
 import platform.Security.kSecValueData
 
 /**
- * iOS token storage. The two JWT secrets live in the Keychain
- * (kSecClassGenericPassword, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly —
- * encrypted at rest, not synced, not in backups). Non-secret prefs (remember
- * flag, UI language) stay in NSUserDefaults.
+ * iOS token storage backed by the native iOS Keychain for JWT secrets and
+ * NSUserDefaults for non-secret preferences.
  *
- * iosMain compiles only on macOS; verified by review, not the Windows host test.
+ * **Why the Keychain directly rather than multiplatform-settings?**
+ * multiplatform-settings' iOS backend defaults to NSUserDefaults, which is a
+ * plain plist file — not a secure store. Tokens are secrets and must live in
+ * the Keychain (`kSecClassGenericPassword`,
+ * `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`: encrypted at rest, device-
+ * only, excluded from iCloud and iTunes backups). Non-secret prefs (remember
+ * flag, UI language) are safe in NSUserDefaults and stay there.
+ *
+ * The Android actual mirrors this split with `EncryptedSharedPreferences` (AES256)
+ * for secrets and regular SharedPreferences conventions for non-secrets.
+ *
+ * iosMain compiles only on macOS/Xcode; verified by review, not the Windows host
+ * test.
  */
 @OptIn(ExperimentalForeignApi::class)
 actual class TokenStorage {
@@ -100,7 +111,10 @@ actual class TokenStorage {
             )
         ).toCFDictionary()
         try {
-            SecItemAdd(attributes, null)
+            val status = SecItemAdd(attributes, null)
+            if (status != errSecSuccess) {
+                AppLogger.error(TAG, "SecItemAdd failed for '$account', OSStatus=$status")
+            }
         } finally {
             CFBridgingRelease(attributes)
         }
@@ -110,8 +124,9 @@ actual class TokenStorage {
         val query = keychainBaseQuery(account).toCFDictionary()
         try {
             val status = SecItemDelete(query)
-            @Suppress("UNUSED_EXPRESSION")
-            (status == errSecSuccess || status == errSecItemNotFound)
+            if (status != errSecSuccess && status != errSecItemNotFound) {
+                AppLogger.error(TAG, "SecItemDelete failed for '$account', OSStatus=$status")
+            }
         } finally {
             CFBridgingRelease(query)
         }
@@ -126,6 +141,7 @@ actual class TokenStorage {
     }
 
     companion object {
+        private const val TAG = "TM/TokenStorage"
         private const val SERVICE = "com.foxugly.trainingmanager_app"
         private const val KEY_ACCESS = "tm_access_token"
         private const val KEY_REFRESH = "tm_refresh_token"

@@ -6,6 +6,9 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
 
+// JWT secrets use EncryptedSharedPreferences (AES256-SIV keys / AES256-GCM values) — the
+// platform-native secure store — rather than multiplatform-settings, whose Android backend
+// writes to plain SharedPreferences (an unencrypted XML file, not safe for tokens).
 actual class TokenStorage(context: Context) {
 
     private val prefs: SharedPreferences = EncryptedSharedPreferences.create(
