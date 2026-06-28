@@ -7,10 +7,8 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
+import io.ktor.http.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -23,12 +21,14 @@ class AuthInterceptor(
 
     val plugin = createClientPlugin("AuthInterceptor") {
         onRequest { request, _ ->
-            val url = request.url.toString()
-            val isAuthPath = AUTH_PATHS.any { url.contains(it) }
+            // Match against the URL path only (not scheme+host) so AUTH_PATHS
+            // entries are not accidentally triggered by a hostname substring.
+            val path = request.url.encodedPath
+            val isAuthPath = AUTH_PATHS.any { path.contains(it) }
             val token = tokenStorage.getAccessToken()
             if (token != null && !isAuthPath) {
                 request.headers.append(HttpHeaders.Authorization, "Bearer $token")
-                AppLogger.debug(tag, "Authorization header attached to $url")
+                AppLogger.debug(tag, "Authorization header attached to $path")
             }
         }
     }
@@ -42,7 +42,9 @@ class AuthInterceptor(
      * Under [refreshMutex] we first check whether a concurrent caller already
      * refreshed (current token differs from the stale one): if so we skip a
      * redundant — and, with refresh-token rotation, failure-prone — second
-     * auth/token/refresh/ round-trip.
+     * auth/token/refresh/ round-trip. If the current token is null, a concurrent
+     * caller's refresh already failed and cleared the store; we return false
+     * WITHOUT re-firing [onAuthFailure] to prevent stacked navigation events.
      */
     suspend fun refreshIfNeeded(client: HttpClient, staleAccessToken: String?): Boolean =
         refreshMutex.withLock {
@@ -51,6 +53,14 @@ class AuthInterceptor(
                 AppLogger.info(tag, "Access token already refreshed by a concurrent call; reusing it")
                 return@withLock true
             }
+            if (current == null) {
+                // A concurrent caller already attempted the refresh, failed, and
+                // cleared the tokens. Do NOT fire onAuthFailure a second time —
+                // that would cause stacked navigation events (N dialogs / pops).
+                AppLogger.info(tag, "Tokens already cleared by a concurrent refresh failure; returning false silently")
+                return@withLock false
+            }
+            // Still holding the stale token — we are the caller that performs the refresh.
             val refreshToken = tokenStorage.getRefreshToken() ?: run {
                 AppLogger.warn(tag, "Unauthorized response and no refresh token available")
                 onAuthFailure?.invoke()
@@ -77,6 +87,10 @@ class AuthInterceptor(
                     onAuthFailure?.invoke()
                     false
                 }
+            } catch (e: CancellationException) {
+                // Propagate coroutine cancellation — do NOT clear tokens or fire
+                // onAuthFailure; the user was not logged out, the operation was cancelled.
+                throw e
             } catch (e: Exception) {
                 AppLogger.error(tag, "Access token refresh threw an exception", e)
                 tokenStorage.clearAuthTokens()
@@ -98,6 +112,9 @@ class AuthInterceptor(
             "auth/password/reset/confirm/",
             "auth/magic-link/request/",
             "auth/magic-link/exchange/",
+            // Unauthenticated invitation-lookup endpoint. TODO: narrow to the exact
+            // path once the API contract is finalized — a future authenticated
+            // /invitations/ endpoint must not accidentally lose its bearer.
             "invitations/",
         )
     }

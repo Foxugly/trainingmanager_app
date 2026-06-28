@@ -35,6 +35,9 @@ import kotlin.test.assertTrue
  *  5. Transport failure during refresh → false returned, tokens cleared,
  *     onAuthFailure invoked (NetworkException wrapping for primary calls is in
  *     Task 6 / TrainingManagerApi.apiCall).
+ *  6. Concurrent callers whose refresh returns a failure (e.g. 401) hit the
+ *     refresh endpoint exactly once AND fire onAuthFailure exactly once —
+ *     locking in the single-fire fix (fix #2 review finding).
  */
 class InterceptorTest {
 
@@ -229,6 +232,56 @@ class InterceptorTest {
         assertFalse(ok, "refreshIfNeeded should return false on transport failure")
         assertTrue(store.cleared, "Tokens must be cleared after transport failure")
         assertTrue(authFailureCalled, "onAuthFailure must be invoked on transport failure")
+
+        client.close()
+    }
+
+    // ── Test 6 ───────────────────────────────────────────────────────────────
+
+    /**
+     * Single-fire guarantee under concurrent refresh failure: N concurrent
+     * [AuthInterceptor.refreshIfNeeded] calls where the refresh endpoint returns
+     * a non-OK status must result in exactly one HTTP call to the refresh endpoint
+     * AND exactly one invocation of [AuthInterceptor.onAuthFailure].
+     *
+     * Without fix #2, callers 2-N acquire the mutex, see `current == null`
+     * (tokens were cleared by caller 1), fall through to the missing-refresh-token
+     * path, and each fire onAuthFailure — causing N stacked navigation events
+     * (e.g. N repeated "session expired" dialogs or back-stack pops).
+     */
+    @Test
+    fun concurrentRefreshFailureFiresOnAuthFailureOnlyOnce() = runTest {
+        var refreshCalls = 0
+        var authFailureCount = 0
+        val store = FakeTokenStore(access = "old-tok", refresh = "ref-tok")
+        val authInterceptor = AuthInterceptor(store) { authFailureCount++ }
+
+        val engine = MockEngine { request ->
+            if (request.url.encodedPath.contains("auth/token/refresh/")) {
+                refreshCalls++
+                respond(
+                    content = """{"detail":"Token is invalid or expired"}""",
+                    status = HttpStatusCode.Unauthorized,
+                    headers = jsonCt,
+                )
+            } else {
+                respond("{}", HttpStatusCode.OK)
+            }
+        }
+
+        val client = refreshClient(authInterceptor, engine)
+
+        val stale = "old-tok"
+        // 5 async coroutines all presenting the same stale token. Only the first
+        // caller to acquire refreshMutex hits the endpoint and fires onAuthFailure;
+        // callers 2-5 see current == null (tokens cleared) and return false silently.
+        val results = (1..5).map {
+            async { authInterceptor.refreshIfNeeded(client, stale) }
+        }.awaitAll()
+
+        assertFalse(results.any { it }, "Every concurrent caller should report failure")
+        assertEquals(1, refreshCalls, "Single-flight: refresh endpoint must be hit exactly once")
+        assertEquals(1, authFailureCount, "onAuthFailure must be invoked exactly once")
 
         client.close()
     }
