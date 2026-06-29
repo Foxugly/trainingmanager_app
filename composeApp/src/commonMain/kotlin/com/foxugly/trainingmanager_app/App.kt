@@ -20,9 +20,11 @@ import com.foxugly.trainingmanager_app.navigation.DeepLinkTarget
 import com.foxugly.trainingmanager_app.navigation.EmailConfirmRoute
 import com.foxugly.trainingmanager_app.navigation.HomeRoute
 import com.foxugly.trainingmanager_app.navigation.InvitationRoute
+import com.foxugly.trainingmanager_app.navigation.ChangePasswordRoute
 import com.foxugly.trainingmanager_app.navigation.LoginRoute
 import com.foxugly.trainingmanager_app.navigation.MagicLinkExchangeRoute
 import com.foxugly.trainingmanager_app.navigation.MagicLinkRequestRoute
+import com.foxugly.trainingmanager_app.navigation.ProfileRoute
 import com.foxugly.trainingmanager_app.navigation.ResetPasswordRoute
 import com.foxugly.trainingmanager_app.navigation.StartupRoute
 import com.foxugly.trainingmanager_app.navigation.startupRoute
@@ -39,6 +41,10 @@ import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkExchangeScreen
 import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkExchangeViewModel
 import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkRequestScreen
 import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkRequestViewModel
+import com.foxugly.trainingmanager_app.ui.profile.ChangePasswordScreen
+import com.foxugly.trainingmanager_app.ui.profile.ChangePasswordViewModel
+import com.foxugly.trainingmanager_app.ui.profile.ProfileScreen
+import com.foxugly.trainingmanager_app.ui.profile.ProfileViewModel
 import com.foxugly.trainingmanager_app.ui.theme.TrainingManagerTheme
 import org.koin.compose.koinInject
 
@@ -192,6 +198,7 @@ fun App(
                     composable<HomeRoute> {
                         HomePlaceholderScreen(
                             authRepository = authRepository,
+                            onProfile = { navController.navigate(ProfileRoute) { launchSingleTop = true } },
                             onLoggedOut = {
                                 navController.navigate(LoginRoute) {
                                     popUpTo<HomeRoute> { inclusive = true }
@@ -199,6 +206,18 @@ fun App(
                                 }
                             },
                         )
+                    }
+                    composable<ProfileRoute> {
+                        val vm: ProfileViewModel = koinInject()
+                        ProfileScreen(
+                            viewModel = vm,
+                            onChangePassword = { navController.navigate(ChangePasswordRoute) { launchSingleTop = true } },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<ChangePasswordRoute> {
+                        val vm: ChangePasswordViewModel = koinInject()
+                        ChangePasswordScreen(viewModel = vm, onBack = { navController.popBackStack() })
                     }
                 }
             }
