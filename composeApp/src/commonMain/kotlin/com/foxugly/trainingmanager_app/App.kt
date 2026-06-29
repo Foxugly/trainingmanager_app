@@ -32,6 +32,8 @@ import com.foxugly.trainingmanager_app.navigation.MagicLinkRequestRoute
 import com.foxugly.trainingmanager_app.navigation.ProfileRoute
 import com.foxugly.trainingmanager_app.navigation.ResetPasswordRoute
 import com.foxugly.trainingmanager_app.navigation.StartupRoute
+import com.foxugly.trainingmanager_app.navigation.TeamDetailRoute
+import com.foxugly.trainingmanager_app.navigation.TeamsListRoute
 import com.foxugly.trainingmanager_app.navigation.startupRoute
 import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmScreen
 import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmViewModel
@@ -55,6 +57,10 @@ import com.foxugly.trainingmanager_app.ui.profile.ChangePasswordScreen
 import com.foxugly.trainingmanager_app.ui.profile.ChangePasswordViewModel
 import com.foxugly.trainingmanager_app.ui.profile.ProfileScreen
 import com.foxugly.trainingmanager_app.ui.profile.ProfileViewModel
+import com.foxugly.trainingmanager_app.ui.teams.TeamDetailScreen
+import com.foxugly.trainingmanager_app.ui.teams.TeamDetailViewModel
+import com.foxugly.trainingmanager_app.ui.teams.TeamsListScreen
+import com.foxugly.trainingmanager_app.ui.teams.TeamsListViewModel
 import com.foxugly.trainingmanager_app.ui.theme.TrainingManagerTheme
 import org.koin.compose.koinInject
 
@@ -218,6 +224,7 @@ fun App(
                             viewModel = vm,
                             authRepository = authRepository,
                             onEvents = { navController.navigate(EventsListRoute) { launchSingleTop = true } },
+                            onTeams = { navController.navigate(TeamsListRoute) { launchSingleTop = true } },
                             onProfile = { navController.navigate(ProfileRoute) { launchSingleTop = true } },
                             onLoggedOut = {
                                 navController.navigate(LoginRoute) {
@@ -241,6 +248,23 @@ fun App(
                         EventDetailScreen(
                             viewModel = vm,
                             eventId = args.id,
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TeamsListRoute> {
+                        val vm: TeamsListViewModel = koinInject()
+                        TeamsListScreen(
+                            viewModel = vm,
+                            onTeamClick = { id -> navController.navigate(TeamDetailRoute(id)) { launchSingleTop = true } },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TeamDetailRoute> { entry ->
+                        val args = entry.toRoute<TeamDetailRoute>()
+                        val vm: TeamDetailViewModel = koinInject()
+                        TeamDetailScreen(
+                            viewModel = vm,
+                            teamId = args.id,
                             onBack = { navController.popBackStack() },
                         )
                     }

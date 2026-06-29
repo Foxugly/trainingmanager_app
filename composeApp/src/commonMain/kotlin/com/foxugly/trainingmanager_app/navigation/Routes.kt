@@ -34,3 +34,9 @@ object EventsListRoute
 
 @Serializable
 data class EventDetailRoute(val id: Int)
+
+@Serializable
+object TeamsListRoute
+
+@Serializable
+data class TeamDetailRoute(val id: Int)

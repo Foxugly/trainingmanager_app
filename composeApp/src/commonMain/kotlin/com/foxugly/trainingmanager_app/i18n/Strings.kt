@@ -130,6 +130,16 @@ interface Strings {
     val attachmentsSection: String
     val download: String
     val downloadFailed: String
+
+    // Teams
+    val teamsTitle: String
+    val teamsEntry: String
+    val teamsEmpty: String
+    val teamsLoadFailed: String
+    val teamSport: String
+    val teamOwner: String
+    val teamManagers: String
+    val teamLoadFailed: String
 }
 
 /** Native language display names (always shown in their own language, never translated). */

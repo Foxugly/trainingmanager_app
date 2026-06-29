@@ -109,6 +109,8 @@ class AuthRepository(
 
     suspend fun attachmentDownloadUrl(id: Int) = api.attachmentDownloadUrl(id)
 
+    suspend fun getTeam(id: Int) = api.getTeam(id)
+
     /** PATCH me/ — partial profile update. */
     suspend fun updateProfile(body: PatchMeBody): Result<UserProfile> = api.patchMe(body)
 
