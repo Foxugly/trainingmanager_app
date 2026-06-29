@@ -35,7 +35,8 @@ import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmScreen
 import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmViewModel
 import com.foxugly.trainingmanager_app.ui.confirm.ResetPasswordScreen
 import com.foxugly.trainingmanager_app.ui.confirm.ResetPasswordViewModel
-import com.foxugly.trainingmanager_app.ui.home.HomePlaceholderScreen
+import com.foxugly.trainingmanager_app.ui.dashboard.DashboardScreen
+import com.foxugly.trainingmanager_app.ui.dashboard.DashboardViewModel
 import com.foxugly.trainingmanager_app.ui.invitation.InvitationScreen
 import com.foxugly.trainingmanager_app.ui.invitation.InvitationViewModel
 import com.foxugly.trainingmanager_app.ui.login.LoginScreen
@@ -206,7 +207,9 @@ fun App(
                         )
                     }
                     composable<HomeRoute> {
-                        HomePlaceholderScreen(
+                        val vm: DashboardViewModel = koinInject()
+                        DashboardScreen(
+                            viewModel = vm,
                             authRepository = authRepository,
                             onProfile = { navController.navigate(ProfileRoute) { launchSingleTop = true } },
                             onLoggedOut = {
