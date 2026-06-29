@@ -113,6 +113,12 @@ class AuthRepository(
 
     suspend fun listMembers() = api.listMembers()
 
+    suspend fun registerDevice(pushToken: String, platform: String, deviceName: String = "") =
+        api.registerDevice(com.foxugly.trainingmanager_app.data.api.DeviceRegisterBody(pushToken, platform, deviceName))
+
+    suspend fun unregisterDevice(pushToken: String) =
+        api.unregisterDevice(com.foxugly.trainingmanager_app.data.api.DeviceUnregisterBody(pushToken))
+
     suspend fun listNotifications() = api.listNotifications()
 
     suspend fun markNotificationRead(id: Int) = api.markNotificationRead(id)

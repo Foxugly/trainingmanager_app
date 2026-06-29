@@ -205,6 +205,14 @@ class TrainingManagerApi(
         client.get("members/")
     }
 
+    suspend fun registerDevice(body: DeviceRegisterBody): Result<Unit> = apiCall {
+        client.post("devices/register/") { setBody(body) }
+    }
+
+    suspend fun unregisterDevice(body: DeviceUnregisterBody): Result<Unit> = apiCall {
+        client.post("devices/unregister/") { setBody(body) }
+    }
+
     suspend fun listNotifications(): Result<PaginatedNotificationList> = apiCall {
         client.get("notifications/")
     }

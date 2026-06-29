@@ -5,6 +5,7 @@ import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.i18n.LanguageProvider
 import com.foxugly.trainingmanager_app.i18n.LanguageService
+import com.foxugly.trainingmanager_app.platform.FcmTokenProvider
 import com.foxugly.trainingmanager_app.platform.UrlOpener
 import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmViewModel
 import com.foxugly.trainingmanager_app.ui.dashboard.DashboardViewModel
@@ -42,6 +43,7 @@ fun appModule(
     single { AuthRepository(get(), get()) }
     single { LanguageService(get(), get()) }
     single { UrlOpener() }
+    single { FcmTokenProvider() }
     // ViewModels that surface localized error/UI text get the active locale's
     // Strings captured at construction (screens recompose on language change).
     factory { LoginViewModel(get(), get<LanguageService>().strings) }
