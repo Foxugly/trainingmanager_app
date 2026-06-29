@@ -50,6 +50,7 @@ import com.foxugly.trainingmanager_app.ui.events.EventsListScreen
 import com.foxugly.trainingmanager_app.ui.events.EventsListViewModel
 import com.foxugly.trainingmanager_app.ui.invitation.InvitationScreen
 import com.foxugly.trainingmanager_app.ui.invitation.InvitationViewModel
+import com.foxugly.trainingmanager_app.platform.FcmTokenProvider
 import com.foxugly.trainingmanager_app.ui.login.LoginScreen
 import com.foxugly.trainingmanager_app.ui.login.LoginViewModel
 import com.foxugly.trainingmanager_app.ui.notifications.NotificationTarget
@@ -78,6 +79,7 @@ import org.koin.compose.koinInject
 fun App(
     authRepository: AuthRepository = koinInject(),
     languageService: LanguageService = koinInject(),
+    fcmTokenProvider: FcmTokenProvider = koinInject(),
     deepLink: DeepLinkTarget? = null,
     onDeepLinkConsumed: () -> Unit = {},
 ) {
@@ -89,6 +91,10 @@ fun App(
         // Initialize the UI language from the signed-in user's preference.
         if (resolved == StartupRoute.Authenticated) {
             authRepository.getCurrentUser().getOrNull()?.language?.let { languageService.setActive(it) }
+            // Register this device's FCM token for push (best-effort; null on iOS until the SDK is wired).
+            fcmTokenProvider.token()?.let { token ->
+                authRepository.registerDevice(token, fcmTokenProvider.platform)
+            }
         }
         route = resolved
     }
