@@ -119,4 +119,13 @@ object StringsIt : Strings {
     override val teamOwner = "Proprietario"
     override val teamManagers = "Allenatori"
     override val teamLoadFailed = "Impossibile caricare la squadra."
+    override val discussionsEntry = "Discussioni"
+    override val topicsEmpty = "Nessuna discussione."
+    override val topicsLoadFailed = "Impossibile caricare le discussioni."
+    override val messagesLoadFailed = "Impossibile caricare i messaggi."
+    override val messagePlaceholder = "Il tuo messaggio…"
+    override val sendMessage = "Invia"
+    override val deleteMessage = "Elimina"
+    override val postFailed = "Impossibile inviare il messaggio."
+    override val editedLabel = "modificato"
 }

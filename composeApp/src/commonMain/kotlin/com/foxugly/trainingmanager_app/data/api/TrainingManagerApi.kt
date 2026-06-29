@@ -15,6 +15,7 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
@@ -198,6 +199,22 @@ class TrainingManagerApi(
 
     suspend fun getTeam(id: Int): Result<TeamDto> = apiCall {
         client.get("teams/$id/")
+    }
+
+    suspend fun listTopics(teamId: Int): Result<PaginatedTopicList> = apiCall {
+        client.get("teams/$teamId/topics/")
+    }
+
+    suspend fun listMessages(teamId: Int, topicId: Int): Result<PaginatedTopicMessageList> = apiCall {
+        client.get("teams/$teamId/topics/$topicId/messages/")
+    }
+
+    suspend fun postMessage(teamId: Int, topicId: Int, body: TopicMessageRequest): Result<TopicMessage> = apiCall {
+        client.post("teams/$teamId/topics/$topicId/messages/") { setBody(body) }
+    }
+
+    suspend fun deleteMessage(teamId: Int, topicId: Int, messageId: Int): Result<Unit> = apiCall {
+        client.delete("teams/$teamId/topics/$topicId/messages/$messageId/")
     }
 
     // --- Helpers ---

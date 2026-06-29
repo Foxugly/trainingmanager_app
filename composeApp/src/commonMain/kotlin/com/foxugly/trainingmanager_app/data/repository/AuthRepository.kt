@@ -111,6 +111,16 @@ class AuthRepository(
 
     suspend fun getTeam(id: Int) = api.getTeam(id)
 
+    suspend fun listTopics(teamId: Int) = api.listTopics(teamId)
+
+    suspend fun listMessages(teamId: Int, topicId: Int) = api.listMessages(teamId, topicId)
+
+    suspend fun postMessage(teamId: Int, topicId: Int, content: String) =
+        api.postMessage(teamId, topicId, com.foxugly.trainingmanager_app.data.api.TopicMessageRequest(content))
+
+    suspend fun deleteMessage(teamId: Int, topicId: Int, messageId: Int) =
+        api.deleteMessage(teamId, topicId, messageId)
+
     /** PATCH me/ — partial profile update. */
     suspend fun updateProfile(body: PatchMeBody): Result<UserProfile> = api.patchMe(body)
 

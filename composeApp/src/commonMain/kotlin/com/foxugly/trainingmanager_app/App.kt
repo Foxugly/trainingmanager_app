@@ -34,6 +34,8 @@ import com.foxugly.trainingmanager_app.navigation.ResetPasswordRoute
 import com.foxugly.trainingmanager_app.navigation.StartupRoute
 import com.foxugly.trainingmanager_app.navigation.TeamDetailRoute
 import com.foxugly.trainingmanager_app.navigation.TeamsListRoute
+import com.foxugly.trainingmanager_app.navigation.TopicThreadRoute
+import com.foxugly.trainingmanager_app.navigation.TopicsListRoute
 import com.foxugly.trainingmanager_app.navigation.startupRoute
 import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmScreen
 import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmViewModel
@@ -61,6 +63,10 @@ import com.foxugly.trainingmanager_app.ui.teams.TeamDetailScreen
 import com.foxugly.trainingmanager_app.ui.teams.TeamDetailViewModel
 import com.foxugly.trainingmanager_app.ui.teams.TeamsListScreen
 import com.foxugly.trainingmanager_app.ui.teams.TeamsListViewModel
+import com.foxugly.trainingmanager_app.ui.discussions.TopicThreadScreen
+import com.foxugly.trainingmanager_app.ui.discussions.TopicThreadViewModel
+import com.foxugly.trainingmanager_app.ui.discussions.TopicsListScreen
+import com.foxugly.trainingmanager_app.ui.discussions.TopicsListViewModel
 import com.foxugly.trainingmanager_app.ui.theme.TrainingManagerTheme
 import org.koin.compose.koinInject
 
@@ -265,6 +271,30 @@ fun App(
                         TeamDetailScreen(
                             viewModel = vm,
                             teamId = args.id,
+                            onDiscussions = { navController.navigate(TopicsListRoute(args.id)) { launchSingleTop = true } },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TopicsListRoute> { entry ->
+                        val args = entry.toRoute<TopicsListRoute>()
+                        val vm: TopicsListViewModel = koinInject()
+                        TopicsListScreen(
+                            viewModel = vm,
+                            teamId = args.teamId,
+                            onTopicClick = { topic ->
+                                navController.navigate(TopicThreadRoute(args.teamId, topic.id, topic.allowAthleteReplies)) { launchSingleTop = true }
+                            },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TopicThreadRoute> { entry ->
+                        val args = entry.toRoute<TopicThreadRoute>()
+                        val vm: TopicThreadViewModel = koinInject()
+                        TopicThreadScreen(
+                            viewModel = vm,
+                            teamId = args.teamId,
+                            topicId = args.topicId,
+                            allowReplies = args.allowReplies,
                             onBack = { navController.popBackStack() },
                         )
                     }

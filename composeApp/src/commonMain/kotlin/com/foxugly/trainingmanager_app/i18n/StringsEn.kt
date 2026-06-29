@@ -119,4 +119,13 @@ object StringsEn : Strings {
     override val teamOwner = "Owner"
     override val teamManagers = "Coaches"
     override val teamLoadFailed = "Couldn't load the team."
+    override val discussionsEntry = "Discussions"
+    override val topicsEmpty = "No discussions."
+    override val topicsLoadFailed = "Couldn't load the discussions."
+    override val messagesLoadFailed = "Couldn't load the messages."
+    override val messagePlaceholder = "Your message…"
+    override val sendMessage = "Send"
+    override val deleteMessage = "Delete"
+    override val postFailed = "Couldn't send the message."
+    override val editedLabel = "edited"
 }

@@ -119,4 +119,13 @@ object StringsNl : Strings {
     override val teamOwner = "Eigenaar"
     override val teamManagers = "Coaches"
     override val teamLoadFailed = "Kan het team niet laden."
+    override val discussionsEntry = "Discussies"
+    override val topicsEmpty = "Geen discussies."
+    override val topicsLoadFailed = "Kan de discussies niet laden."
+    override val messagesLoadFailed = "Kan de berichten niet laden."
+    override val messagePlaceholder = "Je bericht…"
+    override val sendMessage = "Verzenden"
+    override val deleteMessage = "Verwijderen"
+    override val postFailed = "Kan het bericht niet verzenden."
+    override val editedLabel = "bewerkt"
 }

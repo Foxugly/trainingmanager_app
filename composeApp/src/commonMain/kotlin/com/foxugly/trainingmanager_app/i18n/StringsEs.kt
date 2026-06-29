@@ -119,4 +119,13 @@ object StringsEs : Strings {
     override val teamOwner = "Propietario"
     override val teamManagers = "Entrenadores"
     override val teamLoadFailed = "No se pudo cargar el equipo."
+    override val discussionsEntry = "Debates"
+    override val topicsEmpty = "No hay debates."
+    override val topicsLoadFailed = "No se pudieron cargar los debates."
+    override val messagesLoadFailed = "No se pudieron cargar los mensajes."
+    override val messagePlaceholder = "Tu mensaje…"
+    override val sendMessage = "Enviar"
+    override val deleteMessage = "Eliminar"
+    override val postFailed = "No se pudo enviar el mensaje."
+    override val editedLabel = "editado"
 }
