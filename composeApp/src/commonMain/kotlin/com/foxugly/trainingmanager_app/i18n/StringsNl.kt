@@ -79,4 +79,13 @@ object StringsNl : Strings {
 
     override val homeSubtitle = "Start (placeholder) — aangemeld"
     override val logout = "Afmelden"
+
+    override val dashboardTitle = "Dashboard"
+    override val dashboardUpcoming = "Aankomende sessies"
+    override val dashboardNoUpcoming = "Geen aankomende sessie."
+    override val dashboardHistory = "Recente geschiedenis"
+    override val dashboardNoHistory = "Nog geen geschiedenis."
+    override val dashboardLoadFailed = "Kan het dashboard niet laden."
+    override val retry = "Opnieuw"
+    override fun dashboardTeams(count: Int) = "$count team${if (count > 1) "s" else ""}"
 }
