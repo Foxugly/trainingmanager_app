@@ -1,0 +1,9 @@
+package com.foxugly.trainingmanager_app.navigation
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+object LoginRoute
+
+@Serializable
+object HomeRoute

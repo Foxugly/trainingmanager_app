@@ -3,6 +3,9 @@ build/
 /local.properties
 /keystore.properties
 *.keystore
+# Firebase config — per-project, provisioned out-of-band (S4); never commit
+google-services.json
+GoogleService-Info.plist
 .idea/
 .kotlin/
 .DS_Store

@@ -24,10 +24,10 @@ androidxSecurityCrypto = "1.0.0"
 kotlinxCoroutines = "1.10.2"
 # NEW vs PushIT
 koin = "4.1.0"
-# Deferred to the Navigation S1 plan; catalog entry only (not referenced by any
-# module in S1a, so it is never resolved/downloaded until used). Confirm exact
-# version against Compose Multiplatform 1.10.3 when the nav graph is built.
-navigationCompose = "2.9.0-alpha13"
+# Navigation Compose Multiplatform. 2.9.0-alpha13 (S1a guess) does not exist on
+# Maven Central; 2.9.2 is the latest stable of the 2.9 line and carries the
+# type-safe @Serializable route API (composable<T>/popUpTo<T>, since 2.8).
+navigationCompose = "2.9.2"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
