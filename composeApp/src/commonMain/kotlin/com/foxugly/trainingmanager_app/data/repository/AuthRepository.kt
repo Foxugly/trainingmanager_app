@@ -93,6 +93,15 @@ class AuthRepository(
 
     suspend fun getDashboard() = api.getDashboard()
 
+    suspend fun listEvents(dateGte: String? = null) = api.listEvents(dateGte = dateGte)
+
+    suspend fun getEvent(id: Int) = api.getEvent(id)
+
+    suspend fun getRsvp(eventId: Int) = api.getRsvp(eventId)
+
+    suspend fun setRsvp(eventId: Int, status: String) =
+        api.setRsvp(eventId, com.foxugly.trainingmanager_app.data.api.RsvpUpsertRequest(status))
+
     /** PATCH me/ — partial profile update. */
     suspend fun updateProfile(body: PatchMeBody): Result<UserProfile> = api.patchMe(body)
 

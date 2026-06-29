@@ -7,6 +7,8 @@ import com.foxugly.trainingmanager_app.i18n.LanguageProvider
 import com.foxugly.trainingmanager_app.i18n.LanguageService
 import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmViewModel
 import com.foxugly.trainingmanager_app.ui.dashboard.DashboardViewModel
+import com.foxugly.trainingmanager_app.ui.events.EventDetailViewModel
+import com.foxugly.trainingmanager_app.ui.events.EventsListViewModel
 import com.foxugly.trainingmanager_app.ui.confirm.ResetPasswordViewModel
 import com.foxugly.trainingmanager_app.ui.invitation.InvitationViewModel
 import com.foxugly.trainingmanager_app.ui.login.LoginViewModel
@@ -44,4 +46,6 @@ fun appModule(
     factory { ProfileViewModel(get(), get<LanguageService>().strings) }
     factory { ChangePasswordViewModel(get(), get<LanguageService>().strings) }
     factory { DashboardViewModel(get(), get<LanguageService>().strings) }
+    factory { EventsListViewModel(get(), get<LanguageService>().strings) }
+    factory { EventDetailViewModel(get(), get<LanguageService>().strings) }
 }

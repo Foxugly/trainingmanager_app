@@ -16,8 +16,10 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -158,6 +160,25 @@ class TrainingManagerApi(
 
     suspend fun getDashboard(): Result<DashboardSummary> = apiCall {
         client.get("dashboard/summary/")
+    }
+
+    suspend fun listEvents(dateGte: String? = null, page: Int? = null): Result<PaginatedEventList> = apiCall {
+        client.get("events/") {
+            dateGte?.let { parameter("date__gte", it) }
+            page?.let { parameter("page", it) }
+        }
+    }
+
+    suspend fun getEvent(id: Int): Result<EventDto> = apiCall {
+        client.get("events/$id/")
+    }
+
+    suspend fun getRsvp(eventId: Int): Result<RsvpSummary> = apiCall {
+        client.get("events/$eventId/rsvp/")
+    }
+
+    suspend fun setRsvp(eventId: Int, body: RsvpUpsertRequest): Result<RsvpSummary> = apiCall {
+        client.put("events/$eventId/rsvp/") { setBody(body) }
     }
 
     // --- Helpers ---

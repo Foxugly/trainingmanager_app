@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
 fun DashboardScreen(
     viewModel: DashboardViewModel,
     authRepository: AuthRepository,
+    onEvents: () -> Unit,
     onProfile: () -> Unit,
     onLoggedOut: () -> Unit,
 ) {
@@ -43,6 +44,7 @@ fun DashboardScreen(
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Text(s.dashboardTitle, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
+            TextButton(onClick = onEvents) { Text(s.eventsEntry) }
             TextButton(onClick = onProfile) { Text(s.profileTitle) }
             TextButton(onClick = { scope.launch { authRepository.logout(); onLoggedOut() } }) { Text(s.logout) }
         }

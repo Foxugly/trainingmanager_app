@@ -21,6 +21,8 @@ import com.foxugly.trainingmanager_app.i18n.LanguageService
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.navigation.DeepLinkTarget
 import com.foxugly.trainingmanager_app.navigation.EmailConfirmRoute
+import com.foxugly.trainingmanager_app.navigation.EventDetailRoute
+import com.foxugly.trainingmanager_app.navigation.EventsListRoute
 import com.foxugly.trainingmanager_app.navigation.HomeRoute
 import com.foxugly.trainingmanager_app.navigation.InvitationRoute
 import com.foxugly.trainingmanager_app.navigation.ChangePasswordRoute
@@ -37,6 +39,10 @@ import com.foxugly.trainingmanager_app.ui.confirm.ResetPasswordScreen
 import com.foxugly.trainingmanager_app.ui.confirm.ResetPasswordViewModel
 import com.foxugly.trainingmanager_app.ui.dashboard.DashboardScreen
 import com.foxugly.trainingmanager_app.ui.dashboard.DashboardViewModel
+import com.foxugly.trainingmanager_app.ui.events.EventDetailScreen
+import com.foxugly.trainingmanager_app.ui.events.EventDetailViewModel
+import com.foxugly.trainingmanager_app.ui.events.EventsListScreen
+import com.foxugly.trainingmanager_app.ui.events.EventsListViewModel
 import com.foxugly.trainingmanager_app.ui.invitation.InvitationScreen
 import com.foxugly.trainingmanager_app.ui.invitation.InvitationViewModel
 import com.foxugly.trainingmanager_app.ui.login.LoginScreen
@@ -211,6 +217,7 @@ fun App(
                         DashboardScreen(
                             viewModel = vm,
                             authRepository = authRepository,
+                            onEvents = { navController.navigate(EventsListRoute) { launchSingleTop = true } },
                             onProfile = { navController.navigate(ProfileRoute) { launchSingleTop = true } },
                             onLoggedOut = {
                                 navController.navigate(LoginRoute) {
@@ -218,6 +225,23 @@ fun App(
                                     launchSingleTop = true
                                 }
                             },
+                        )
+                    }
+                    composable<EventsListRoute> {
+                        val vm: EventsListViewModel = koinInject()
+                        EventsListScreen(
+                            viewModel = vm,
+                            onEventClick = { id -> navController.navigate(EventDetailRoute(id)) { launchSingleTop = true } },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<EventDetailRoute> { entry ->
+                        val args = entry.toRoute<EventDetailRoute>()
+                        val vm: EventDetailViewModel = koinInject()
+                        EventDetailScreen(
+                            viewModel = vm,
+                            eventId = args.id,
+                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<ProfileRoute> {
