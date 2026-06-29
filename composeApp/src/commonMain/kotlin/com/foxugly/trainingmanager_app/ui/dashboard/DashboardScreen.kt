@@ -34,6 +34,7 @@ fun DashboardScreen(
     viewModel: DashboardViewModel,
     authRepository: AuthRepository,
     onEvents: () -> Unit,
+    onTeams: () -> Unit,
     onProfile: () -> Unit,
     onLoggedOut: () -> Unit,
 ) {
@@ -45,6 +46,7 @@ fun DashboardScreen(
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Text(s.dashboardTitle, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
             TextButton(onClick = onEvents) { Text(s.eventsEntry) }
+            TextButton(onClick = onTeams) { Text(s.teamsEntry) }
             TextButton(onClick = onProfile) { Text(s.profileTitle) }
             TextButton(onClick = { scope.launch { authRepository.logout(); onLoggedOut() } }) { Text(s.logout) }
         }
