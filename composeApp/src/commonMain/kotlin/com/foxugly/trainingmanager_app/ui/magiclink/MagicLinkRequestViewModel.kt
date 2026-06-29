@@ -7,8 +7,13 @@ import com.foxugly.trainingmanager_app.data.api.ApiException
 import com.foxugly.trainingmanager_app.data.api.NetworkErrorKind
 import com.foxugly.trainingmanager_app.data.api.NetworkException
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
+import com.foxugly.trainingmanager_app.i18n.Strings
+import com.foxugly.trainingmanager_app.i18n.StringsFr
 
-class MagicLinkRequestViewModel(private val authRepository: AuthRepository) {
+class MagicLinkRequestViewModel(
+    private val authRepository: AuthRepository,
+    private val strings: Strings = StringsFr,
+) {
     var email by mutableStateOf("")
     var isLoading by mutableStateOf(false)
         private set
@@ -33,9 +38,9 @@ class MagicLinkRequestViewModel(private val authRepository: AuthRepository) {
     }
 
     private fun mapError(t: Throwable): String? = when {
-        t is NetworkException && t.kind == NetworkErrorKind.TIMEOUT -> MagicLinkStrings.networkTimeout
-        t is NetworkException -> MagicLinkStrings.networkOffline
-        t is ApiException && t.statusCode == 429 -> MagicLinkStrings.rateLimited
-        else -> MagicLinkStrings.requestFailed
+        t is NetworkException && t.kind == NetworkErrorKind.TIMEOUT -> strings.networkTimeout
+        t is NetworkException -> strings.networkOffline
+        t is ApiException && t.statusCode == 429 -> strings.magicRateLimited
+        else -> strings.magicRequestFailed
     }
 }

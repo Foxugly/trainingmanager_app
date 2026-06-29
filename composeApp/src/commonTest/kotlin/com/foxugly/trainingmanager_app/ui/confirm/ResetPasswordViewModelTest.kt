@@ -3,6 +3,7 @@ package com.foxugly.trainingmanager_app.ui.confirm
 import com.foxugly.trainingmanager_app.FakeTokenStore
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
+import com.foxugly.trainingmanager_app.i18n.StringsFr
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
@@ -33,7 +34,7 @@ class ResetPasswordViewModelTest {
         var ok = false
         sut.submit("k") { ok = true }
         assertFalse(ok)
-        assertEquals(ConfirmStrings.mismatch, sut.error)
+        assertEquals(StringsFr.mismatch, sut.error)
     }
 
     @Test fun successAutoLogins() = runTest {

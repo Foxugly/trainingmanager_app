@@ -5,8 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.foxugly.trainingmanager_app.data.api.ApiException
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
+import com.foxugly.trainingmanager_app.i18n.Strings
+import com.foxugly.trainingmanager_app.i18n.StringsFr
 
-class InvitationViewModel(private val authRepository: AuthRepository) {
+class InvitationViewModel(
+    private val authRepository: AuthRepository,
+    private val strings: Strings = StringsFr,
+) {
     var isLoading by mutableStateOf(true)
         private set
     var teamName by mutableStateOf<String?>(null)
@@ -33,22 +38,22 @@ class InvitationViewModel(private val authRepository: AuthRepository) {
         lookupError = null
         authRepository.lookupInvitation(token).fold(
             onSuccess = { teamName = it.teamName; status = it.status },
-            onFailure = { lookupError = InvitationStrings.lookupFailed },
+            onFailure = { lookupError = strings.invitationLookupFailed },
         )
         isLoading = false
     }
 
     suspend fun accept(token: String, onSuccess: () -> Unit) {
         if (isSubmitting) return
-        if (password.length < 8) { submitError = InvitationStrings.tooShort; return }
-        if (password != confirmPassword) { submitError = InvitationStrings.mismatch; return }
+        if (password.length < 8) { submitError = strings.tooShort; return }
+        if (password != confirmPassword) { submitError = strings.mismatch; return }
         isSubmitting = true
         submitError = null
         authRepository.acceptInvitation(token, password).fold(
             onSuccess = { onSuccess() },
             onFailure = { t ->
-                submitError = if (t is ApiException && t.statusCode == 409) InvitationStrings.emailTaken
-                else InvitationStrings.joinFailed
+                submitError = if (t is ApiException && t.statusCode == 409) strings.invitationEmailTaken
+                else strings.invitationJoinFailed
             },
         )
         isSubmitting = false

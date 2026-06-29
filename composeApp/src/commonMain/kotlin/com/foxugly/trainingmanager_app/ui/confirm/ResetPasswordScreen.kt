@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import kotlinx.coroutines.launch
 
@@ -33,6 +34,7 @@ fun ResetPasswordScreen(
     onBackToLogin: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    val s = LocalStrings.current
 
     if (viewModel.tokenInvalid) {
         Column(
@@ -40,11 +42,11 @@ fun ResetPasswordScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(ConfirmStrings.tokenInvalidTitle, style = MaterialTheme.typography.headlineSmall)
+            Text(s.tokenInvalidTitle, style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(8.dp))
-            Text(ConfirmStrings.tokenInvalidBody)
+            Text(s.tokenInvalidBody)
             Spacer(Modifier.height(24.dp))
-            TextButton(onClick = onBackToLogin) { Text(ConfirmStrings.backToLogin) }
+            TextButton(onClick = onBackToLogin) { Text(s.backToLogin) }
         }
         return
     }
@@ -53,13 +55,13 @@ fun ResetPasswordScreen(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(ConfirmStrings.resetTitle, style = MaterialTheme.typography.headlineMedium)
+        Text(s.resetTitle, style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(24.dp))
         viewModel.error?.let { ErrorBanner(it); Spacer(Modifier.height(12.dp)) }
         OutlinedTextField(
             value = viewModel.newPassword,
             onValueChange = { viewModel.newPassword = it; viewModel.clearError() },
-            label = { Text(ConfirmStrings.newPassword) },
+            label = { Text(s.newPassword) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             singleLine = true,
@@ -69,7 +71,7 @@ fun ResetPasswordScreen(
         OutlinedTextField(
             value = viewModel.confirmPassword,
             onValueChange = { viewModel.confirmPassword = it; viewModel.clearError() },
-            label = { Text(ConfirmStrings.confirmPassword) },
+            label = { Text(s.confirmPassword) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             singleLine = true,
@@ -84,10 +86,10 @@ fun ResetPasswordScreen(
             if (viewModel.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
             } else {
-                Text(ConfirmStrings.submit)
+                Text(s.submit)
             }
         }
         Spacer(Modifier.height(8.dp))
-        TextButton(onClick = onBackToLogin) { Text(ConfirmStrings.backToLogin) }
+        TextButton(onClick = onBackToLogin, modifier = Modifier.fillMaxWidth()) { Text(s.backToLogin) }
     }
 }

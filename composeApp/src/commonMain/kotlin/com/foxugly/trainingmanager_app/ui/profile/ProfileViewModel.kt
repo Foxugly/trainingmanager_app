@@ -5,11 +5,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.foxugly.trainingmanager_app.data.api.PatchMeBody
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
-import com.foxugly.trainingmanager_app.i18n.LanguageProvider
+import com.foxugly.trainingmanager_app.i18n.Strings
+import com.foxugly.trainingmanager_app.i18n.StringsFr
 
+/**
+ * Profile name + notification flags. Language is handled separately by
+ * [com.foxugly.trainingmanager_app.i18n.LanguageService] (the screen's language
+ * selector), so it is intentionally NOT part of this VM's save body.
+ */
 class ProfileViewModel(
     private val authRepository: AuthRepository,
-    private val languageProvider: LanguageProvider,
+    private val strings: Strings = StringsFr,
 ) {
     var isLoading by mutableStateOf(true)
         private set
@@ -20,7 +26,6 @@ class ProfileViewModel(
 
     var firstName by mutableStateOf("")
     var lastName by mutableStateOf("")
-    var language by mutableStateOf("fr")
     var weeklyRecapOptIn by mutableStateOf(true)
     var digestEmail by mutableStateOf(false)
 
@@ -30,8 +35,6 @@ class ProfileViewModel(
         private set
     var saved by mutableStateOf(false)
         private set
-
-    val languages: List<String> = listOf("fr", "nl", "en", "it", "es")
 
     fun consumeSaved() { saved = false }
 
@@ -43,11 +46,10 @@ class ProfileViewModel(
                 email = u.email
                 firstName = u.firstName ?: ""
                 lastName = u.lastName ?: ""
-                language = u.language ?: "fr"
                 weeklyRecapOptIn = u.weeklyRecapOptIn ?: true
                 digestEmail = u.digestEmail ?: false
             },
-            onFailure = { loadError = ProfileStrings.loadFailed },
+            onFailure = { loadError = strings.loadFailed },
         )
         isLoading = false
     }
@@ -61,17 +63,12 @@ class ProfileViewModel(
             PatchMeBody(
                 firstName = firstName,
                 lastName = lastName,
-                language = language,
                 weeklyRecapOptIn = weeklyRecapOptIn,
                 digestEmail = digestEmail,
             ),
         ).fold(
-            onSuccess = {
-                saved = true
-                // Persist the active Accept-Language tag; live UI re-translation is S1d-b.
-                languageProvider.activeTag = language
-            },
-            onFailure = { saveError = ProfileStrings.saveFailed },
+            onSuccess = { saved = true },
+            onFailure = { saveError = strings.saveFailed },
         )
         isSaving = false
     }

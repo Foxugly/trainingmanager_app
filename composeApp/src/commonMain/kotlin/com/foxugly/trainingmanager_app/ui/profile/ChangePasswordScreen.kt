@@ -22,12 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import kotlinx.coroutines.launch
 
 @Composable
 fun ChangePasswordScreen(viewModel: ChangePasswordViewModel, onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
+    val s = LocalStrings.current
 
     if (viewModel.success) {
         Column(
@@ -35,9 +37,9 @@ fun ChangePasswordScreen(viewModel: ChangePasswordViewModel, onBack: () -> Unit)
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(ProfileStrings.cpSuccess, style = MaterialTheme.typography.headlineSmall)
+            Text(s.cpSuccess, style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(24.dp))
-            TextButton(onClick = onBack) { Text(ProfileStrings.back) }
+            TextButton(onClick = onBack) { Text(s.back) }
         }
         return
     }
@@ -46,14 +48,14 @@ fun ChangePasswordScreen(viewModel: ChangePasswordViewModel, onBack: () -> Unit)
         modifier = Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(ProfileStrings.cpTitle, style = MaterialTheme.typography.headlineMedium)
+        Text(s.cpTitle, style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(24.dp))
         viewModel.error?.let { ErrorBanner(it); Spacer(Modifier.height(12.dp)) }
-        PasswordField(ProfileStrings.currentPassword, viewModel.currentPassword) { viewModel.currentPassword = it; viewModel.clearError() }
+        PasswordField(s.currentPassword, viewModel.currentPassword) { viewModel.currentPassword = it; viewModel.clearError() }
         Spacer(Modifier.height(12.dp))
-        PasswordField(ProfileStrings.newPassword, viewModel.newPassword) { viewModel.newPassword = it; viewModel.clearError() }
+        PasswordField(s.newPassword, viewModel.newPassword) { viewModel.newPassword = it; viewModel.clearError() }
         Spacer(Modifier.height(12.dp))
-        PasswordField(ProfileStrings.confirmPassword, viewModel.confirmPassword) { viewModel.confirmPassword = it; viewModel.clearError() }
+        PasswordField(s.confirmPassword, viewModel.confirmPassword) { viewModel.confirmPassword = it; viewModel.clearError() }
         Spacer(Modifier.height(16.dp))
         Button(
             onClick = { scope.launch { viewModel.submit() } },
@@ -63,11 +65,11 @@ fun ChangePasswordScreen(viewModel: ChangePasswordViewModel, onBack: () -> Unit)
             if (viewModel.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
             } else {
-                Text(ProfileStrings.cpSubmit)
+                Text(s.cpSubmit)
             }
         }
         Spacer(Modifier.height(8.dp))
-        TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text(ProfileStrings.back) }
+        TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text(s.back) }
     }
 }
 

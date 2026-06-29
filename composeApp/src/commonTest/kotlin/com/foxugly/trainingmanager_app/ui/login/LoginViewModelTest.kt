@@ -3,6 +3,7 @@ package com.foxugly.trainingmanager_app.ui.login
 import com.foxugly.trainingmanager_app.FakeTokenStore
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
+import com.foxugly.trainingmanager_app.i18n.StringsFr
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
@@ -54,7 +55,7 @@ class LoginViewModelTest {
         var ok = false
         sut.submit { ok = true }
         assertFalse(ok)
-        assertEquals(LoginStrings.invalidCredentials, sut.error)
+        assertEquals(StringsFr.invalidCredentials, sut.error)
         assertFalse(sut.isLoading)
         assertNull(store.getAccessToken())
     }

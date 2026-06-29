@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import com.foxugly.trainingmanager_app.ui.components.PasswordHiddenIcon
 import com.foxugly.trainingmanager_app.ui.components.PasswordVisibleIcon
@@ -35,11 +36,12 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit, onMagicLink: () -> Unit) {
     val scope = rememberCoroutineScope()
+    val s = LocalStrings.current
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(LoginStrings.title, style = MaterialTheme.typography.headlineMedium)
+        Text(s.loginTitle, style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(24.dp))
 
         viewModel.error?.let {
@@ -50,7 +52,7 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit, onMagicLi
         OutlinedTextField(
             value = viewModel.email,
             onValueChange = { viewModel.email = it; viewModel.clearError() },
-            label = { Text(LoginStrings.email) },
+            label = { Text(s.email) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
@@ -60,13 +62,13 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit, onMagicLi
         OutlinedTextField(
             value = viewModel.password,
             onValueChange = { viewModel.password = it; viewModel.clearError() },
-            label = { Text(LoginStrings.password) },
+            label = { Text(s.password) },
             visualTransformation = if (viewModel.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 IconButton(onClick = { viewModel.passwordVisible = !viewModel.passwordVisible }) {
                     Icon(
                         imageVector = if (viewModel.passwordVisible) PasswordHiddenIcon else PasswordVisibleIcon,
-                        contentDescription = if (viewModel.passwordVisible) LoginStrings.hidePassword else LoginStrings.showPassword,
+                        contentDescription = if (viewModel.passwordVisible) s.hidePassword else s.showPassword,
                     )
                 }
             },
@@ -81,7 +83,7 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit, onMagicLi
                 checked = viewModel.rememberMe,
                 onCheckedChange = { viewModel.rememberMe = it },
             )
-            Text(LoginStrings.rememberMe)
+            Text(s.rememberMe)
         }
         Spacer(Modifier.height(16.dp))
 
@@ -97,12 +99,12 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit, onMagicLi
                     color = MaterialTheme.colorScheme.onPrimary,
                 )
             } else {
-                Text(LoginStrings.login)
+                Text(s.loginAction)
             }
         }
         Spacer(Modifier.height(8.dp))
         TextButton(onClick = onMagicLink, modifier = Modifier.fillMaxWidth()) {
-            Text(LoginStrings.signInByEmailLink)
+            Text(s.signInByEmailLink)
         }
     }
 }
