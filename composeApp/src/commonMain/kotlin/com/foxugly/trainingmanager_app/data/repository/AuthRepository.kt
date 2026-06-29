@@ -113,6 +113,12 @@ class AuthRepository(
 
     suspend fun listMembers() = api.listMembers()
 
+    suspend fun listNotifications() = api.listNotifications()
+
+    suspend fun markNotificationRead(id: Int) = api.markNotificationRead(id)
+
+    suspend fun markAllNotificationsRead() = api.markAllNotificationsRead()
+
     suspend fun listTopics(teamId: Int) = api.listTopics(teamId)
 
     suspend fun listMessages(teamId: Int, topicId: Int) = api.listMessages(teamId, topicId)

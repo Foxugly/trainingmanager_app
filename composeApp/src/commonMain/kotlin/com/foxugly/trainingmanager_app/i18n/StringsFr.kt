@@ -129,4 +129,9 @@ object StringsFr : Strings {
     override val deleteMessage = "Supprimer"
     override val postFailed = "Impossible d'envoyer le message."
     override val editedLabel = "modifié"
+    override val notificationsTitle = "Notifications"
+    override val notificationsEntry = "Notifications"
+    override val notificationsEmpty = "Aucune notification."
+    override val notificationsLoadFailed = "Impossible de charger les notifications."
+    override val markAllRead = "Tout marquer comme lu"
 }

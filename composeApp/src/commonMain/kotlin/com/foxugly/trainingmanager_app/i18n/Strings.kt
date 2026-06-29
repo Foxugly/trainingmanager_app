@@ -152,6 +152,13 @@ interface Strings {
     val deleteMessage: String
     val postFailed: String
     val editedLabel: String
+
+    // Notifications
+    val notificationsTitle: String
+    val notificationsEntry: String
+    val notificationsEmpty: String
+    val notificationsLoadFailed: String
+    val markAllRead: String
 }
 
 /** Native language display names (always shown in their own language, never translated). */
