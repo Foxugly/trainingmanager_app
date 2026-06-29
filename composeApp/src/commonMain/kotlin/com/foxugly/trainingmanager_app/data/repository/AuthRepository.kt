@@ -1,5 +1,7 @@
 package com.foxugly.trainingmanager_app.data.repository
 
+import com.foxugly.trainingmanager_app.data.api.MagicLinkExchangeBody
+import com.foxugly.trainingmanager_app.data.api.MagicLinkRequestBody
 import com.foxugly.trainingmanager_app.data.api.RefreshRequest
 import com.foxugly.trainingmanager_app.data.api.TokenObtainRequest
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
@@ -40,6 +42,27 @@ class AuthRepository(
         }
         tokenStorage.clearAuthTokens()
         return Result.success(Unit)
+    }
+
+    /** POST auth/magic-link/request/ — always-200, no token handling. */
+    suspend fun requestMagicLink(email: String): Result<Unit> {
+        AppLogger.info(tag, "Magic-link requested")
+        return api.magicLinkRequest(MagicLinkRequestBody(email.trim()))
+            .onFailure { if (it is CancellationException) throw it }
+    }
+
+    /** POST auth/magic-link/exchange/ → store tokens → GET me/ → profile. */
+    suspend fun exchangeMagicLink(token: String): Result<UserProfile> {
+        AppLogger.info(tag, "Magic-link exchange requested")
+        return api.magicLinkExchange(MagicLinkExchangeBody(token)).mapCatching { pair ->
+            tokenStorage.setAccessToken(pair.access)
+            tokenStorage.setRefreshToken(pair.refresh)
+            tokenStorage.setRemember(true)
+            api.getMe().getOrThrow()
+        }.onFailure {
+            if (it is CancellationException) throw it
+            AppLogger.error(tag, "Magic-link exchange failed: ${it.message}", it)
+        }
     }
 
     suspend fun getCurrentUser(): Result<UserProfile> = api.getMe()

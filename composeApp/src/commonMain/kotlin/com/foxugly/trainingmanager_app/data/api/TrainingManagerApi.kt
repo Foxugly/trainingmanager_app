@@ -123,6 +123,14 @@ class TrainingManagerApi(
         }
     }
 
+    suspend fun magicLinkRequest(request: MagicLinkRequestBody): Result<Unit> = apiCall {
+        client.post("auth/magic-link/request/") { setBody(request) }
+    }
+
+    suspend fun magicLinkExchange(request: MagicLinkExchangeBody): Result<TokenPair> = apiCall {
+        client.post("auth/magic-link/exchange/") { setBody(request) }
+    }
+
     // --- Helpers ---
     // Every authenticated request must go through [apiCall] so a recoverable
     // expired session transparently refreshes instead of hard-failing.

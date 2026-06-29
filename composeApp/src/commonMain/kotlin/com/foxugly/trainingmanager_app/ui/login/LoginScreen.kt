@@ -18,6 +18,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -32,7 +33,7 @@ import com.foxugly.trainingmanager_app.ui.components.PasswordVisibleIcon
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit) {
+fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit, onMagicLink: () -> Unit) {
     val scope = rememberCoroutineScope()
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -98,6 +99,10 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit) {
             } else {
                 Text(LoginStrings.login)
             }
+        }
+        Spacer(Modifier.height(8.dp))
+        TextButton(onClick = onMagicLink, modifier = Modifier.fillMaxWidth()) {
+            Text(LoginStrings.signInByEmailLink)
         }
     }
 }
