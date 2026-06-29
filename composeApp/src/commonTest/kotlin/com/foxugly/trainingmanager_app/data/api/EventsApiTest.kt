@@ -31,6 +31,17 @@ class EventsApiTest {
         assertEquals("always", e.visGoal)
     }
 
+    @Test fun detailDecodesRoundsAndExercises() = runTest {
+        val body = """{"id":5,"name":"S","location":"","equipment":"","total":0,"place":null,"refer_program":null,"vis_distance":"never","vis_goal":"never","vis_rounds":"always","debrief":"","rounds_detail":[{"id":1,"order":1,"count":3,"t_start":null,"t_break":null,"sport":{"id":1},"exercises":[{"id":9,"order":1,"repetition":4,"distance":100,"notes":"sprint","t_start":null,"t_break":null,"modality":{"id":2,"name":"Crawl"},"energysegment":{"id":3,"abv":"PMA"}}]}]}"""
+        val api = api(MockEngine { respond(body, HttpStatusCode.OK, jsonHeader) })
+        val e = api.getEvent(5).getOrThrow()
+        assertEquals(1, e.roundsDetail.size)
+        assertEquals(3, e.roundsDetail[0].count)
+        assertEquals(100L, e.roundsDetail[0].exercises[0].distance)
+        assertEquals("Crawl", e.roundsDetail[0].exercises[0].modality?.name)
+        assertEquals("PMA", e.roundsDetail[0].exercises[0].energysegment?.abv)
+    }
+
     @Test fun setRsvpDecodesMyStatus() = runTest {
         val api = api(MockEngine { respond("""{"counts":{"going":3,"maybe":1,"not_going":0,"no_response":2},"total_members":6,"my_status":"going","by_member":[]}""", HttpStatusCode.OK, jsonHeader) })
         val r = api.setRsvp(5, RsvpUpsertRequest("going")).getOrThrow()

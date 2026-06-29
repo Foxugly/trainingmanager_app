@@ -34,6 +34,36 @@ data class EventDto(
     @SerialName("vis_goal") val visGoal: String = "never",
     @SerialName("vis_rounds") val visRounds: String = "never",
     val debrief: String = "",
+    @SerialName("rounds_detail") val roundsDetail: List<EventRoundDetail> = emptyList(),
+)
+
+@Serializable
+data class ModalityRef(val id: Int, val name: String = "")
+
+@Serializable
+data class EnergySegmentRef(val id: Int, val abv: String = "")
+
+@Serializable
+data class ExerciseDto(
+    val id: Int,
+    val order: Long = 0,
+    val repetition: Long = 0,
+    val distance: Long = 0,
+    val notes: String = "",
+    @SerialName("t_start") val tStart: String? = null,
+    @SerialName("t_break") val tBreak: String? = null,
+    val modality: ModalityRef? = null,
+    val energysegment: EnergySegmentRef? = null,
+)
+
+@Serializable
+data class EventRoundDetail(
+    val id: Int,
+    val order: Int = 0,
+    val count: Int = 0,
+    @SerialName("t_start") val tStart: String? = null,
+    @SerialName("t_break") val tBreak: String? = null,
+    val exercises: List<ExerciseDto> = emptyList(),
 )
 
 @Serializable

@@ -41,6 +41,7 @@ class EventDetailViewModel(
 
     val showDistance: Boolean get() = event?.let { fieldVisible(it.visDistance, isPast) } ?: false
     val showGoal: Boolean get() = event?.let { fieldVisible(it.visGoal, isPast) } ?: false
+    val showRounds: Boolean get() = event?.let { fieldVisible(it.visRounds, isPast) } ?: false
 
     @OptIn(ExperimentalTime::class)
     suspend fun load(id: Int) {
