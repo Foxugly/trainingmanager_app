@@ -19,6 +19,7 @@ import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.navigation.DeepLinkTarget
 import com.foxugly.trainingmanager_app.navigation.EmailConfirmRoute
 import com.foxugly.trainingmanager_app.navigation.HomeRoute
+import com.foxugly.trainingmanager_app.navigation.InvitationRoute
 import com.foxugly.trainingmanager_app.navigation.LoginRoute
 import com.foxugly.trainingmanager_app.navigation.MagicLinkExchangeRoute
 import com.foxugly.trainingmanager_app.navigation.MagicLinkRequestRoute
@@ -30,6 +31,8 @@ import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmViewModel
 import com.foxugly.trainingmanager_app.ui.confirm.ResetPasswordScreen
 import com.foxugly.trainingmanager_app.ui.confirm.ResetPasswordViewModel
 import com.foxugly.trainingmanager_app.ui.home.HomePlaceholderScreen
+import com.foxugly.trainingmanager_app.ui.invitation.InvitationScreen
+import com.foxugly.trainingmanager_app.ui.invitation.InvitationViewModel
 import com.foxugly.trainingmanager_app.ui.login.LoginScreen
 import com.foxugly.trainingmanager_app.ui.login.LoginViewModel
 import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkExchangeScreen
@@ -76,6 +79,10 @@ fun App(
                         }
                         is DeepLinkTarget.PasswordResetConfirm -> {
                             navController.navigate(ResetPasswordRoute(d.key)) { launchSingleTop = true }
+                            onDeepLinkConsumed()
+                        }
+                        is DeepLinkTarget.Invitation -> {
+                            navController.navigate(InvitationRoute(d.token)) { launchSingleTop = true }
                             onDeepLinkConsumed()
                         }
                         null -> Unit
@@ -148,6 +155,26 @@ fun App(
                         ResetPasswordScreen(
                             viewModel = vm,
                             key = args.key,
+                            onSuccess = {
+                                navController.navigate(HomeRoute) {
+                                    popUpTo<LoginRoute> { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            },
+                            onBackToLogin = {
+                                navController.navigate(LoginRoute) {
+                                    popUpTo(0) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            },
+                        )
+                    }
+                    composable<InvitationRoute> { entry ->
+                        val args = entry.toRoute<InvitationRoute>()
+                        val vm: InvitationViewModel = koinInject()
+                        InvitationScreen(
+                            viewModel = vm,
+                            token = args.token,
                             onSuccess = {
                                 navController.navigate(HomeRoute) {
                                     popUpTo<LoginRoute> { inclusive = true }

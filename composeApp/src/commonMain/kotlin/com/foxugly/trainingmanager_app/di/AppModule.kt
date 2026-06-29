@@ -7,6 +7,7 @@ import com.foxugly.trainingmanager_app.i18n.LanguageProvider
 import com.foxugly.trainingmanager_app.ui.login.LoginViewModel
 import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmViewModel
 import com.foxugly.trainingmanager_app.ui.confirm.ResetPasswordViewModel
+import com.foxugly.trainingmanager_app.ui.invitation.InvitationViewModel
 import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkExchangeViewModel
 import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkRequestViewModel
 import org.koin.core.module.Module
@@ -32,4 +33,5 @@ fun appModule(
     factory { MagicLinkExchangeViewModel(get()) }
     factory { EmailConfirmViewModel(get()) }
     factory { ResetPasswordViewModel(get()) }
+    factory { InvitationViewModel(get()) }
 }

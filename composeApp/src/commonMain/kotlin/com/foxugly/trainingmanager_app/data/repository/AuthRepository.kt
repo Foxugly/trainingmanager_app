@@ -1,5 +1,6 @@
 package com.foxugly.trainingmanager_app.data.repository
 
+import com.foxugly.trainingmanager_app.data.api.CompleteInvitationBody
 import com.foxugly.trainingmanager_app.data.api.EmailConfirmBody
 import com.foxugly.trainingmanager_app.data.api.MagicLinkExchangeBody
 import com.foxugly.trainingmanager_app.data.api.MagicLinkRequestBody
@@ -9,6 +10,7 @@ import com.foxugly.trainingmanager_app.data.api.TokenObtainRequest
 import com.foxugly.trainingmanager_app.data.api.TokenPair
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.api.UserProfile
+import com.foxugly.trainingmanager_app.data.api.ValidateInvitation
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
 import kotlinx.coroutines.CancellationException
@@ -78,6 +80,12 @@ class AuthRepository(
         if (it is CancellationException) throw it
         AppLogger.error(tag, "Auto-login failed: ${it.message}", it)
     }
+
+    suspend fun lookupInvitation(token: String): Result<ValidateInvitation> = api.lookupInvitation(token)
+
+    /** POST invitations/lookup/{token}/ → create account + join + auto-login. */
+    suspend fun acceptInvitation(token: String, password: String): Result<UserProfile> =
+        autoLogin { api.completeInvitation(token, CompleteInvitationBody(password)) }
 
     suspend fun getCurrentUser(): Result<UserProfile> = api.getMe()
 
