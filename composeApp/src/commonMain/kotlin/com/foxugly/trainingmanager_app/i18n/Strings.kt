@@ -159,6 +159,28 @@ interface Strings {
     val notificationsEmpty: String
     val notificationsLoadFailed: String
     val markAllRead: String
+
+    // Register / Forgot password / Turnstile
+    val registerTitle: String
+    val registerFirstName: String
+    val registerLastName: String
+    val registerPassword: String
+    val registerPasswordTooShort: String
+    val registerSubmit: String
+    val registerCheckEmailTitle: String
+    val registerCheckEmailBody: String
+    val registerFailed: String
+    val registerInvalid: String
+    val registerRateLimited: String
+    val forgotTitle: String
+    val forgotSubmit: String
+    val forgotSentTitle: String
+    val forgotSentBody: String
+    val forgotFailed: String
+    val turnstileFailed: String
+    val turnstilePrompt: String
+    val createAccount: String
+    val forgotPasswordLink: String
 }
 
 /** Native language display names (always shown in their own language, never translated). */

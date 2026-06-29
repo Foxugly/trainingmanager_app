@@ -35,8 +35,6 @@ import io.ktor.utils.io.errors.IOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 
 class TrainingManagerApi(
     private val tokenStorage: TokenStore,
@@ -126,13 +124,12 @@ class TrainingManagerApi(
         }
     }.onFailure { if (it is CancellationException) throw it }
 
-    // Thin stub — a real register DTO comes from OpenAPI codegen in a later plan.
-    suspend fun register(body: Map<String, String?>): Result<Unit> = apiCall {
-        client.post("auth/register/") {
-            setBody(buildJsonObject {
-                body.forEach { (k, v) -> if (v != null) put(k, v) }
-            })
-        }
+    suspend fun register(body: RegisterBody): Result<Unit> = apiCall {
+        client.post("auth/register/") { setBody(body) }
+    }
+
+    suspend fun requestPasswordReset(body: PasswordResetRequestBody): Result<Unit> = apiCall {
+        client.post("auth/password/reset/") { setBody(body) }
     }
 
     suspend fun magicLinkRequest(request: MagicLinkRequestBody): Result<Unit> = apiCall {

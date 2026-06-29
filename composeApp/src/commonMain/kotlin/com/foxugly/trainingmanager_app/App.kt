@@ -28,8 +28,10 @@ import com.foxugly.trainingmanager_app.navigation.InvitationRoute
 import com.foxugly.trainingmanager_app.navigation.ChangePasswordRoute
 import com.foxugly.trainingmanager_app.navigation.LoginRoute
 import com.foxugly.trainingmanager_app.navigation.MagicLinkExchangeRoute
+import com.foxugly.trainingmanager_app.navigation.ForgotPasswordRoute
 import com.foxugly.trainingmanager_app.navigation.MagicLinkRequestRoute
 import com.foxugly.trainingmanager_app.navigation.NotificationsRoute
+import com.foxugly.trainingmanager_app.navigation.RegisterRoute
 import com.foxugly.trainingmanager_app.navigation.ProfileRoute
 import com.foxugly.trainingmanager_app.navigation.ResetPasswordRoute
 import com.foxugly.trainingmanager_app.navigation.StartupRoute
@@ -51,8 +53,12 @@ import com.foxugly.trainingmanager_app.ui.events.EventsListViewModel
 import com.foxugly.trainingmanager_app.ui.invitation.InvitationScreen
 import com.foxugly.trainingmanager_app.ui.invitation.InvitationViewModel
 import com.foxugly.trainingmanager_app.platform.FcmTokenProvider
+import com.foxugly.trainingmanager_app.ui.forgot.ForgotPasswordScreen
+import com.foxugly.trainingmanager_app.ui.forgot.ForgotPasswordViewModel
 import com.foxugly.trainingmanager_app.ui.login.LoginScreen
 import com.foxugly.trainingmanager_app.ui.login.LoginViewModel
+import com.foxugly.trainingmanager_app.ui.register.RegisterScreen
+import com.foxugly.trainingmanager_app.ui.register.RegisterViewModel
 import com.foxugly.trainingmanager_app.ui.notifications.NotificationTarget
 import com.foxugly.trainingmanager_app.ui.notifications.NotificationsScreen
 import com.foxugly.trainingmanager_app.ui.notifications.NotificationsViewModel
@@ -148,11 +154,25 @@ fun App(
                             onMagicLink = {
                                 navController.navigate(MagicLinkRequestRoute) { launchSingleTop = true }
                             },
+                            onCreateAccount = {
+                                navController.navigate(RegisterRoute) { launchSingleTop = true }
+                            },
+                            onForgotPassword = {
+                                navController.navigate(ForgotPasswordRoute) { launchSingleTop = true }
+                            },
                         )
                     }
                     composable<MagicLinkRequestRoute> {
                         val vm: MagicLinkRequestViewModel = koinInject()
                         MagicLinkRequestScreen(viewModel = vm, onBack = { navController.popBackStack() })
+                    }
+                    composable<RegisterRoute> {
+                        val vm: RegisterViewModel = koinInject()
+                        RegisterScreen(viewModel = vm, onBack = { navController.popBackStack() })
+                    }
+                    composable<ForgotPasswordRoute> {
+                        val vm: ForgotPasswordViewModel = koinInject()
+                        ForgotPasswordScreen(viewModel = vm, onBack = { navController.popBackStack() })
                     }
                     composable<MagicLinkExchangeRoute> { entry ->
                         val args = entry.toRoute<MagicLinkExchangeRoute>()
