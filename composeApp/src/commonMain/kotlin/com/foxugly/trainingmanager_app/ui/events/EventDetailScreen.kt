@@ -77,6 +77,20 @@ fun EventDetailScreen(
                         notGoingLabel = s.rsvpNotGoing,
                         onSelect = { status -> scope.launch { viewModel.setRsvp(eventId, status) } },
                     )
+
+                    Spacer(Modifier.height(16.dp))
+                    Text(s.rotiLabel, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(4.dp))
+                    viewModel.rotiError?.let { ErrorBanner(it); Spacer(Modifier.height(8.dp)) }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        (1..5).forEach { n ->
+                            RsvpButton(
+                                label = n.toString(),
+                                selected = viewModel.rotiScore == n,
+                                enabled = !viewModel.isSavingRoti,
+                            ) { scope.launch { viewModel.setRoti(eventId, n) } }
+                        }
+                    }
                 }
             }
         }

@@ -181,6 +181,10 @@ class TrainingManagerApi(
         client.put("events/$eventId/rsvp/") { setBody(body) }
     }
 
+    suspend fun setRoti(eventId: Int, body: RotiUpsertRequest): Result<RotiSummary> = apiCall {
+        client.put("events/$eventId/roti/") { setBody(body) }
+    }
+
     // --- Helpers ---
     // Every authenticated request must go through [apiCall] so a recoverable
     // expired session transparently refreshes instead of hard-failing.

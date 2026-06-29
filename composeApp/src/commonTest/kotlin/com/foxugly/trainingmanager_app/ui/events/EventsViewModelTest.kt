@@ -64,4 +64,18 @@ class EventsViewModelTest {
         vm.setRsvp(5, "going")
         assertEquals(StringsFr.rsvpDisabled, vm.rsvpError)
     }
+
+    @Test fun setRotiUpdatesScore() = runTest {
+        val engine = MockEngine { respond("""{"average":4.0,"count":3,"distribution":{},"my_score":4}""", HttpStatusCode.OK, jsonHeader) }
+        val vm = EventDetailViewModel(repo(engine))
+        vm.setRoti(5, 4)
+        assertEquals(4, vm.rotiScore)
+    }
+
+    @Test fun setRotiFailureSetsError() = runTest {
+        val engine = MockEngine { respond("""{"detail":"disabled"}""", HttpStatusCode.Forbidden, jsonHeader) }
+        val vm = EventDetailViewModel(repo(engine))
+        vm.setRoti(5, 4)
+        assertEquals(StringsFr.rotiFailed, vm.rotiError)
+    }
 }

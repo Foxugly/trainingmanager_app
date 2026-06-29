@@ -62,3 +62,14 @@ data class RsvpSummary(
 /** PUT events/{id}/rsvp/ — status in going|maybe|not_going. */
 @Serializable
 data class RsvpUpsertRequest(val status: String)
+
+/** PUT events/{id}/roti/ → my_score echoed back (average/distribution managers-only, ignored). */
+@Serializable
+data class RotiSummary(
+    val average: Double? = null,
+    val count: Int = 0,
+    @SerialName("my_score") val myScore: Int? = null,
+)
+
+@Serializable
+data class RotiUpsertRequest(val score: Int)

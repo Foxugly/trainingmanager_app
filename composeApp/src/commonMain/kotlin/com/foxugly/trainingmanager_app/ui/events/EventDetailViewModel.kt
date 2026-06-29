@@ -30,6 +30,12 @@ class EventDetailViewModel(
         private set
     var isSavingRsvp by mutableStateOf(false)
         private set
+    var rotiScore by mutableStateOf<Int?>(null)
+        private set
+    var rotiError by mutableStateOf<String?>(null)
+        private set
+    var isSavingRoti by mutableStateOf(false)
+        private set
 
     private var isPast by mutableStateOf(false)
 
@@ -64,5 +70,16 @@ class EventDetailViewModel(
             },
         )
         isSavingRsvp = false
+    }
+
+    suspend fun setRoti(id: Int, score: Int) {
+        if (isSavingRoti) return
+        isSavingRoti = true
+        rotiError = null
+        authRepository.setRoti(id, score).fold(
+            onSuccess = { rotiScore = it.myScore ?: score },
+            onFailure = { rotiError = strings.rotiFailed },
+        )
+        isSavingRoti = false
     }
 }

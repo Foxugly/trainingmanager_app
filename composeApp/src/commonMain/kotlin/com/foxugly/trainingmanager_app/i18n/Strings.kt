@@ -123,6 +123,8 @@ interface Strings {
     val rsvpNotGoing: String
     val rsvpDisabled: String
     val rsvpFailed: String
+    val rotiLabel: String
+    val rotiFailed: String
 }
 
 /** Native language display names (always shown in their own language, never translated). */
