@@ -28,3 +28,9 @@ object ProfileRoute
 
 @Serializable
 object ChangePasswordRoute
+
+@Serializable
+object EventsListRoute
+
+@Serializable
+data class EventDetailRoute(val id: Int)
