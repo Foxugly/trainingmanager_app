@@ -111,4 +111,12 @@ object StringsNl : Strings {
     override val attachmentsSection = "Bijlagen"
     override val download = "Downloaden"
     override val downloadFailed = "Downloaden mislukt."
+    override val teamsTitle = "Teams"
+    override val teamsEntry = "Teams"
+    override val teamsEmpty = "Geen teams."
+    override val teamsLoadFailed = "Kan de teams niet laden."
+    override val teamSport = "Sport"
+    override val teamOwner = "Eigenaar"
+    override val teamManagers = "Coaches"
+    override val teamLoadFailed = "Kan het team niet laden."
 }

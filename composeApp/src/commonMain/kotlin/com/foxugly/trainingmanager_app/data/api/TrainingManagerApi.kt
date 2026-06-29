@@ -196,6 +196,10 @@ class TrainingManagerApi(
         client.get("attachments/$id/download/")
     }
 
+    suspend fun getTeam(id: Int): Result<TeamDto> = apiCall {
+        client.get("teams/$id/")
+    }
+
     // --- Helpers ---
     // Every authenticated request must go through [apiCall] so a recoverable
     // expired session transparently refreshes instead of hard-failing.
