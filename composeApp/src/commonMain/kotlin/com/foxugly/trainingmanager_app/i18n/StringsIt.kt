@@ -79,4 +79,13 @@ object StringsIt : Strings {
 
     override val homeSubtitle = "Home (placeholder) — connesso"
     override val logout = "Esci"
+
+    override val dashboardTitle = "Dashboard"
+    override val dashboardUpcoming = "Prossime sessioni"
+    override val dashboardNoUpcoming = "Nessuna sessione in arrivo."
+    override val dashboardHistory = "Cronologia recente"
+    override val dashboardNoHistory = "Nessuna cronologia."
+    override val dashboardLoadFailed = "Impossibile caricare il dashboard."
+    override val retry = "Riprova"
+    override fun dashboardTeams(count: Int) = "$count ${if (count > 1) "squadre" else "squadra"}"
 }

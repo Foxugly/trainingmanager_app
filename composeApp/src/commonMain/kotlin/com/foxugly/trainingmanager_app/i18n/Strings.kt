@@ -96,6 +96,16 @@ interface Strings {
     // Home
     val homeSubtitle: String
     val logout: String
+
+    // Dashboard
+    val dashboardTitle: String
+    val dashboardUpcoming: String
+    val dashboardNoUpcoming: String
+    val dashboardHistory: String
+    val dashboardNoHistory: String
+    val dashboardLoadFailed: String
+    val retry: String
+    fun dashboardTeams(count: Int): String
 }
 
 /** Native language display names (always shown in their own language, never translated). */

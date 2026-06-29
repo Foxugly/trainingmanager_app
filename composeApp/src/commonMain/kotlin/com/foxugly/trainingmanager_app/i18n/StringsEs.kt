@@ -79,4 +79,13 @@ object StringsEs : Strings {
 
     override val homeSubtitle = "Inicio (placeholder) — conectado"
     override val logout = "Cerrar sesión"
+
+    override val dashboardTitle = "Panel"
+    override val dashboardUpcoming = "Próximas sesiones"
+    override val dashboardNoUpcoming = "No hay sesiones próximas."
+    override val dashboardHistory = "Historial reciente"
+    override val dashboardNoHistory = "Sin historial."
+    override val dashboardLoadFailed = "No se pudo cargar el panel."
+    override val retry = "Reintentar"
+    override fun dashboardTeams(count: Int) = "$count ${if (count > 1) "equipos" else "equipo"}"
 }
