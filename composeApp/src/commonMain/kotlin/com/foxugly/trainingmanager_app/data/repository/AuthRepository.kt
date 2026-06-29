@@ -102,6 +102,9 @@ class AuthRepository(
     suspend fun setRsvp(eventId: Int, status: String) =
         api.setRsvp(eventId, com.foxugly.trainingmanager_app.data.api.RsvpUpsertRequest(status))
 
+    suspend fun setRoti(eventId: Int, score: Int) =
+        api.setRoti(eventId, com.foxugly.trainingmanager_app.data.api.RotiUpsertRequest(score))
+
     /** PATCH me/ — partial profile update. */
     suspend fun updateProfile(body: PatchMeBody): Result<UserProfile> = api.patchMe(body)
 

@@ -104,4 +104,6 @@ object StringsEn : Strings {
     override val rsvpNotGoing = "Not going"
     override val rsvpDisabled = "RSVP is disabled for this team."
     override val rsvpFailed = "Couldn't save your response."
+    override val rotiLabel = "Session rating"
+    override val rotiFailed = "Couldn't save the rating."
 }

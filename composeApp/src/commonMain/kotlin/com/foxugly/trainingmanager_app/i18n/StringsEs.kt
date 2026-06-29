@@ -104,4 +104,6 @@ object StringsEs : Strings {
     override val rsvpNotGoing = "No voy"
     override val rsvpDisabled = "Las respuestas están desactivadas para este equipo."
     override val rsvpFailed = "No se pudo guardar tu respuesta."
+    override val rotiLabel = "Valoración de la sesión"
+    override val rotiFailed = "No se pudo guardar la valoración."
 }
