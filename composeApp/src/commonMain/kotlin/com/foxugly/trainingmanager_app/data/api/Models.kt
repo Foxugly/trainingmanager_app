@@ -46,4 +46,6 @@ data class UserProfile(
     val language: String? = null,
     @SerialName("first_name") val firstName: String? = null,
     @SerialName("last_name") val lastName: String? = null,
+    @SerialName("weekly_recap_opt_in") val weeklyRecapOptIn: Boolean? = null,
+    @SerialName("digest_email") val digestEmail: Boolean? = null,
 )

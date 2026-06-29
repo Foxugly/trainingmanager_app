@@ -16,6 +16,7 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -101,6 +102,14 @@ class TrainingManagerApi(
 
     suspend fun getMe(): Result<UserProfile> = apiCall {
         client.get("me/")
+    }
+
+    suspend fun patchMe(body: PatchMeBody): Result<UserProfile> = apiCall {
+        client.patch("me/") { setBody(body) }
+    }
+
+    suspend fun changePassword(body: PasswordChangeBody): Result<Unit> = apiCall {
+        client.post("auth/password/change/") { setBody(body) }
     }
 
     suspend fun logout(refreshToken: String): Result<Unit> = runCatching {
