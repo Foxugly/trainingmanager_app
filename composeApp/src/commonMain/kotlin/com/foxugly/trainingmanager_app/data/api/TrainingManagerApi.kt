@@ -131,6 +131,14 @@ class TrainingManagerApi(
         client.post("auth/magic-link/exchange/") { setBody(request) }
     }
 
+    suspend fun confirmEmail(request: EmailConfirmBody): Result<TokenPair> = apiCall {
+        client.post("auth/email/confirm/") { setBody(request) }
+    }
+
+    suspend fun confirmPasswordReset(request: PasswordResetConfirmBody): Result<TokenPair> = apiCall {
+        client.post("auth/password/reset/confirm/") { setBody(request) }
+    }
+
     // --- Helpers ---
     // Every authenticated request must go through [apiCall] so a recoverable
     // expired session transparently refreshes instead of hard-failing.

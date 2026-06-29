@@ -1,9 +1,12 @@
 package com.foxugly.trainingmanager_app.data.repository
 
+import com.foxugly.trainingmanager_app.data.api.EmailConfirmBody
 import com.foxugly.trainingmanager_app.data.api.MagicLinkExchangeBody
 import com.foxugly.trainingmanager_app.data.api.MagicLinkRequestBody
+import com.foxugly.trainingmanager_app.data.api.PasswordResetConfirmBody
 import com.foxugly.trainingmanager_app.data.api.RefreshRequest
 import com.foxugly.trainingmanager_app.data.api.TokenObtainRequest
+import com.foxugly.trainingmanager_app.data.api.TokenPair
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.api.UserProfile
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
@@ -51,18 +54,29 @@ class AuthRepository(
             .onFailure { if (it is CancellationException) throw it }
     }
 
-    /** POST auth/magic-link/exchange/ → store tokens → GET me/ → profile. */
-    suspend fun exchangeMagicLink(token: String): Result<UserProfile> {
-        AppLogger.info(tag, "Magic-link exchange requested")
-        return api.magicLinkExchange(MagicLinkExchangeBody(token)).mapCatching { pair ->
-            tokenStorage.setAccessToken(pair.access)
-            tokenStorage.setRefreshToken(pair.refresh)
-            tokenStorage.setRemember(true)
-            api.getMe().getOrThrow()
-        }.onFailure {
-            if (it is CancellationException) throw it
-            AppLogger.error(tag, "Magic-link exchange failed: ${it.message}", it)
-        }
+    /** POST auth/magic-link/exchange/ → auto-login. */
+    suspend fun exchangeMagicLink(token: String): Result<UserProfile> =
+        autoLogin { api.magicLinkExchange(MagicLinkExchangeBody(token)) }
+
+    /** POST auth/email/confirm/ → auto-login. */
+    suspend fun confirmEmail(key: String): Result<UserProfile> =
+        autoLogin { api.confirmEmail(EmailConfirmBody(key)) }
+
+    /** POST auth/password/reset/confirm/ → auto-login. */
+    suspend fun confirmPasswordReset(key: String, newPassword: String): Result<UserProfile> =
+        autoLogin { api.confirmPasswordReset(PasswordResetConfirmBody(key, newPassword)) }
+
+    /** Shared: a token-pair call → persist access+refresh+remember → GET me/ → profile. */
+    private suspend inline fun autoLogin(
+        crossinline tokenCall: suspend () -> Result<TokenPair>,
+    ): Result<UserProfile> = tokenCall().mapCatching { pair ->
+        tokenStorage.setAccessToken(pair.access)
+        tokenStorage.setRefreshToken(pair.refresh)
+        tokenStorage.setRemember(true)
+        api.getMe().getOrThrow()
+    }.onFailure {
+        if (it is CancellationException) throw it
+        AppLogger.error(tag, "Auto-login failed: ${it.message}", it)
     }
 
     suspend fun getCurrentUser(): Result<UserProfile> = api.getMe()

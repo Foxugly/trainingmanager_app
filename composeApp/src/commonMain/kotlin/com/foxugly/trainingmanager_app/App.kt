@@ -17,12 +17,18 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.navigation.DeepLinkTarget
+import com.foxugly.trainingmanager_app.navigation.EmailConfirmRoute
 import com.foxugly.trainingmanager_app.navigation.HomeRoute
 import com.foxugly.trainingmanager_app.navigation.LoginRoute
 import com.foxugly.trainingmanager_app.navigation.MagicLinkExchangeRoute
 import com.foxugly.trainingmanager_app.navigation.MagicLinkRequestRoute
+import com.foxugly.trainingmanager_app.navigation.ResetPasswordRoute
 import com.foxugly.trainingmanager_app.navigation.StartupRoute
 import com.foxugly.trainingmanager_app.navigation.startupRoute
+import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmScreen
+import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmViewModel
+import com.foxugly.trainingmanager_app.ui.confirm.ResetPasswordScreen
+import com.foxugly.trainingmanager_app.ui.confirm.ResetPasswordViewModel
 import com.foxugly.trainingmanager_app.ui.home.HomePlaceholderScreen
 import com.foxugly.trainingmanager_app.ui.login.LoginScreen
 import com.foxugly.trainingmanager_app.ui.login.LoginViewModel
@@ -64,6 +70,14 @@ fun App(
                             navController.navigate(MagicLinkExchangeRoute(d.token)) { launchSingleTop = true }
                             onDeepLinkConsumed()
                         }
+                        is DeepLinkTarget.EmailConfirm -> {
+                            navController.navigate(EmailConfirmRoute(d.key)) { launchSingleTop = true }
+                            onDeepLinkConsumed()
+                        }
+                        is DeepLinkTarget.PasswordResetConfirm -> {
+                            navController.navigate(ResetPasswordRoute(d.key)) { launchSingleTop = true }
+                            onDeepLinkConsumed()
+                        }
                         null -> Unit
                     }
                 }
@@ -94,6 +108,46 @@ fun App(
                         MagicLinkExchangeScreen(
                             viewModel = vm,
                             token = args.token,
+                            onSuccess = {
+                                navController.navigate(HomeRoute) {
+                                    popUpTo<LoginRoute> { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            },
+                            onBackToLogin = {
+                                navController.navigate(LoginRoute) {
+                                    popUpTo(0) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            },
+                        )
+                    }
+                    composable<EmailConfirmRoute> { entry ->
+                        val args = entry.toRoute<EmailConfirmRoute>()
+                        val vm: EmailConfirmViewModel = koinInject()
+                        EmailConfirmScreen(
+                            viewModel = vm,
+                            key = args.key,
+                            onSuccess = {
+                                navController.navigate(HomeRoute) {
+                                    popUpTo<LoginRoute> { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            },
+                            onBackToLogin = {
+                                navController.navigate(LoginRoute) {
+                                    popUpTo(0) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            },
+                        )
+                    }
+                    composable<ResetPasswordRoute> { entry ->
+                        val args = entry.toRoute<ResetPasswordRoute>()
+                        val vm: ResetPasswordViewModel = koinInject()
+                        ResetPasswordScreen(
+                            viewModel = vm,
+                            key = args.key,
                             onSuccess = {
                                 navController.navigate(HomeRoute) {
                                     popUpTo<LoginRoute> { inclusive = true }

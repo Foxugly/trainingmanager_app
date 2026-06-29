@@ -13,3 +13,9 @@ object MagicLinkRequestRoute
 
 @Serializable
 data class MagicLinkExchangeRoute(val token: String)
+
+@Serializable
+data class EmailConfirmRoute(val key: String)
+
+@Serializable
+data class ResetPasswordRoute(val key: String)

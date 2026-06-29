@@ -30,4 +30,10 @@ class DeepLinkParseTest {
         assertNull(parseDeepLink("https://tm.foxugly.com/auth/magic-link/"))
 
     @Test fun nullForNullInput() = assertNull(parseDeepLink(null))
+
+    @Test fun parsesEmailConfirm() =
+        assertEquals(DeepLinkTarget.EmailConfirm("K1"), parseDeepLink("https://tm.foxugly.com/auth/confirm-email/K1"))
+
+    @Test fun parsesResetPassword() =
+        assertEquals(DeepLinkTarget.PasswordResetConfirm("uid-tok"), parseDeepLink("trainingmanager://app/auth/reset-password/uid-tok"))
 }
