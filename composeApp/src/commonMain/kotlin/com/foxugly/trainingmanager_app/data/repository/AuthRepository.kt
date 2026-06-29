@@ -91,6 +91,8 @@ class AuthRepository(
 
     suspend fun getCurrentUser(): Result<UserProfile> = api.getMe()
 
+    suspend fun getDashboard() = api.getDashboard()
+
     /** PATCH me/ — partial profile update. */
     suspend fun updateProfile(body: PatchMeBody): Result<UserProfile> = api.patchMe(body)
 

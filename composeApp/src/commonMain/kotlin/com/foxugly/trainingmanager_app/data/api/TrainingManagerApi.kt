@@ -156,6 +156,10 @@ class TrainingManagerApi(
         client.post("invitations/lookup/$token/") { setBody(request) }
     }
 
+    suspend fun getDashboard(): Result<DashboardSummary> = apiCall {
+        client.get("dashboard/summary/")
+    }
+
     // --- Helpers ---
     // Every authenticated request must go through [apiCall] so a recoverable
     // expired session transparently refreshes instead of hard-failing.
