@@ -1,19 +1,33 @@
 package com.foxugly.trainingmanager_app
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.mutableStateOf
 import com.foxugly.trainingmanager_app.data.storage.TokenStorage
 import com.foxugly.trainingmanager_app.data.storage.TokenStorageStore
 import com.foxugly.trainingmanager_app.di.appModule
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
+import com.foxugly.trainingmanager_app.navigation.DeepLinkTarget
+import com.foxugly.trainingmanager_app.navigation.parseDeepLink
 import org.koin.core.context.GlobalContext
 
 class MainActivity : ComponentActivity() {
+    // Pending deep link parsed from the launch / new intent (ACTION_VIEW URI).
+    private val deepLink = mutableStateOf<DeepLinkTarget?>(null)
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        parseDeepLink(intent.dataString)?.let { deepLink.value = it }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        deepLink.value = parseDeepLink(intent?.dataString)
 
         // Start Koin once for the process. The graph is prod-only: fixed base URL,
         // HTTP logging only in debug builds.
@@ -30,7 +44,12 @@ class MainActivity : ComponentActivity() {
             AppLogger.info(TAG, "Koin graph started")
         }
 
-        setContent { App() }
+        setContent {
+            App(
+                deepLink = deepLink.value,
+                onDeepLinkConsumed = { deepLink.value = null },
+            )
+        }
     }
 
     companion object {

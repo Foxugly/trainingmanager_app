@@ -17,6 +17,21 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Custom scheme: works immediately (no hosted assetlinks needed) — dev + fallback. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="trainingmanager"/>
+            </intent-filter>
+            <!-- HTTPS App Links. autoVerify requires /.well-known/assetlinks.json hosted on
+                 tm.foxugly.com with this app's release signing SHA-256 (OPS prerequisite). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="tm.foxugly.com" android:pathPrefix="/auth/magic-link/"/>
+            </intent-filter>
         </activity>
     </application>
 
