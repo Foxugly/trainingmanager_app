@@ -40,3 +40,9 @@ object TeamsListRoute
 
 @Serializable
 data class TeamDetailRoute(val id: Int)
+
+@Serializable
+data class TopicsListRoute(val teamId: Int)
+
+@Serializable
+data class TopicThreadRoute(val teamId: Int, val topicId: Int, val allowReplies: Boolean)
