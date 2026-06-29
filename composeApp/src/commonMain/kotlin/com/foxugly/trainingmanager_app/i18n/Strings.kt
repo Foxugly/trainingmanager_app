@@ -106,6 +106,23 @@ interface Strings {
     val dashboardLoadFailed: String
     val retry: String
     fun dashboardTeams(count: Int): String
+
+    // Events
+    val eventsTitle: String
+    val eventsEntry: String
+    val eventsEmpty: String
+    val eventsLoadFailed: String
+    val eventGoal: String
+    val eventDistance: String
+    val eventLocation: String
+    val eventProgram: String
+    val eventEquipment: String
+    val eventLoadFailed: String
+    val rsvpGoing: String
+    val rsvpMaybe: String
+    val rsvpNotGoing: String
+    val rsvpDisabled: String
+    val rsvpFailed: String
 }
 
 /** Native language display names (always shown in their own language, never translated). */
