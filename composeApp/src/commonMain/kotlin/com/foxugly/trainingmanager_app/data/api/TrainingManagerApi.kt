@@ -139,6 +139,14 @@ class TrainingManagerApi(
         client.post("auth/password/reset/confirm/") { setBody(request) }
     }
 
+    suspend fun lookupInvitation(token: String): Result<ValidateInvitation> = apiCall {
+        client.get("invitations/lookup/$token/")
+    }
+
+    suspend fun completeInvitation(token: String, request: CompleteInvitationBody): Result<TokenPair> = apiCall {
+        client.post("invitations/lookup/$token/") { setBody(request) }
+    }
+
     // --- Helpers ---
     // Every authenticated request must go through [apiCall] so a recoverable
     // expired session transparently refreshes instead of hard-failing.

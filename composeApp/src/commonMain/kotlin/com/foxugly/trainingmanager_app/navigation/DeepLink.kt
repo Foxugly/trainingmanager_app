@@ -5,6 +5,7 @@ sealed interface DeepLinkTarget {
     data class MagicLinkExchange(val token: String) : DeepLinkTarget
     data class EmailConfirm(val key: String) : DeepLinkTarget
     data class PasswordResetConfirm(val key: String) : DeepLinkTarget
+    data class Invitation(val token: String) : DeepLinkTarget
 }
 
 /**
@@ -18,6 +19,7 @@ fun parseDeepLink(uri: String?): DeepLinkTarget? {
     extract(uri, "/auth/magic-link/")?.let { return DeepLinkTarget.MagicLinkExchange(it) }
     extract(uri, "/auth/confirm-email/")?.let { return DeepLinkTarget.EmailConfirm(it) }
     extract(uri, "/auth/reset-password/")?.let { return DeepLinkTarget.PasswordResetConfirm(it) }
+    extract(uri, "/invitation/")?.let { return DeepLinkTarget.Invitation(it) }
     return null
 }
 

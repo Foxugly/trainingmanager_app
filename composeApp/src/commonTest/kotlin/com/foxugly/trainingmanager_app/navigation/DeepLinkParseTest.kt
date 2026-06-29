@@ -36,4 +36,7 @@ class DeepLinkParseTest {
 
     @Test fun parsesResetPassword() =
         assertEquals(DeepLinkTarget.PasswordResetConfirm("uid-tok"), parseDeepLink("trainingmanager://app/auth/reset-password/uid-tok"))
+
+    @Test fun parsesInvitation() =
+        assertEquals(DeepLinkTarget.Invitation("TKN"), parseDeepLink("https://tm.foxugly.com/invitation/TKN"))
 }
