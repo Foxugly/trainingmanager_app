@@ -18,7 +18,11 @@ import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import kotlinx.coroutines.launch
 
 @Composable
-fun HomePlaceholderScreen(authRepository: AuthRepository, onLoggedOut: () -> Unit) {
+fun HomePlaceholderScreen(
+    authRepository: AuthRepository,
+    onProfile: () -> Unit,
+    onLoggedOut: () -> Unit,
+) {
     val scope = rememberCoroutineScope()
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -29,6 +33,8 @@ fun HomePlaceholderScreen(authRepository: AuthRepository, onLoggedOut: () -> Uni
         Spacer(Modifier.height(8.dp))
         Text("Accueil (placeholder) — connecté", style = MaterialTheme.typography.bodyLarge)
         Spacer(Modifier.height(24.dp))
+        Button(onClick = onProfile) { Text("Profil") }
+        Spacer(Modifier.height(8.dp))
         Button(onClick = { scope.launch { authRepository.logout(); onLoggedOut() } }) {
             Text("Se déconnecter")
         }

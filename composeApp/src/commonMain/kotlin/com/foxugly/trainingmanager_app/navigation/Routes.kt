@@ -22,3 +22,9 @@ data class ResetPasswordRoute(val key: String)
 
 @Serializable
 data class InvitationRoute(val token: String)
+
+@Serializable
+object ProfileRoute
+
+@Serializable
+object ChangePasswordRoute

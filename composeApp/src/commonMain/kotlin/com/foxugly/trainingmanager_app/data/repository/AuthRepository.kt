@@ -4,6 +4,8 @@ import com.foxugly.trainingmanager_app.data.api.CompleteInvitationBody
 import com.foxugly.trainingmanager_app.data.api.EmailConfirmBody
 import com.foxugly.trainingmanager_app.data.api.MagicLinkExchangeBody
 import com.foxugly.trainingmanager_app.data.api.MagicLinkRequestBody
+import com.foxugly.trainingmanager_app.data.api.PasswordChangeBody
+import com.foxugly.trainingmanager_app.data.api.PatchMeBody
 import com.foxugly.trainingmanager_app.data.api.PasswordResetConfirmBody
 import com.foxugly.trainingmanager_app.data.api.RefreshRequest
 import com.foxugly.trainingmanager_app.data.api.TokenObtainRequest
@@ -88,6 +90,14 @@ class AuthRepository(
         autoLogin { api.completeInvitation(token, CompleteInvitationBody(password)) }
 
     suspend fun getCurrentUser(): Result<UserProfile> = api.getMe()
+
+    /** PATCH me/ — partial profile update. */
+    suspend fun updateProfile(body: PatchMeBody): Result<UserProfile> = api.patchMe(body)
+
+    /** POST auth/password/change/ — no logout; tokens stay valid. */
+    suspend fun changePassword(currentPassword: String, newPassword: String): Result<Unit> =
+        api.changePassword(PasswordChangeBody(currentPassword, newPassword))
+            .onFailure { if (it is CancellationException) throw it }
 
     fun isAuthenticated(): Boolean = tokenStorage.getAccessToken() != null
 
