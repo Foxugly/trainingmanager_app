@@ -1,6 +1,7 @@
 package com.foxugly.trainingmanager_app.ui.login
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.meJson
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.StringsFr
@@ -30,7 +31,7 @@ class LoginViewModelTest {
                 request.url.encodedPath.endsWith("auth/token/") ->
                     respond("""{"access":"acc","refresh":"ref"}""", HttpStatusCode.OK, jsonHeader)
                 request.url.encodedPath.endsWith("me/") ->
-                    respond("""{"id":1,"email":"a@b.co"}""", HttpStatusCode.OK, jsonHeader)
+                    respond(meJson(), HttpStatusCode.OK, jsonHeader)
                 else -> respond("", HttpStatusCode.NotFound)
             }
         }

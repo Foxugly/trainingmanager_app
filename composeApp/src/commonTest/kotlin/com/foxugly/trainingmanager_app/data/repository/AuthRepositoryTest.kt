@@ -1,6 +1,7 @@
 package com.foxugly.trainingmanager_app.data.repository
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.meJson
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -25,7 +26,7 @@ class AuthRepositoryTest {
                 request.url.encodedPath.endsWith("/auth/token/") ->
                     respond("""{"access":"acc","refresh":"ref"}""", HttpStatusCode.OK, jsonHeader)
                 request.url.encodedPath.endsWith("/me/") ->
-                    respond("""{"id":3,"email":"a@b.co","language":"fr"}""", HttpStatusCode.OK, jsonHeader)
+                    respond(meJson(id = 3), HttpStatusCode.OK, jsonHeader)
                 else -> respond("", HttpStatusCode.NotFound)
             }
         }

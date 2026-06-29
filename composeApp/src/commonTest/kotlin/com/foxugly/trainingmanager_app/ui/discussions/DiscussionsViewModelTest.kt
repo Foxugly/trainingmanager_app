@@ -1,6 +1,7 @@
 package com.foxugly.trainingmanager_app.ui.discussions
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.meJson
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.StringsFr
@@ -34,7 +35,7 @@ class DiscussionsViewModelTest {
         val engine = MockEngine { request ->
             when {
                 request.url.encodedPath.endsWith("me/") ->
-                    respond("""{"id":42,"email":"a@b.co"}""", HttpStatusCode.OK, jsonHeader)
+                    respond(meJson(id = 42), HttpStatusCode.OK, jsonHeader)
                 else ->
                     respond("""{"count":1,"results":[{"id":9,"content":"hi","author":{"id":42,"first_name":"A","last_name":"B"},"edited_at":null,"created_at":"x"}]}""", HttpStatusCode.OK, jsonHeader)
             }

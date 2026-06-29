@@ -1,6 +1,5 @@
 package com.foxugly.trainingmanager_app.data.api
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 // Minimal hand-written auth DTOs for S1a. The full API surface is generated from
@@ -35,17 +34,4 @@ data class RefreshResponse(
     // token and the user is ejected. Nullable so a non-rotating backend still
     // deserializes.
     val refresh: String? = null,
-)
-
-/** GET me/. */
-@Serializable
-data class UserProfile(
-    val id: Int,
-    val email: String,
-    @SerialName("email_confirmed") val emailConfirmed: Boolean? = null,
-    val language: String? = null,
-    @SerialName("first_name") val firstName: String? = null,
-    @SerialName("last_name") val lastName: String? = null,
-    @SerialName("weekly_recap_opt_in") val weeklyRecapOptIn: Boolean? = null,
-    @SerialName("digest_email") val digestEmail: Boolean? = null,
 )

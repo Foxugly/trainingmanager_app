@@ -1,6 +1,7 @@
 package com.foxugly.trainingmanager_app.ui.profile
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.meJson
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.StringsFr
@@ -22,7 +23,7 @@ class ProfileViewModelTest {
     }
 
     @Test fun loadFillsFields() = runTest {
-        val sut = vm(MockEngine { respond("""{"id":1,"email":"a@b.co","first_name":"Ann","last_name":"Lee","weekly_recap_opt_in":false,"digest_email":true}""", HttpStatusCode.OK, jsonHeader) })
+        val sut = vm(MockEngine { respond(meJson(email = "a@b.co", firstName = "Ann", lastName = "Lee", weeklyRecapOptIn = false, digestEmail = true), HttpStatusCode.OK, jsonHeader) })
         sut.load()
         assertEquals("a@b.co", sut.email)
         assertEquals("Ann", sut.firstName)
@@ -32,7 +33,7 @@ class ProfileViewModelTest {
     }
 
     @Test fun saveSuccessSetsSaved() = runTest {
-        val sut = vm(MockEngine { respond("""{"id":1,"email":"a@b.co"}""", HttpStatusCode.OK, jsonHeader) })
+        val sut = vm(MockEngine { respond(meJson(), HttpStatusCode.OK, jsonHeader) })
         sut.firstName = "Ann"
         sut.save()
         assertTrue(sut.saved)

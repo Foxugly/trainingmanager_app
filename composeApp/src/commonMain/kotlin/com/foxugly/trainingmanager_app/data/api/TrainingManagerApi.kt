@@ -1,5 +1,6 @@
 package com.foxugly.trainingmanager_app.data.api
 
+import com.foxugly.trainingmanager_app.api.generated.models.Me
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
 import com.foxugly.trainingmanager_app.i18n.LanguageProvider
@@ -101,11 +102,11 @@ class TrainingManagerApi(
         client.post("auth/token/refresh/") { setBody(request) }
     }
 
-    suspend fun getMe(): Result<UserProfile> = apiCall {
+    suspend fun getMe(): Result<Me> = apiCall {
         client.get("me/")
     }
 
-    suspend fun patchMe(body: PatchMeBody): Result<UserProfile> = apiCall {
+    suspend fun patchMe(body: PatchMeBody): Result<Me> = apiCall {
         client.patch("me/") { setBody(body) }
     }
 

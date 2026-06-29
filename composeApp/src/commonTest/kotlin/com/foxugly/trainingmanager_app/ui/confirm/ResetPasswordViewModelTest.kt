@@ -1,6 +1,7 @@
 package com.foxugly.trainingmanager_app.ui.confirm
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.meJson
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.StringsFr
@@ -24,7 +25,7 @@ class ResetPasswordViewModelTest {
     private fun okEngine() = MockEngine { request ->
         when {
             request.url.encodedPath.endsWith("reset/confirm/") -> respond("""{"access":"a","refresh":"r"}""", HttpStatusCode.OK, jsonHeader)
-            else -> respond("""{"id":1,"email":"a@b.co"}""", HttpStatusCode.OK, jsonHeader)
+            else -> respond(meJson(), HttpStatusCode.OK, jsonHeader)
         }
     }
 
