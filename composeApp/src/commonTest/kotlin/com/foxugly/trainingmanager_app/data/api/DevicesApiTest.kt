@@ -1,6 +1,9 @@
 package com.foxugly.trainingmanager_app.data.api
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.api.generated.models.DeviceRegisterRequest
+import com.foxugly.trainingmanager_app.api.generated.models.DeviceUnregisterRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PlatformEnum
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
@@ -17,11 +20,11 @@ class DevicesApiTest {
 
     @Test fun registerSucceeds() = runTest {
         val api = api(MockEngine { respond("""{"id":1,"created":true}""", HttpStatusCode.Created, jsonHeader) })
-        assertTrue(api.registerDevice(DeviceRegisterBody("a".repeat(40), "android", "Pixel")).isSuccess)
+        assertTrue(api.registerDevice(DeviceRegisterRequest("a".repeat(40), PlatformEnum.ANDROID, "Pixel")).isSuccess)
     }
 
     @Test fun unregisterSucceedsOn204() = runTest {
         val api = api(MockEngine { respond("", HttpStatusCode.NoContent) })
-        assertTrue(api.unregisterDevice(DeviceUnregisterBody("a".repeat(40))).isSuccess)
+        assertTrue(api.unregisterDevice(DeviceUnregisterRequest("a".repeat(40))).isSuccess)
     }
 }

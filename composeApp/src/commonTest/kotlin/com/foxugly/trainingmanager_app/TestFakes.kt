@@ -56,3 +56,25 @@ internal fun meJson(
     }
     return fields.joinToString(prefix = "{", postfix = "}")
 }
+
+/**
+ * Complete `GET /notifications/` list-item JSON for the generated
+ * [com.foxugly.trainingmanager_app.api.generated.models.Notification] model. Every field
+ * (`id`, `type`, `title`, `body`, `url`, `is_read`, `created_at`) is `@Required`, and `type`
+ * is now an enum: its value MUST be one of the wire serial names (e.g. `message_new_topic`),
+ * not the Kotlin entry name — kotlinx.serialization throws on an unknown value at decode.
+ */
+internal fun notificationJson(
+    id: Int = 7,
+    type: String = "message_new_topic",
+    title: String = "T",
+    body: String = "B",
+    url: String = "/teams/3",
+    isRead: Boolean = false,
+    createdAt: String = "2026-06-01T10:00:00Z",
+): String =
+    """{"id":$id,"type":"$type","title":"$title","body":"$body","url":"$url","is_read":$isRead,"created_at":"$createdAt"}"""
+
+/** A full `PaginatedNotificationList` JSON wrapping the given item JSON strings. */
+internal fun notificationListJson(vararg items: String): String =
+    """{"count":${items.size},"results":[${items.joinToString(",")}]}"""

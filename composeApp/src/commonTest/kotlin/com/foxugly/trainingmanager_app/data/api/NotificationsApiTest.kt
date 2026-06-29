@@ -1,6 +1,8 @@
 package com.foxugly.trainingmanager_app.data.api
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.notificationJson
+import com.foxugly.trainingmanager_app.notificationListJson
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
@@ -17,7 +19,9 @@ class NotificationsApiTest {
         TrainingManagerApi(FakeTokenStore(access = "tok"), baseUrl = "https://test/api/v1/", engine = engine)
 
     @Test fun listDecodes() = runTest {
-        val body = """{"count":1,"results":[{"id":7,"type":"MESSAGE_NEW_TOPIC","title":"Nouveau sujet","body":"…","url":"/teams/3","is_read":false,"created_at":"2026-06-01T10:00:00Z"}]}"""
+        val body = notificationListJson(
+            notificationJson(id = 7, type = "message_new_topic", title = "Nouveau sujet", body = "…", url = "/teams/3"),
+        )
         val api = api(MockEngine { respond(body, HttpStatusCode.OK, jsonHeader) })
         val list = api.listNotifications().getOrThrow()
         assertEquals("Nouveau sujet", list.results[0].title)

@@ -1,6 +1,9 @@
 package com.foxugly.trainingmanager_app.data.api
 
+import com.foxugly.trainingmanager_app.api.generated.models.DeviceRegisterRequest
+import com.foxugly.trainingmanager_app.api.generated.models.DeviceUnregisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Me
+import com.foxugly.trainingmanager_app.api.generated.models.PaginatedNotificationList
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
 import com.foxugly.trainingmanager_app.i18n.LanguageProvider
@@ -203,11 +206,11 @@ class TrainingManagerApi(
         client.get("members/")
     }
 
-    suspend fun registerDevice(body: DeviceRegisterBody): Result<Unit> = apiCall {
+    suspend fun registerDevice(body: DeviceRegisterRequest): Result<Unit> = apiCall {
         client.post("devices/register/") { setBody(body) }
     }
 
-    suspend fun unregisterDevice(body: DeviceUnregisterBody): Result<Unit> = apiCall {
+    suspend fun unregisterDevice(body: DeviceUnregisterRequest): Result<Unit> = apiCall {
         client.post("devices/unregister/") { setBody(body) }
     }
 
