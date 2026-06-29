@@ -70,6 +70,17 @@ git commit -m "chore: gitignore Firebase config files (google-services.json / pl
 
 ## Task 1 — OpenAPI models-only codegen pipeline
 
+> **DEFERRED out of S1b (decided 2026-06-29).** openapi-generator 7.21.0 `library=multiplatform`
+> emits broken Kotlin on this stack (Kotlin 2.3.21 / kotlinx-serialization 1.8.1): duplicate
+> `@Serializable` (fixed by dropping `serializationLibrary`), `kotlin.time.Instant` with no
+> serializer (fixed by `dateLibrary=string`), but also `java.math.BigDecimal`, free-form
+> `Any`/`Any?`, and a syntactically invalid `NullEnum` — the last two have no clean config fix
+> (would need per-build post-processing of generated files). The runnable skeleton needs **no**
+> generated model (login runs on S1a's hand-written DTOs), so codegen becomes its own dedicated
+> slice before S2, where the tool choice (post-processing vs another generator vs whitelist) is
+> resolved properly. The schema is vendored at `openapi/Training_Manager_API.yaml` for that work.
+> The steps below are kept for that future slice; they are **not executed in S1b**.
+
 **Files:**
 - Create: `openapi/Training_Manager_API.yaml` (copy of `D:\Projects\PycharmProjects\trainingmanager_server\openapi-schema.yaml`)
 - Modify: `gradle/libs.versions.toml`, `build.gradle.kts`, `composeApp/build.gradle.kts`
@@ -331,7 +342,7 @@ val PasswordHiddenIcon: ImageVector = ImageVector.Builder(
 
 - [ ] **Step 3: Verify it compiles**
 
-Run: `.\gradlew.bat :composeApp:compileDebugKotlinAndroid`
+Run: `.\gradlew.bat :composeApp:compileAndroidMain`
 Expected: `BUILD SUCCESSFUL`.
 
 - [ ] **Step 4: Commit**
@@ -739,7 +750,7 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit) {
 
 - [ ] **Step 2: Verify it compiles (Android target)**
 
-Run: `.\gradlew.bat :composeApp:compileDebugKotlinAndroid`
+Run: `.\gradlew.bat :composeApp:compileAndroidMain`
 Expected: `BUILD SUCCESSFUL`.
 
 - [ ] **Step 3: Commit**
@@ -805,7 +816,7 @@ fun HomePlaceholderScreen(authRepository: AuthRepository, onLoggedOut: () -> Uni
 
 - [ ] **Step 2: Verify it compiles**
 
-Run: `.\gradlew.bat :composeApp:compileDebugKotlinAndroid`
+Run: `.\gradlew.bat :composeApp:compileAndroidMain`
 Expected: `BUILD SUCCESSFUL`.
 
 - [ ] **Step 3: Commit**
