@@ -99,7 +99,7 @@ fun App(
         val resolved = startupRoute(hasRefresh, refreshed)
         // Initialize the UI language from the signed-in user's preference.
         if (resolved == StartupRoute.Authenticated) {
-            authRepository.getCurrentUser().getOrNull()?.language?.let { languageService.setActive(it) }
+            authRepository.getCurrentUser().getOrNull()?.language?.value?.let { languageService.setActive(it) }
             // Register this device's FCM token for push (best-effort; null on iOS until the SDK is wired).
             fcmTokenProvider.token()?.let { token ->
                 authRepository.registerDevice(token, fcmTokenProvider.platform)

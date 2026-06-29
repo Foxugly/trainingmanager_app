@@ -1,6 +1,7 @@
 package com.foxugly.trainingmanager_app.data.repository
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.meJson
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -26,7 +27,7 @@ class AuthRepositoryMagicLinkTest {
                 request.url.encodedPath.endsWith("magic-link/exchange/") ->
                     respond("""{"access":"acc","refresh":"ref"}""", HttpStatusCode.OK, jsonHeader)
                 request.url.encodedPath.endsWith("me/") ->
-                    respond("""{"id":9,"email":"a@b.co"}""", HttpStatusCode.OK, jsonHeader)
+                    respond(meJson(id = 9), HttpStatusCode.OK, jsonHeader)
                 else -> respond("", HttpStatusCode.NotFound)
             }
         }

@@ -1,6 +1,7 @@
 package com.foxugly.trainingmanager_app.data.api
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.meJson
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
@@ -17,10 +18,10 @@ class ProfileApiTest {
         TrainingManagerApi(FakeTokenStore(access = "tok"), baseUrl = "https://test/api/v1/", engine = engine)
 
     @Test fun patchMeDecodesUpdatedProfile() = runTest {
-        val api = api(MockEngine { respond("""{"id":1,"email":"a@b.co","first_name":"Ann","language":"nl"}""", HttpStatusCode.OK, jsonHeader) })
+        val api = api(MockEngine { respond(meJson(firstName = "Ann", language = "nl"), HttpStatusCode.OK, jsonHeader) })
         val p = api.patchMe(PatchMeBody(firstName = "Ann", language = "nl")).getOrThrow()
         assertEquals("Ann", p.firstName)
-        assertEquals("nl", p.language)
+        assertEquals("nl", p.language?.value)
     }
 
     @Test fun changePasswordSuccessOn200() = runTest {

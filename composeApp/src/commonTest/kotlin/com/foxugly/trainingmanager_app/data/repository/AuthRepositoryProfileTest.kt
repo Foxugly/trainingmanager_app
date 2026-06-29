@@ -1,6 +1,7 @@
 package com.foxugly.trainingmanager_app.data.repository
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.meJson
 import com.foxugly.trainingmanager_app.data.api.PatchMeBody
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import io.ktor.client.engine.mock.MockEngine
@@ -21,7 +22,7 @@ class AuthRepositoryProfileTest {
     }
 
     @Test fun updateProfileReturnsUpdatedProfile() = runTest {
-        val r = repo(MockEngine { respond("""{"id":1,"email":"a@b.co","last_name":"Lee"}""", HttpStatusCode.OK, jsonHeader) })
+        val r = repo(MockEngine { respond(meJson(lastName = "Lee"), HttpStatusCode.OK, jsonHeader) })
         assertEquals("Lee", r.updateProfile(PatchMeBody(lastName = "Lee")).getOrThrow().lastName)
     }
 

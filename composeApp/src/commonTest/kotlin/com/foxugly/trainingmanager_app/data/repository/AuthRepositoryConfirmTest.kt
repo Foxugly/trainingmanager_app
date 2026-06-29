@@ -1,6 +1,7 @@
 package com.foxugly.trainingmanager_app.data.repository
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.meJson
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -23,7 +24,7 @@ class AuthRepositoryConfirmTest {
         val engine = MockEngine { request ->
             when {
                 request.url.encodedPath.endsWith("email/confirm/") -> respond("""{"access":"a","refresh":"r"}""", HttpStatusCode.OK, jsonHeader)
-                else -> respond("""{"id":3,"email":"a@b.co"}""", HttpStatusCode.OK, jsonHeader)
+                else -> respond(meJson(id = 3), HttpStatusCode.OK, jsonHeader)
             }
         }
         val p = repo(store, engine).confirmEmail("k").getOrThrow()

@@ -1,6 +1,7 @@
 package com.foxugly.trainingmanager_app.i18n
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.meJson
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import io.ktor.client.engine.mock.MockEngine
@@ -32,7 +33,7 @@ class LanguageServiceTest {
     }
 
     @Test fun switchLanguageSuccessPersists() = runTest {
-        val (svc, _) = service(MockEngine { respond("""{"id":1,"email":"a@b.co","language":"nl"}""", HttpStatusCode.OK, jsonHeader) })
+        val (svc, _) = service(MockEngine { respond(meJson(language = "nl"), HttpStatusCode.OK, jsonHeader) })
         assertTrue(svc.switchLanguage("nl"))
         assertEquals("nl", svc.activeLang)
     }

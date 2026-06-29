@@ -27,14 +27,4 @@ class ModelsTest {
         val noRotation = json.decodeFromString<RefreshResponse>("""{"access":"x"}""")
         assertNull(noRotation.refresh)
     }
-
-    @Test
-    fun userProfileToleratesMissingOptionalFields() {
-        val me = json.decodeFromString<UserProfile>(
-            """{"id":7,"email":"a@b.co","email_confirmed":true,"language":"fr"}""",
-        )
-        assertEquals(7, me.id)
-        assertEquals("fr", me.language)
-        assertNull(me.firstName)
-    }
 }

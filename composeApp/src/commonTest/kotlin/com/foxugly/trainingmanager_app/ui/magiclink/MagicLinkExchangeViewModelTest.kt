@@ -1,6 +1,7 @@
 package com.foxugly.trainingmanager_app.ui.magiclink
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.meJson
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import io.ktor.client.engine.mock.MockEngine
@@ -25,7 +26,7 @@ class MagicLinkExchangeViewModelTest {
             when {
                 request.url.encodedPath.endsWith("magic-link/exchange/") ->
                     respond("""{"access":"a","refresh":"r"}""", HttpStatusCode.OK, jsonHeader)
-                else -> respond("""{"id":1,"email":"a@b.co"}""", HttpStatusCode.OK, jsonHeader)
+                else -> respond(meJson(), HttpStatusCode.OK, jsonHeader)
             }
         }
         val sut = vm(engine)

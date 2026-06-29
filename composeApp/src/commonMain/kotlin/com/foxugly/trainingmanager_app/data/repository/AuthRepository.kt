@@ -10,8 +10,8 @@ import com.foxugly.trainingmanager_app.data.api.PasswordResetConfirmBody
 import com.foxugly.trainingmanager_app.data.api.RefreshRequest
 import com.foxugly.trainingmanager_app.data.api.TokenObtainRequest
 import com.foxugly.trainingmanager_app.data.api.TokenPair
+import com.foxugly.trainingmanager_app.api.generated.models.Me
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
-import com.foxugly.trainingmanager_app.data.api.UserProfile
 import com.foxugly.trainingmanager_app.data.api.ValidateInvitation
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
@@ -27,7 +27,7 @@ class AuthRepository(
     private val tag = "TM/AuthRepository"
 
     /** POST auth/token/ → store tokens + remember → GET me/ → profile. */
-    suspend fun login(email: String, password: String, remember: Boolean): Result<UserProfile> {
+    suspend fun login(email: String, password: String, remember: Boolean): Result<Me> {
         // Don't log the email — it's PII and would land in Logcat.
         AppLogger.info(tag, "Login requested (remember=$remember)")
         return api.login(TokenObtainRequest(email, password, remember)).mapCatching { pair ->
@@ -90,21 +90,21 @@ class AuthRepository(
         ).onFailure { if (it is CancellationException) throw it }
 
     /** POST auth/magic-link/exchange/ → auto-login. */
-    suspend fun exchangeMagicLink(token: String): Result<UserProfile> =
+    suspend fun exchangeMagicLink(token: String): Result<Me> =
         autoLogin { api.magicLinkExchange(MagicLinkExchangeBody(token)) }
 
     /** POST auth/email/confirm/ → auto-login. */
-    suspend fun confirmEmail(key: String): Result<UserProfile> =
+    suspend fun confirmEmail(key: String): Result<Me> =
         autoLogin { api.confirmEmail(EmailConfirmBody(key)) }
 
     /** POST auth/password/reset/confirm/ → auto-login. */
-    suspend fun confirmPasswordReset(key: String, newPassword: String): Result<UserProfile> =
+    suspend fun confirmPasswordReset(key: String, newPassword: String): Result<Me> =
         autoLogin { api.confirmPasswordReset(PasswordResetConfirmBody(key, newPassword)) }
 
     /** Shared: a token-pair call → persist access+refresh+remember → GET me/ → profile. */
     private suspend inline fun autoLogin(
         crossinline tokenCall: suspend () -> Result<TokenPair>,
-    ): Result<UserProfile> = tokenCall().mapCatching { pair ->
+    ): Result<Me> = tokenCall().mapCatching { pair ->
         tokenStorage.setAccessToken(pair.access)
         tokenStorage.setRefreshToken(pair.refresh)
         tokenStorage.setRemember(true)
@@ -117,10 +117,10 @@ class AuthRepository(
     suspend fun lookupInvitation(token: String): Result<ValidateInvitation> = api.lookupInvitation(token)
 
     /** POST invitations/lookup/{token}/ → create account + join + auto-login. */
-    suspend fun acceptInvitation(token: String, password: String): Result<UserProfile> =
+    suspend fun acceptInvitation(token: String, password: String): Result<Me> =
         autoLogin { api.completeInvitation(token, CompleteInvitationBody(password)) }
 
-    suspend fun getCurrentUser(): Result<UserProfile> = api.getMe()
+    suspend fun getCurrentUser(): Result<Me> = api.getMe()
 
     suspend fun getDashboard() = api.getDashboard()
 
@@ -167,7 +167,7 @@ class AuthRepository(
         api.deleteMessage(teamId, topicId, messageId)
 
     /** PATCH me/ — partial profile update. */
-    suspend fun updateProfile(body: PatchMeBody): Result<UserProfile> = api.patchMe(body)
+    suspend fun updateProfile(body: PatchMeBody): Result<Me> = api.patchMe(body)
 
     /** POST auth/password/change/ — no logout; tokens stay valid. */
     suspend fun changePassword(currentPassword: String, newPassword: String): Result<Unit> =
