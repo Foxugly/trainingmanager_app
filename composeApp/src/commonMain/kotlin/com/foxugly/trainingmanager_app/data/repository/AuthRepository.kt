@@ -58,6 +58,27 @@ class AuthRepository(
             .onFailure { if (it is CancellationException) throw it }
     }
 
+    /** POST auth/register/ — self-signup with a Turnstile captcha token. */
+    suspend fun register(
+        firstName: String,
+        lastName: String,
+        email: String,
+        password: String,
+        language: String,
+        turnstileToken: String,
+    ): Result<Unit> =
+        api.register(
+            com.foxugly.trainingmanager_app.data.api.RegisterBody(
+                firstName.trim(), lastName.trim(), email.trim(), password, language, turnstileToken,
+            ),
+        ).onFailure { if (it is CancellationException) throw it }
+
+    /** POST auth/password/reset/ — always-200; carries the captcha token. */
+    suspend fun requestPasswordReset(email: String, turnstileToken: String): Result<Unit> =
+        api.requestPasswordReset(
+            com.foxugly.trainingmanager_app.data.api.PasswordResetRequestBody(email.trim(), turnstileToken),
+        ).onFailure { if (it is CancellationException) throw it }
+
     /** POST auth/magic-link/exchange/ → auto-login. */
     suspend fun exchangeMagicLink(token: String): Result<UserProfile> =
         autoLogin { api.magicLinkExchange(MagicLinkExchangeBody(token)) }

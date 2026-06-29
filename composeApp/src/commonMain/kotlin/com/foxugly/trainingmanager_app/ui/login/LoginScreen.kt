@@ -34,7 +34,13 @@ import com.foxugly.trainingmanager_app.ui.components.PasswordVisibleIcon
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit, onMagicLink: () -> Unit) {
+fun LoginScreen(
+    viewModel: LoginViewModel,
+    onLoginSuccess: () -> Unit,
+    onMagicLink: () -> Unit,
+    onCreateAccount: () -> Unit,
+    onForgotPassword: () -> Unit,
+) {
     val scope = rememberCoroutineScope()
     val s = LocalStrings.current
     Column(
@@ -105,6 +111,12 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: () -> Unit, onMagicLi
         Spacer(Modifier.height(8.dp))
         TextButton(onClick = onMagicLink, modifier = Modifier.fillMaxWidth()) {
             Text(s.signInByEmailLink)
+        }
+        TextButton(onClick = onForgotPassword, modifier = Modifier.fillMaxWidth()) {
+            Text(s.forgotPasswordLink)
+        }
+        TextButton(onClick = onCreateAccount, modifier = Modifier.fillMaxWidth()) {
+            Text(s.createAccount)
         }
     }
 }

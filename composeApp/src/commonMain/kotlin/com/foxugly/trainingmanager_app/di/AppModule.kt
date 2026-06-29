@@ -62,4 +62,6 @@ fun appModule(
     factory { TopicsListViewModel(get(), get<LanguageService>().strings) }
     factory { TopicThreadViewModel(get(), get<LanguageService>().strings) }
     factory { NotificationsViewModel(get(), get<LanguageService>().strings) }
+    factory { com.foxugly.trainingmanager_app.ui.register.RegisterViewModel(get(), get<LanguageService>().activeLang, get<LanguageService>().strings) }
+    factory { com.foxugly.trainingmanager_app.ui.forgot.ForgotPasswordViewModel(get(), get<LanguageService>().strings) }
 }

@@ -49,3 +49,9 @@ data class TopicThreadRoute(val teamId: Int, val topicId: Int, val allowReplies:
 
 @Serializable
 object NotificationsRoute
+
+@Serializable
+object RegisterRoute
+
+@Serializable
+object ForgotPasswordRoute
