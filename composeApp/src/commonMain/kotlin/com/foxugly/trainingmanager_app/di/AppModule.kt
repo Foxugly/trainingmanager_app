@@ -4,6 +4,7 @@ import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.i18n.LanguageProvider
+import com.foxugly.trainingmanager_app.ui.login.LoginViewModel
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -22,4 +23,5 @@ fun appModule(
     single { LanguageProvider() }
     single { TrainingManagerApi(get(), apiBaseUrl, enableHttpLogging, get()) }
     single { AuthRepository(get(), get()) }
+    factory { LoginViewModel(get()) }
 }
