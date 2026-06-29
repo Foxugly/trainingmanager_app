@@ -1,11 +1,16 @@
 package com.foxugly.trainingmanager_app
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.content.ContextCompat
 import com.foxugly.trainingmanager_app.data.storage.TokenStorage
 import com.foxugly.trainingmanager_app.data.storage.TokenStorageStore
 import com.foxugly.trainingmanager_app.di.appModule
@@ -19,10 +24,17 @@ class MainActivity : ComponentActivity() {
     // Pending deep link parsed from the launch / new intent (ACTION_VIEW URI).
     private val deepLink = mutableStateOf<DeepLinkTarget?>(null)
 
+    // Pending push-notification url (e.g. "/teams/3") from a tapped FCM notification.
+    private val notificationUrl = mutableStateOf<String?>(null)
+
+    private val requestNotificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* best-effort */ }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         parseDeepLink(intent.dataString)?.let { deepLink.value = it }
+        intent.getStringExtra(TMFirebaseMessagingService.EXTRA_NOTIF_URL)?.let { notificationUrl.value = it }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,6 +42,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         AppContextHolder.context = applicationContext
         deepLink.value = parseDeepLink(intent?.dataString)
+        notificationUrl.value = intent?.getStringExtra(TMFirebaseMessagingService.EXTRA_NOTIF_URL)
+        maybeRequestNotificationPermission()
 
         // Start Koin once for the process. The graph is prod-only: fixed base URL,
         // HTTP logging only in debug builds.
@@ -50,8 +64,17 @@ class MainActivity : ComponentActivity() {
             App(
                 deepLink = deepLink.value,
                 onDeepLinkConsumed = { deepLink.value = null },
+                notificationUrl = notificationUrl.value,
+                onNotificationConsumed = { notificationUrl.value = null },
             )
         }
+    }
+
+    private fun maybeRequestNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val granted = ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+        if (!granted) requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
     companion object {
