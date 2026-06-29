@@ -1,0 +1,217 @@
+package com.foxugly.trainingmanager_app.data.api
+
+import com.foxugly.trainingmanager_app.data.storage.TokenStore
+import com.foxugly.trainingmanager_app.diagnostics.AppLogger
+import com.foxugly.trainingmanager_app.i18n.LanguageProvider
+import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.network.sockets.SocketTimeoutException
+import io.ktor.client.plugins.HttpRequestTimeoutException
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.request
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.utils.io.errors.IOException
+import kotlinx.coroutines.CancellationException
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+
+class TrainingManagerApi(
+    private val tokenStorage: TokenStore,
+    baseUrl: String = "https://tm-api.foxugly.com/api/v1/",
+    enableLogging: Boolean = false,
+    languageProvider: LanguageProvider = LanguageProvider(),
+    // Tests inject a MockEngine here; production passes null (default engine).
+    engine: HttpClientEngine? = null,
+) : AutoCloseable {
+    private val tag = "TM/Api"
+
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+        // Omit null properties on encode so we never send `"field": null` to DRF.
+        explicitNulls = false
+    }
+
+    private val authInterceptor = AuthInterceptor(tokenStorage)
+    private val languageInterceptor = LanguageInterceptor(languageProvider)
+
+    private val clientConfig: HttpClientConfig<*>.() -> Unit = {
+        install(ContentNegotiation) {
+            json(this@TrainingManagerApi.json)
+        }
+        defaultRequest {
+            url(baseUrl)
+            contentType(ContentType.Application.Json)
+        }
+        install(HttpTimeout) {
+            requestTimeoutMillis = 30_000
+            connectTimeoutMillis = 15_000
+            socketTimeoutMillis = 30_000
+        }
+        install(Logging) {
+            logger = object : Logger {
+                override fun log(message: String) {
+                    AppLogger.debug(tag, message)
+                }
+            }
+            level = if (enableLogging) LogLevel.INFO else LogLevel.NONE
+            sanitizeHeader { header -> header == HttpHeaders.Authorization }
+        }
+        install(authInterceptor.plugin)
+        install(languageInterceptor.plugin)
+    }
+
+    private val client = if (engine != null) HttpClient(engine, clientConfig) else HttpClient(clientConfig)
+
+    override fun close() {
+        client.close()
+    }
+
+    var onAuthFailure: (() -> Unit)?
+        get() = authInterceptor.onAuthFailure
+        set(value) { authInterceptor.onAuthFailure = value }
+
+    // --- Auth ---
+    suspend fun login(request: TokenObtainRequest): Result<TokenPair> = apiCall {
+        client.post("auth/token/") { setBody(request) }
+    }
+
+    suspend fun refresh(request: RefreshRequest): Result<RefreshResponse> = apiCall {
+        client.post("auth/token/refresh/") { setBody(request) }
+    }
+
+    suspend fun getMe(): Result<UserProfile> = apiCall {
+        client.get("me/")
+    }
+
+    suspend fun logout(refreshToken: String): Result<Unit> = runCatching {
+        val response = client.post("auth/logout/") { setBody(RefreshRequest(refreshToken)) }
+        logResponse("logout", response)
+        // A 401 here means the session is already gone server-side; we're tearing
+        // it down anyway, so don't turn logout into a scary error. Other non-2xx
+        // (5xx) still surface.
+        if (!response.status.isSuccess() && response.status != HttpStatusCode.Unauthorized) {
+            throw response.toApiException("logout")
+        }
+    }.onFailure { if (it is CancellationException) throw it }
+
+    // Thin stub — a real register DTO comes from OpenAPI codegen in a later plan.
+    suspend fun register(body: Map<String, String?>): Result<Unit> = apiCall {
+        client.post("auth/register/") {
+            setBody(buildJsonObject {
+                body.forEach { (k, v) -> if (v != null) put(k, v) }
+            })
+        }
+    }
+
+    // --- Helpers ---
+    // Every authenticated request must go through [apiCall] so a recoverable
+    // expired session transparently refreshes instead of hard-failing.
+    private suspend inline fun <reified T> apiCall(
+        crossinline block: suspend () -> HttpResponse,
+    ): Result<T> = runCatching<T> {
+        val name = T::class.simpleName ?: "unknown"
+        // Token on the request we're about to make — passed to the refresh guard
+        // so concurrent 401s don't each re-POST auth/token/refresh/.
+        val staleAccessToken = tokenStorage.getAccessToken()
+        val response = block()
+        logResponse(name, response)
+        if (response.status == HttpStatusCode.Unauthorized) {
+            AppLogger.warn(tag, "Unauthorized response received, attempting token refresh")
+            if (!authInterceptor.refreshIfNeeded(client, staleAccessToken)) {
+                throw response.toApiException("auth $name")
+            }
+            // Replay the ORIGINAL request: same verb + body, fresh token attached
+            // by the AuthInterceptor's onRequest.
+            val retried = block()
+            logResponse("retry $name", retried)
+            if (!retried.status.isSuccess()) {
+                throw retried.toApiException("retry $name")
+            }
+            retried.decodeBody<T>(name, json)
+        } else {
+            if (!response.status.isSuccess()) {
+                throw response.toApiException(name)
+            }
+            response.decodeBody<T>(name, json)
+        }
+    }.onFailure { if (it is CancellationException) throw it }
+    .recoverCatching { throwable ->
+        // Surface transport failures as NetworkException so the UI can tell
+        // "offline / timed out" apart from an HTTP or decoding error.
+        throw when (throwable) {
+            is HttpRequestTimeoutException,
+            is ConnectTimeoutException,
+            is SocketTimeoutException ->
+                NetworkException(NetworkErrorKind.TIMEOUT, "The request timed out.", throwable)
+            is IOException ->
+                NetworkException(NetworkErrorKind.OFFLINE, "Could not reach the server.", throwable)
+            else -> throwable
+        }
+    }.onFailure { e ->
+        if (e is CancellationException) throw e
+        // Log only safe, non-secret detail — never the raw response body or message
+        // (ResponseDecodingException / ApiException embed up to 500 chars of body).
+        val detail = when (e) {
+            is ApiException -> "ApiException status=${e.statusCode}"
+            is ResponseDecodingException -> "ResponseDecodingException status=${e.statusCode}"
+            is NetworkException -> "NetworkException kind=${e.kind}"
+            else -> e::class.simpleName ?: "error"
+        }
+        AppLogger.error(tag, "API call failed: $detail")
+    }
+
+    private fun logResponse(operation: String, response: HttpResponse) {
+        AppLogger.info(
+            tag,
+            "$operation ${response.request.method.value} ${response.request.url.encodedPath} -> ${response.status.value}",
+        )
+    }
+
+    private suspend fun HttpResponse.toApiException(operation: String): ApiException {
+        val errorBody = runCatching { bodyAsText() }.getOrElse { if (it is CancellationException) throw it else "" }
+        return ApiException(
+            statusCode = status.value,
+            operation = operation,
+            responseBody = errorBody.take(500),
+        )
+    }
+}
+
+private suspend inline fun <reified T> HttpResponse.decodeBody(operation: String, json: Json): T {
+    val rawBody = bodyAsText()
+    // A 204 / empty body for a Unit-returning call is success, not a decode error.
+    if (rawBody.isBlank() && T::class == Unit::class) {
+        @Suppress("UNCHECKED_CAST")
+        return Unit as T
+    }
+    return try {
+        json.decodeFromString<T>(rawBody)
+    } catch (cause: SerializationException) {
+        throw ResponseDecodingException(
+            operation = operation,
+            statusCode = status.value,
+            responseBody = rawBody.take(500),
+            cause = cause,
+        )
+    }
+}

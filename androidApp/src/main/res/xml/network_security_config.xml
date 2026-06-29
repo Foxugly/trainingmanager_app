@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Prod-only: the app talks exclusively to https://tm-api.foxugly.com.
+         No cleartext traffic is permitted (there is no local/dev backend). -->
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
