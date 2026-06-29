@@ -10,7 +10,10 @@ import com.foxugly.trainingmanager_app.data.api.PasswordResetConfirmBody
 import com.foxugly.trainingmanager_app.data.api.RefreshRequest
 import com.foxugly.trainingmanager_app.data.api.TokenObtainRequest
 import com.foxugly.trainingmanager_app.data.api.TokenPair
+import com.foxugly.trainingmanager_app.api.generated.models.DeviceRegisterRequest
+import com.foxugly.trainingmanager_app.api.generated.models.DeviceUnregisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Me
+import com.foxugly.trainingmanager_app.api.generated.models.PlatformEnum
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.api.ValidateInvitation
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
@@ -47,7 +50,7 @@ class AuthRepository(
         // so the logged-out user stops receiving pushes here. Best-effort.
         runCatching { fcmTokenProvider() }.getOrNull()?.let { token ->
             api.unregisterDevice(
-                com.foxugly.trainingmanager_app.data.api.DeviceUnregisterBody(token),
+                DeviceUnregisterRequest(token),
             ).onFailure { if (it is CancellationException) throw it }
         }
         val refreshToken = tokenStorage.getRefreshToken()
@@ -145,10 +148,19 @@ class AuthRepository(
     suspend fun listMembers() = api.listMembers()
 
     suspend fun registerDevice(pushToken: String, platform: String, deviceName: String = "") =
-        api.registerDevice(com.foxugly.trainingmanager_app.data.api.DeviceRegisterBody(pushToken, platform, deviceName))
+        api.registerDevice(
+            DeviceRegisterRequest(
+                pushToken = pushToken,
+                // The generated request models the platform as an enum; the FCM provider
+                // hands us the wire value ("android"/"ios"), so decode it back.
+                platform = PlatformEnum.decode(platform)
+                    ?: throw IllegalArgumentException("Unsupported device platform: $platform"),
+                deviceName = deviceName,
+            ),
+        )
 
     suspend fun unregisterDevice(pushToken: String) =
-        api.unregisterDevice(com.foxugly.trainingmanager_app.data.api.DeviceUnregisterBody(pushToken))
+        api.unregisterDevice(DeviceUnregisterRequest(pushToken))
 
     suspend fun listNotifications() = api.listNotifications()
 

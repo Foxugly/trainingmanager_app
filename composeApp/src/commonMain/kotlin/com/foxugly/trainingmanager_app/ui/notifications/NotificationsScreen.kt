@@ -23,7 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.foxugly.trainingmanager_app.data.api.Notification
+import com.foxugly.trainingmanager_app.api.generated.models.Notification
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import kotlinx.coroutines.launch
 
@@ -73,6 +73,6 @@ private fun NotificationRow(notif: Notification, onClick: () -> Unit) {
             fontWeight = if (notif.isRead) FontWeight.Normal else FontWeight.Bold,
         )
         if (notif.body.isNotBlank()) Text(notif.body, style = MaterialTheme.typography.bodyMedium)
-        notif.createdAt?.let { Text(it, style = MaterialTheme.typography.labelSmall) }
+        if (notif.createdAt.isNotBlank()) Text(notif.createdAt, style = MaterialTheme.typography.labelSmall)
     }
 }
