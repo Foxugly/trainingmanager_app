@@ -29,6 +29,7 @@ import com.foxugly.trainingmanager_app.navigation.ChangePasswordRoute
 import com.foxugly.trainingmanager_app.navigation.LoginRoute
 import com.foxugly.trainingmanager_app.navigation.MagicLinkExchangeRoute
 import com.foxugly.trainingmanager_app.navigation.MagicLinkRequestRoute
+import com.foxugly.trainingmanager_app.navigation.NotificationsRoute
 import com.foxugly.trainingmanager_app.navigation.ProfileRoute
 import com.foxugly.trainingmanager_app.navigation.ResetPasswordRoute
 import com.foxugly.trainingmanager_app.navigation.StartupRoute
@@ -51,6 +52,9 @@ import com.foxugly.trainingmanager_app.ui.invitation.InvitationScreen
 import com.foxugly.trainingmanager_app.ui.invitation.InvitationViewModel
 import com.foxugly.trainingmanager_app.ui.login.LoginScreen
 import com.foxugly.trainingmanager_app.ui.login.LoginViewModel
+import com.foxugly.trainingmanager_app.ui.notifications.NotificationTarget
+import com.foxugly.trainingmanager_app.ui.notifications.NotificationsScreen
+import com.foxugly.trainingmanager_app.ui.notifications.NotificationsViewModel
 import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkExchangeScreen
 import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkExchangeViewModel
 import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkRequestScreen
@@ -231,6 +235,7 @@ fun App(
                             authRepository = authRepository,
                             onEvents = { navController.navigate(EventsListRoute) { launchSingleTop = true } },
                             onTeams = { navController.navigate(TeamsListRoute) { launchSingleTop = true } },
+                            onNotifications = { navController.navigate(NotificationsRoute) { launchSingleTop = true } },
                             onProfile = { navController.navigate(ProfileRoute) { launchSingleTop = true } },
                             onLoggedOut = {
                                 navController.navigate(LoginRoute) {
@@ -295,6 +300,19 @@ fun App(
                             teamId = args.teamId,
                             topicId = args.topicId,
                             allowReplies = args.allowReplies,
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<NotificationsRoute> {
+                        val vm: NotificationsViewModel = koinInject()
+                        NotificationsScreen(
+                            viewModel = vm,
+                            onOpen = { target ->
+                                when (target) {
+                                    is NotificationTarget.Event -> navController.navigate(EventDetailRoute(target.id)) { launchSingleTop = true }
+                                    is NotificationTarget.Team -> navController.navigate(TeamDetailRoute(target.id)) { launchSingleTop = true }
+                                }
+                            },
                             onBack = { navController.popBackStack() },
                         )
                     }

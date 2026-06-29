@@ -46,3 +46,6 @@ data class TopicsListRoute(val teamId: Int)
 
 @Serializable
 data class TopicThreadRoute(val teamId: Int, val topicId: Int, val allowReplies: Boolean)
+
+@Serializable
+object NotificationsRoute

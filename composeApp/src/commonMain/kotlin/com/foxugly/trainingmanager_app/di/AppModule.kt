@@ -10,6 +10,7 @@ import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmViewModel
 import com.foxugly.trainingmanager_app.ui.dashboard.DashboardViewModel
 import com.foxugly.trainingmanager_app.ui.events.EventDetailViewModel
 import com.foxugly.trainingmanager_app.ui.events.EventsListViewModel
+import com.foxugly.trainingmanager_app.ui.notifications.NotificationsViewModel
 import com.foxugly.trainingmanager_app.ui.discussions.TopicThreadViewModel
 import com.foxugly.trainingmanager_app.ui.discussions.TopicsListViewModel
 import com.foxugly.trainingmanager_app.ui.teams.TeamDetailViewModel
@@ -58,4 +59,5 @@ fun appModule(
     factory { TeamDetailViewModel(get(), get<LanguageService>().strings) }
     factory { TopicsListViewModel(get(), get<LanguageService>().strings) }
     factory { TopicThreadViewModel(get(), get<LanguageService>().strings) }
+    factory { NotificationsViewModel(get(), get<LanguageService>().strings) }
 }

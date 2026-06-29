@@ -205,6 +205,18 @@ class TrainingManagerApi(
         client.get("members/")
     }
 
+    suspend fun listNotifications(): Result<PaginatedNotificationList> = apiCall {
+        client.get("notifications/")
+    }
+
+    suspend fun markNotificationRead(id: Int): Result<Unit> = apiCall {
+        client.post("notifications/$id/read/")
+    }
+
+    suspend fun markAllNotificationsRead(): Result<Unit> = apiCall {
+        client.post("notifications/read_all/")
+    }
+
     suspend fun listTopics(teamId: Int): Result<PaginatedTopicList> = apiCall {
         client.get("teams/$teamId/topics/")
     }

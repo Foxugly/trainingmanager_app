@@ -35,6 +35,7 @@ fun DashboardScreen(
     authRepository: AuthRepository,
     onEvents: () -> Unit,
     onTeams: () -> Unit,
+    onNotifications: () -> Unit,
     onProfile: () -> Unit,
     onLoggedOut: () -> Unit,
 ) {
@@ -47,6 +48,7 @@ fun DashboardScreen(
             Text(s.dashboardTitle, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
             TextButton(onClick = onEvents) { Text(s.eventsEntry) }
             TextButton(onClick = onTeams) { Text(s.teamsEntry) }
+            TextButton(onClick = onNotifications) { Text(s.notificationsEntry) }
             TextButton(onClick = onProfile) { Text(s.profileTitle) }
             TextButton(onClick = { scope.launch { authRepository.logout(); onLoggedOut() } }) { Text(s.logout) }
         }
