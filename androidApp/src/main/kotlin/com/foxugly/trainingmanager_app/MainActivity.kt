@@ -12,6 +12,7 @@ import com.foxugly.trainingmanager_app.di.appModule
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
 import com.foxugly.trainingmanager_app.navigation.DeepLinkTarget
 import com.foxugly.trainingmanager_app.navigation.parseDeepLink
+import com.foxugly.trainingmanager_app.platform.AppContextHolder
 import org.koin.core.context.GlobalContext
 
 class MainActivity : ComponentActivity() {
@@ -27,6 +28,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        AppContextHolder.context = applicationContext
         deepLink.value = parseDeepLink(intent?.dataString)
 
         // Start Koin once for the process. The graph is prod-only: fixed base URL,

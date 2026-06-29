@@ -105,6 +105,10 @@ class AuthRepository(
     suspend fun setRoti(eventId: Int, score: Int) =
         api.setRoti(eventId, com.foxugly.trainingmanager_app.data.api.RotiUpsertRequest(score))
 
+    suspend fun listEventAttachments(eventId: Int) = api.listAttachments("event", eventId)
+
+    suspend fun attachmentDownloadUrl(id: Int) = api.attachmentDownloadUrl(id)
+
     /** PATCH me/ — partial profile update. */
     suspend fun updateProfile(body: PatchMeBody): Result<UserProfile> = api.patchMe(body)
 
