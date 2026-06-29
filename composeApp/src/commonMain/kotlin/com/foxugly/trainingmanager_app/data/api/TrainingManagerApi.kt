@@ -201,6 +201,10 @@ class TrainingManagerApi(
         client.get("teams/$id/")
     }
 
+    suspend fun listMembers(): Result<PaginatedMemberList> = apiCall {
+        client.get("members/")
+    }
+
     suspend fun listTopics(teamId: Int): Result<PaginatedTopicList> = apiCall {
         client.get("teams/$teamId/topics/")
     }

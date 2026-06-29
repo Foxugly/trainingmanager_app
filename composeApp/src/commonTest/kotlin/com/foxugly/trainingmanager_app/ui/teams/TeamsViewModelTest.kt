@@ -44,6 +44,21 @@ class TeamsViewModelTest {
         assertEquals(StringsFr.teamsLoadFailed, vm.error)
     }
 
+    @Test fun detailLoadsRosterFilteredByTeam() = runTest {
+        val engine = MockEngine { request ->
+            when {
+                request.url.encodedPath.endsWith("members/") ->
+                    respond("""{"count":2,"results":[{"id":1,"firstname":"A","lastname":"X","fullname":"A X","teams":[3]},{"id":2,"firstname":"B","lastname":"Y","fullname":"B Y","teams":[9]}]}""", HttpStatusCode.OK, jsonHeader)
+                else ->
+                    respond("""{"id":3,"name":"Sharks","sport":{"id":1,"name":"Natation"},"logo_url":null,"owner":null,"managers":[]}""", HttpStatusCode.OK, jsonHeader)
+            }
+        }
+        val vm = TeamDetailViewModel(repo(engine))
+        vm.load(3)
+        assertEquals(1, vm.members.size)
+        assertEquals("A X", vm.members[0].fullname)
+    }
+
     @Test fun detailLoadsTeam() = runTest {
         val engine = MockEngine { respond("""{"id":3,"name":"Sharks","sport":{"id":1,"name":"Natation"},"logo_url":null,"owner":{"id":1,"first_name":"Ann","last_name":"Lee"},"managers":[{"id":2,"first_name":"Bob","last_name":"K"}]}""", HttpStatusCode.OK, jsonHeader) }
         val vm = TeamDetailViewModel(repo(engine))

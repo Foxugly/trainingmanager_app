@@ -13,6 +13,22 @@ data class CustomUserPublic(
     @SerialName("last_name") val lastName: String = "",
 )
 
+/** GET members/ — scoped to the caller's teams; filter client-side by [teams]. */
+@Serializable
+data class Member(
+    val id: Int,
+    val firstname: String = "",
+    val lastname: String = "",
+    val fullname: String = "",
+    val teams: List<Int> = emptyList(),
+)
+
+@Serializable
+data class PaginatedMemberList(
+    val count: Int = 0,
+    val results: List<Member> = emptyList(),
+)
+
 /** GET teams/{id}/ — athlete-visible subset of Team. */
 @Serializable
 data class TeamDto(
