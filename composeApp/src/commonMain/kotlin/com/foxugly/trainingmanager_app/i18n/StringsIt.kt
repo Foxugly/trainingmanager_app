@@ -118,6 +118,7 @@ object StringsIt : Strings {
     override val teamSport = "Sport"
     override val teamOwner = "Proprietario"
     override val teamManagers = "Allenatori"
+    override val teamMembers = "Membri"
     override val teamLoadFailed = "Impossibile caricare la squadra."
     override val discussionsEntry = "Discussioni"
     override val topicsEmpty = "Nessuna discussione."

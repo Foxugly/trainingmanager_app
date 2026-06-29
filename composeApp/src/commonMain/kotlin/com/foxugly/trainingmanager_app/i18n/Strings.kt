@@ -139,6 +139,7 @@ interface Strings {
     val teamSport: String
     val teamOwner: String
     val teamManagers: String
+    val teamMembers: String
     val teamLoadFailed: String
 
     // Discussions

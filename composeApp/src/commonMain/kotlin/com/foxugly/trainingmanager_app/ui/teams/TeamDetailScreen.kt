@@ -54,6 +54,14 @@ fun TeamDetailScreen(
                     if (team.managers.isNotEmpty()) {
                         Labeled(s.teamManagers, team.managers.joinToString(", ") { fullName(it) })
                     }
+                    if (viewModel.members.isNotEmpty()) {
+                        Labeled(
+                            s.teamMembers,
+                            viewModel.members.joinToString(", ") {
+                                it.fullname.ifBlank { listOf(it.firstname, it.lastname).filter { p -> p.isNotBlank() }.joinToString(" ") }
+                            },
+                        )
+                    }
                 }
             }
         }
