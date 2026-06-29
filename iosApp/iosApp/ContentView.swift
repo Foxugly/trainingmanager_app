@@ -14,5 +14,10 @@ struct ContentView: View {
     var body: some View {
         ComposeView()
             .ignoresSafeArea()
+            // Custom scheme now; HTTPS Universal Links need an associated-domains
+            // entitlement + AASA on tm.foxugly.com (ops prerequisite).
+            .onOpenURL { url in
+                MainViewControllerKt.handleDeepLink(uri: url.absoluteString)
+            }
     }
 }
