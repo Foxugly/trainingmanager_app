@@ -15,4 +15,5 @@ object LoginStrings {
     const val networkOffline = "Impossible de joindre le serveur. Vérifiez votre connexion."
     const val networkTimeout = "La requête a expiré. Réessayez."
     const val loginFailed = "La connexion a échoué."
+    const val signInByEmailLink = "Connexion par lien e-mail"
 }

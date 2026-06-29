@@ -14,27 +14,32 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
+import com.foxugly.trainingmanager_app.navigation.DeepLinkTarget
 import com.foxugly.trainingmanager_app.navigation.HomeRoute
 import com.foxugly.trainingmanager_app.navigation.LoginRoute
+import com.foxugly.trainingmanager_app.navigation.MagicLinkExchangeRoute
+import com.foxugly.trainingmanager_app.navigation.MagicLinkRequestRoute
 import com.foxugly.trainingmanager_app.navigation.StartupRoute
 import com.foxugly.trainingmanager_app.navigation.startupRoute
 import com.foxugly.trainingmanager_app.ui.home.HomePlaceholderScreen
 import com.foxugly.trainingmanager_app.ui.login.LoginScreen
 import com.foxugly.trainingmanager_app.ui.login.LoginViewModel
+import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkExchangeScreen
+import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkExchangeViewModel
+import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkRequestScreen
+import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkRequestViewModel
 import com.foxugly.trainingmanager_app.ui.theme.TrainingManagerTheme
 import org.koin.compose.koinInject
 
-/**
- * Root composable. Runs the bootstrap once (reuses the pure [startupRoute]); while
- * loading shows a spinner, then mounts the Navigation Compose graph at the resolved
- * start destination. Post-login / logout clear the back stack so Back cannot return
- * to the other auth state.
- */
 @Composable
-fun App(authRepository: AuthRepository = koinInject()) {
+fun App(
+    authRepository: AuthRepository = koinInject(),
+    deepLink: DeepLinkTarget? = null,
+    onDeepLinkConsumed: () -> Unit = {},
+) {
     var route by remember { mutableStateOf(StartupRoute.Loading) }
-
     LaunchedEffect(authRepository) {
         val hasRefresh = authRepository.hasRefreshToken()
         val refreshed = hasRefresh && authRepository.tryRefresh()
@@ -51,14 +56,53 @@ fun App(authRepository: AuthRepository = koinInject()) {
                 val navController = rememberNavController()
                 val startDestination: Any =
                     if (route == StartupRoute.Authenticated) HomeRoute else LoginRoute
+
+                // Route an incoming deep link once the graph is live.
+                LaunchedEffect(deepLink) {
+                    when (val d = deepLink) {
+                        is DeepLinkTarget.MagicLinkExchange -> {
+                            navController.navigate(MagicLinkExchangeRoute(d.token)) { launchSingleTop = true }
+                            onDeepLinkConsumed()
+                        }
+                        null -> Unit
+                    }
+                }
+
                 NavHost(navController = navController, startDestination = startDestination) {
                     composable<LoginRoute> {
-                        val loginViewModel: LoginViewModel = koinInject()
+                        val vm: LoginViewModel = koinInject()
                         LoginScreen(
-                            viewModel = loginViewModel,
+                            viewModel = vm,
                             onLoginSuccess = {
                                 navController.navigate(HomeRoute) {
                                     popUpTo<LoginRoute> { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            },
+                            onMagicLink = {
+                                navController.navigate(MagicLinkRequestRoute) { launchSingleTop = true }
+                            },
+                        )
+                    }
+                    composable<MagicLinkRequestRoute> {
+                        val vm: MagicLinkRequestViewModel = koinInject()
+                        MagicLinkRequestScreen(viewModel = vm, onBack = { navController.popBackStack() })
+                    }
+                    composable<MagicLinkExchangeRoute> { entry ->
+                        val args = entry.toRoute<MagicLinkExchangeRoute>()
+                        val vm: MagicLinkExchangeViewModel = koinInject()
+                        MagicLinkExchangeScreen(
+                            viewModel = vm,
+                            token = args.token,
+                            onSuccess = {
+                                navController.navigate(HomeRoute) {
+                                    popUpTo<LoginRoute> { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            },
+                            onBackToLogin = {
+                                navController.navigate(LoginRoute) {
+                                    popUpTo(0) { inclusive = true }
                                     launchSingleTop = true
                                 }
                             },
