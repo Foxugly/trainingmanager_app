@@ -185,6 +185,17 @@ class TrainingManagerApi(
         client.put("events/$eventId/roti/") { setBody(body) }
     }
 
+    suspend fun listAttachments(targetType: String, targetId: Int): Result<PaginatedAttachmentList> = apiCall {
+        client.get("attachments/") {
+            parameter("target_type", targetType)
+            parameter("target_id", targetId)
+        }
+    }
+
+    suspend fun attachmentDownloadUrl(id: Int): Result<AttachmentDownloadResponse> = apiCall {
+        client.get("attachments/$id/download/")
+    }
+
     // --- Helpers ---
     // Every authenticated request must go through [apiCall] so a recoverable
     // expired session transparently refreshes instead of hard-failing.

@@ -103,6 +103,26 @@ fun EventDetailScreen(
                             ) { scope.launch { viewModel.setRoti(eventId, n) } }
                         }
                     }
+
+                    if (viewModel.attachments.isNotEmpty()) {
+                        Spacer(Modifier.height(16.dp))
+                        Text(s.attachmentsSection, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        viewModel.attachmentError?.let { Spacer(Modifier.height(8.dp)); ErrorBanner(it) }
+                        viewModel.attachments.forEach { att ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(att.filename, style = MaterialTheme.typography.bodyMedium)
+                                    Text("${att.sizeBytes / 1024} KB", style = MaterialTheme.typography.bodySmall)
+                                }
+                                if (att.status == "ready") {
+                                    TextButton(onClick = { scope.launch { viewModel.downloadAttachment(att.id) } }) { Text(s.download) }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -127,6 +127,9 @@ interface Strings {
     val rotiFailed: String
     val trainingSection: String
     fun roundLabel(order: Int): String
+    val attachmentsSection: String
+    val download: String
+    val downloadFailed: String
 }
 
 /** Native language display names (always shown in their own language, never translated). */
