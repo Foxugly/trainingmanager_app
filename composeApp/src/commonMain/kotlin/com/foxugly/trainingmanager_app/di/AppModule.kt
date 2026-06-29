@@ -5,6 +5,7 @@ import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.i18n.LanguageProvider
 import com.foxugly.trainingmanager_app.i18n.LanguageService
+import com.foxugly.trainingmanager_app.platform.UrlOpener
 import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmViewModel
 import com.foxugly.trainingmanager_app.ui.dashboard.DashboardViewModel
 import com.foxugly.trainingmanager_app.ui.events.EventDetailViewModel
@@ -35,6 +36,7 @@ fun appModule(
     single { TrainingManagerApi(get(), apiBaseUrl, enableHttpLogging, get()) }
     single { AuthRepository(get(), get()) }
     single { LanguageService(get(), get()) }
+    single { UrlOpener() }
     // ViewModels that surface localized error/UI text get the active locale's
     // Strings captured at construction (screens recompose on language change).
     factory { LoginViewModel(get(), get<LanguageService>().strings) }
@@ -47,5 +49,5 @@ fun appModule(
     factory { ChangePasswordViewModel(get(), get<LanguageService>().strings) }
     factory { DashboardViewModel(get(), get<LanguageService>().strings) }
     factory { EventsListViewModel(get(), get<LanguageService>().strings) }
-    factory { EventDetailViewModel(get(), get<LanguageService>().strings) }
+    factory { val opener = get<UrlOpener>(); EventDetailViewModel(get(), get<LanguageService>().strings) { url -> opener.open(url) } }
 }

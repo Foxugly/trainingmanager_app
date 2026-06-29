@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.foxugly.trainingmanager_app.data.api.ApiException
+import com.foxugly.trainingmanager_app.data.api.Attachment
 import com.foxugly.trainingmanager_app.data.api.EventDto
 import com.foxugly.trainingmanager_app.data.api.RsvpSummary
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
@@ -17,6 +18,7 @@ import kotlin.time.ExperimentalTime
 class EventDetailViewModel(
     private val authRepository: AuthRepository,
     private val strings: Strings = StringsFr,
+    private val openUrl: (String) -> Unit = {},
 ) {
     var isLoading by mutableStateOf(true)
         private set
@@ -35,6 +37,10 @@ class EventDetailViewModel(
     var rotiError by mutableStateOf<String?>(null)
         private set
     var isSavingRoti by mutableStateOf(false)
+        private set
+    var attachments by mutableStateOf<List<Attachment>>(emptyList())
+        private set
+    var attachmentError by mutableStateOf<String?>(null)
         private set
 
     private var isPast by mutableStateOf(false)
@@ -57,7 +63,17 @@ class EventDetailViewModel(
         )
         // RSVP is best-effort (a member may not be able to read it on some teams).
         authRepository.getRsvp(id).onSuccess { rsvp = it }
+        // Attachments are best-effort too.
+        authRepository.listEventAttachments(id).onSuccess { attachments = it.results }
         isLoading = false
+    }
+
+    suspend fun downloadAttachment(attachmentId: Int) {
+        attachmentError = null
+        authRepository.attachmentDownloadUrl(attachmentId).fold(
+            onSuccess = { openUrl(it.url) },
+            onFailure = { attachmentError = strings.downloadFailed },
+        )
     }
 
     suspend fun setRsvp(id: Int, status: String) {

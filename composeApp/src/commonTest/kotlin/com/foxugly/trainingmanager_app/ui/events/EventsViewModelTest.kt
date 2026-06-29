@@ -78,4 +78,19 @@ class EventsViewModelTest {
         vm.setRoti(5, 4)
         assertEquals(StringsFr.rotiFailed, vm.rotiError)
     }
+
+    @Test fun downloadOpensPresignedUrl() = runTest {
+        var opened: String? = null
+        val engine = MockEngine { respond("""{"url":"https://s3/file.pdf"}""", HttpStatusCode.OK, jsonHeader) }
+        val vm = EventDetailViewModel(repo(engine), openUrl = { opened = it })
+        vm.downloadAttachment(9)
+        assertEquals("https://s3/file.pdf", opened)
+    }
+
+    @Test fun downloadFailureSetsError() = runTest {
+        val engine = MockEngine { respond("""{"detail":"not ready"}""", HttpStatusCode.Conflict, jsonHeader) }
+        val vm = EventDetailViewModel(repo(engine))
+        vm.downloadAttachment(9)
+        assertEquals(StringsFr.downloadFailed, vm.attachmentError)
+    }
 }

@@ -108,4 +108,7 @@ object StringsEs : Strings {
     override val rotiFailed = "No se pudo guardar la valoración."
     override val trainingSection = "Entrenamiento"
     override fun roundLabel(order: Int) = "Serie $order"
+    override val attachmentsSection = "Archivos adjuntos"
+    override val download = "Descargar"
+    override val downloadFailed = "Error al descargar."
 }

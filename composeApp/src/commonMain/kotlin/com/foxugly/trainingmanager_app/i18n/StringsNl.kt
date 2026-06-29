@@ -108,4 +108,7 @@ object StringsNl : Strings {
     override val rotiFailed = "Kan de beoordeling niet opslaan."
     override val trainingSection = "Training"
     override fun roundLabel(order: Int) = "Set $order"
+    override val attachmentsSection = "Bijlagen"
+    override val download = "Downloaden"
+    override val downloadFailed = "Downloaden mislukt."
 }
