@@ -33,6 +33,7 @@
                 <data android:scheme="https" android:host="tm.foxugly.com" android:pathPrefix="/auth/magic-link/"/>
                 <data android:scheme="https" android:host="tm.foxugly.com" android:pathPrefix="/auth/confirm-email/"/>
                 <data android:scheme="https" android:host="tm.foxugly.com" android:pathPrefix="/auth/reset-password/"/>
+                <data android:scheme="https" android:host="tm.foxugly.com" android:pathPrefix="/invitation/"/>
             </intent-filter>
         </activity>
     </application>
