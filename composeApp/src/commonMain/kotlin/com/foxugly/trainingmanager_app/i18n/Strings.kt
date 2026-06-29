@@ -140,6 +140,17 @@ interface Strings {
     val teamOwner: String
     val teamManagers: String
     val teamLoadFailed: String
+
+    // Discussions
+    val discussionsEntry: String
+    val topicsEmpty: String
+    val topicsLoadFailed: String
+    val messagesLoadFailed: String
+    val messagePlaceholder: String
+    val sendMessage: String
+    val deleteMessage: String
+    val postFailed: String
+    val editedLabel: String
 }
 
 /** Native language display names (always shown in their own language, never translated). */
