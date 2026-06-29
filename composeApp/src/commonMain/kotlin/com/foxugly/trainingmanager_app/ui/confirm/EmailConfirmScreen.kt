@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.foxugly.trainingmanager_app.i18n.LocalStrings
 
 @Composable
 fun EmailConfirmScreen(
@@ -23,6 +24,7 @@ fun EmailConfirmScreen(
     onSuccess: () -> Unit,
     onBackToLogin: () -> Unit,
 ) {
+    val s = LocalStrings.current
     LaunchedEffect(key) { viewModel.confirm(key, onSuccess) }
 
     Column(
@@ -35,14 +37,14 @@ fun EmailConfirmScreen(
             EmailConfirmViewModel.State.Success -> {
                 CircularProgressIndicator()
                 Spacer(Modifier.height(16.dp))
-                Text(ConfirmStrings.emailConfirmLoading)
+                Text(s.emailConfirmLoading)
             }
             EmailConfirmViewModel.State.Invalid -> {
-                Text(ConfirmStrings.emailInvalidTitle, style = MaterialTheme.typography.headlineSmall)
+                Text(s.emailInvalidTitle, style = MaterialTheme.typography.headlineSmall)
                 Spacer(Modifier.height(8.dp))
-                Text(ConfirmStrings.emailInvalidBody)
+                Text(s.emailInvalidBody)
                 Spacer(Modifier.height(24.dp))
-                TextButton(onClick = onBackToLogin) { Text(ConfirmStrings.backToLogin) }
+                TextButton(onClick = onBackToLogin) { Text(s.backToLogin) }
             }
         }
     }

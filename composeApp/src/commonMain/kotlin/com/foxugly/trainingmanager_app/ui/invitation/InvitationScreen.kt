@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.foxugly.trainingmanager_app.i18n.LocalStrings
+import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import kotlinx.coroutines.launch
 
@@ -34,6 +36,7 @@ fun InvitationScreen(
     onBackToLogin: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    val s = LocalStrings.current
     LaunchedEffect(token) { viewModel.load(token) }
 
     if (viewModel.isLoading) {
@@ -44,24 +47,17 @@ fun InvitationScreen(
         ) {
             CircularProgressIndicator()
             Spacer(Modifier.height(16.dp))
-            Text(InvitationStrings.loadingTitle)
+            Text(s.invitationLoadingTitle)
         }
         return
     }
 
     val team = viewModel.teamName
-    if (viewModel.lookupError != null || team == null) {
+    if (viewModel.lookupError != null || team == null || !viewModel.isPending) {
         TerminalMessage(
-            title = InvitationStrings.alreadyHandledTitle,
-            body = viewModel.lookupError ?: InvitationStrings.alreadyHandledBody,
-            onBackToLogin = onBackToLogin,
-        )
-        return
-    }
-    if (!viewModel.isPending) {
-        TerminalMessage(
-            title = InvitationStrings.alreadyHandledTitle,
-            body = InvitationStrings.alreadyHandledBody,
+            title = s.invitationAlreadyHandledTitle,
+            body = viewModel.lookupError ?: s.invitationAlreadyHandledBody,
+            backLabel = s.backToLogin,
             onBackToLogin = onBackToLogin,
         )
         return
@@ -71,13 +67,13 @@ fun InvitationScreen(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(InvitationStrings.joinTitle(team), style = MaterialTheme.typography.headlineMedium)
+        Text(s.invitationJoinTitle(team), style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(24.dp))
         viewModel.submitError?.let { ErrorBanner(it); Spacer(Modifier.height(12.dp)) }
         OutlinedTextField(
             value = viewModel.password,
             onValueChange = { viewModel.password = it; viewModel.clearSubmitError() },
-            label = { Text(InvitationStrings.password) },
+            label = { Text(s.password) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             singleLine = true,
@@ -87,7 +83,7 @@ fun InvitationScreen(
         OutlinedTextField(
             value = viewModel.confirmPassword,
             onValueChange = { viewModel.confirmPassword = it; viewModel.clearSubmitError() },
-            label = { Text(InvitationStrings.confirmPassword) },
+            label = { Text(s.confirmPassword) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             singleLine = true,
@@ -102,16 +98,16 @@ fun InvitationScreen(
             if (viewModel.isSubmitting) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
             } else {
-                Text(InvitationStrings.join)
+                Text(s.invitationJoin)
             }
         }
         Spacer(Modifier.height(8.dp))
-        TextButton(onClick = onBackToLogin) { Text(InvitationStrings.backToLogin) }
+        TextButton(onClick = onBackToLogin) { Text(s.backToLogin) }
     }
 }
 
 @Composable
-private fun TerminalMessage(title: String, body: String, onBackToLogin: () -> Unit) {
+private fun TerminalMessage(title: String, body: String, backLabel: String, onBackToLogin: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.Center,
@@ -121,6 +117,6 @@ private fun TerminalMessage(title: String, body: String, onBackToLogin: () -> Un
         Spacer(Modifier.height(8.dp))
         Text(body)
         Spacer(Modifier.height(24.dp))
-        TextButton(onClick = onBackToLogin) { Text(InvitationStrings.backToLogin) }
+        TextButton(onClick = onBackToLogin) { Text(backLabel) }
     }
 }

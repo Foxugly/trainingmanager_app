@@ -20,32 +20,34 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import kotlinx.coroutines.launch
 
 @Composable
 fun MagicLinkRequestScreen(viewModel: MagicLinkRequestViewModel, onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
+    val s = LocalStrings.current
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
         if (viewModel.sent) {
-            Text(MagicLinkStrings.sentTitle, style = MaterialTheme.typography.headlineMedium)
+            Text(s.magicSentTitle, style = MaterialTheme.typography.headlineMedium)
             Spacer(Modifier.height(12.dp))
-            Text(MagicLinkStrings.sentBody, style = MaterialTheme.typography.bodyLarge)
+            Text(s.magicSentBody, style = MaterialTheme.typography.bodyLarge)
             Spacer(Modifier.height(24.dp))
-            TextButton(onClick = onBack) { Text(MagicLinkStrings.backToLogin) }
+            TextButton(onClick = onBack) { Text(s.backToLogin) }
             return@Column
         }
 
-        Text(MagicLinkStrings.requestTitle, style = MaterialTheme.typography.headlineMedium)
+        Text(s.magicRequestTitle, style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(24.dp))
         viewModel.error?.let { ErrorBanner(it); Spacer(Modifier.height(12.dp)) }
         OutlinedTextField(
             value = viewModel.email,
             onValueChange = { viewModel.email = it; viewModel.clearError() },
-            label = { Text(MagicLinkStrings.email) },
+            label = { Text(s.email) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
@@ -59,10 +61,10 @@ fun MagicLinkRequestScreen(viewModel: MagicLinkRequestViewModel, onBack: () -> U
             if (viewModel.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
             } else {
-                Text(MagicLinkStrings.send)
+                Text(s.magicSend)
             }
         }
         Spacer(Modifier.height(8.dp))
-        TextButton(onClick = onBack) { Text(MagicLinkStrings.backToLogin) }
+        TextButton(onClick = onBack) { Text(s.backToLogin) }
     }
 }

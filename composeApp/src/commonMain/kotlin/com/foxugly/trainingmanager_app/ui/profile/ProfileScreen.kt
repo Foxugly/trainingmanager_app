@@ -31,16 +31,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.foxugly.trainingmanager_app.i18n.LanguageService
+import com.foxugly.trainingmanager_app.i18n.LocalStrings
+import com.foxugly.trainingmanager_app.i18n.languageDisplayNames
+import com.foxugly.trainingmanager_app.i18n.supportedLanguages
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel,
+    languageService: LanguageService,
     onChangePassword: () -> Unit,
     onBack: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    val s = LocalStrings.current
     LaunchedEffect(Unit) { viewModel.load() }
 
     if (viewModel.isLoading) {
@@ -53,7 +59,7 @@ fun ProfileScreen(
         Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
             Text(err)
             Spacer(Modifier.height(16.dp))
-            TextButton(onClick = onBack) { Text(ProfileStrings.back) }
+            TextButton(onClick = onBack) { Text(s.back) }
         }
         return
     }
@@ -61,7 +67,7 @@ fun ProfileScreen(
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
     ) {
-        Text(ProfileStrings.title, style = MaterialTheme.typography.headlineMedium)
+        Text(s.profileTitle, style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(24.dp))
 
         viewModel.saveError?.let { ErrorBanner(it); Spacer(Modifier.height(12.dp)) }
@@ -69,7 +75,7 @@ fun ProfileScreen(
         OutlinedTextField(
             value = viewModel.email,
             onValueChange = {},
-            label = { Text(ProfileStrings.emailLabel) },
+            label = { Text(s.emailLabel) },
             readOnly = true,
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
@@ -78,7 +84,7 @@ fun ProfileScreen(
         OutlinedTextField(
             value = viewModel.firstName,
             onValueChange = { viewModel.firstName = it },
-            label = { Text(ProfileStrings.firstName) },
+            label = { Text(s.firstName) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -86,34 +92,37 @@ fun ProfileScreen(
         OutlinedTextField(
             value = viewModel.lastName,
             onValueChange = { viewModel.lastName = it },
-            label = { Text(ProfileStrings.lastName) },
+            label = { Text(s.lastName) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(16.dp))
 
-        Text(ProfileStrings.language, style = MaterialTheme.typography.labelLarge)
+        Text(s.languageLabel, style = MaterialTheme.typography.labelLarge)
         var expanded by remember { mutableStateOf(false) }
         OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
-            Text(ProfileStrings.languageNames[viewModel.language] ?: viewModel.language)
+            Text(languageDisplayNames[languageService.activeLang] ?: languageService.activeLang)
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            viewModel.languages.forEach { code ->
+            supportedLanguages.forEach { code ->
                 DropdownMenuItem(
-                    text = { Text(ProfileStrings.languageNames[code] ?: code) },
-                    onClick = { viewModel.language = code; expanded = false },
+                    text = { Text(languageDisplayNames[code] ?: code) },
+                    onClick = {
+                        expanded = false
+                        scope.launch { languageService.switchLanguage(code) }
+                    },
                 )
             }
         }
         Spacer(Modifier.height(16.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Text(ProfileStrings.weeklyRecap, modifier = Modifier.weight(1f))
+            Text(s.weeklyRecap, modifier = Modifier.weight(1f))
             Switch(checked = viewModel.weeklyRecapOptIn, onCheckedChange = { viewModel.weeklyRecapOptIn = it })
         }
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Text(ProfileStrings.digestEmail, modifier = Modifier.weight(1f))
+            Text(s.digestEmail, modifier = Modifier.weight(1f))
             Switch(checked = viewModel.digestEmail, onCheckedChange = { viewModel.digestEmail = it })
         }
         Spacer(Modifier.height(24.dp))
@@ -126,19 +135,19 @@ fun ProfileScreen(
             if (viewModel.isSaving) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
             } else {
-                Text(ProfileStrings.save)
+                Text(s.save)
             }
         }
         if (viewModel.saved) {
             Spacer(Modifier.height(8.dp))
-            Text(ProfileStrings.saved, color = MaterialTheme.colorScheme.primary)
+            Text(s.saved, color = MaterialTheme.colorScheme.primary)
         }
         Spacer(Modifier.height(16.dp))
         TextButton(onClick = onChangePassword, modifier = Modifier.fillMaxWidth()) {
-            Text(ProfileStrings.changePasswordCta)
+            Text(s.changePasswordCta)
         }
         TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text(ProfileStrings.back)
+            Text(s.back)
         }
     }
 }

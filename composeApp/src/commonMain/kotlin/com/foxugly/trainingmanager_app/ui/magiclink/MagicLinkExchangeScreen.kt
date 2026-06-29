@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.foxugly.trainingmanager_app.i18n.LocalStrings
 
 @Composable
 fun MagicLinkExchangeScreen(
@@ -23,6 +24,7 @@ fun MagicLinkExchangeScreen(
     onSuccess: () -> Unit,
     onBackToLogin: () -> Unit,
 ) {
+    val s = LocalStrings.current
     LaunchedEffect(token) { viewModel.exchange(token, onSuccess) }
 
     Column(
@@ -35,21 +37,21 @@ fun MagicLinkExchangeScreen(
             MagicLinkExchangeViewModel.ExchangeState.Success -> {
                 CircularProgressIndicator()
                 Spacer(Modifier.height(16.dp))
-                Text(MagicLinkStrings.exchangeLoading)
+                Text(s.magicExchangeLoading)
             }
             MagicLinkExchangeViewModel.ExchangeState.Expired -> {
-                Text(MagicLinkStrings.expiredTitle, style = MaterialTheme.typography.headlineSmall)
+                Text(s.magicExpiredTitle, style = MaterialTheme.typography.headlineSmall)
                 Spacer(Modifier.height(8.dp))
-                Text(MagicLinkStrings.expiredBody)
+                Text(s.magicExpiredBody)
                 Spacer(Modifier.height(24.dp))
-                TextButton(onClick = onBackToLogin) { Text(MagicLinkStrings.backToLogin) }
+                TextButton(onClick = onBackToLogin) { Text(s.backToLogin) }
             }
             MagicLinkExchangeViewModel.ExchangeState.Invalid -> {
-                Text(MagicLinkStrings.invalidTitle, style = MaterialTheme.typography.headlineSmall)
+                Text(s.magicInvalidTitle, style = MaterialTheme.typography.headlineSmall)
                 Spacer(Modifier.height(8.dp))
-                Text(MagicLinkStrings.invalidBody)
+                Text(s.magicInvalidBody)
                 Spacer(Modifier.height(24.dp))
-                TextButton(onClick = onBackToLogin) { Text(MagicLinkStrings.backToLogin) }
+                TextButton(onClick = onBackToLogin) { Text(s.backToLogin) }
             }
         }
     }

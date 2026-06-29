@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
+import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import kotlinx.coroutines.launch
 
 @Composable
@@ -24,19 +25,20 @@ fun HomePlaceholderScreen(
     onLoggedOut: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    val s = LocalStrings.current
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("TrainingManager", style = MaterialTheme.typography.headlineMedium)
+        Text(s.appName, style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(8.dp))
-        Text("Accueil (placeholder) — connecté", style = MaterialTheme.typography.bodyLarge)
+        Text(s.homeSubtitle, style = MaterialTheme.typography.bodyLarge)
         Spacer(Modifier.height(24.dp))
-        Button(onClick = onProfile) { Text("Profil") }
+        Button(onClick = onProfile) { Text(s.profileTitle) }
         Spacer(Modifier.height(8.dp))
         Button(onClick = { scope.launch { authRepository.logout(); onLoggedOut() } }) {
-            Text("Se déconnecter")
+            Text(s.logout)
         }
     }
 }

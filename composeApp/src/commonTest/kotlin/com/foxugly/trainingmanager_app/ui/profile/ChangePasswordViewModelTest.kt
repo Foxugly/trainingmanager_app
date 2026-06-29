@@ -3,6 +3,7 @@ package com.foxugly.trainingmanager_app.ui.profile
 import com.foxugly.trainingmanager_app.FakeTokenStore
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
+import com.foxugly.trainingmanager_app.i18n.StringsFr
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
@@ -25,7 +26,7 @@ class ChangePasswordViewModelTest {
         val sut = vm(MockEngine { respond("""{"detail":"ok"}""", HttpStatusCode.OK, jsonHeader) })
         sut.currentPassword = "old12345"; sut.newPassword = "new12345"; sut.confirmPassword = "nope12345"
         sut.submit()
-        assertEquals(ProfileStrings.mismatch, sut.error)
+        assertEquals(StringsFr.mismatch, sut.error)
     }
 
     @Test fun successSetsSuccess() = runTest {
@@ -40,6 +41,6 @@ class ChangePasswordViewModelTest {
         val sut = vm(MockEngine { respond("""{"code":"current_password_invalid"}""", HttpStatusCode.BadRequest, jsonHeader) })
         sut.currentPassword = "wrong123"; sut.newPassword = "new12345"; sut.confirmPassword = "new12345"
         sut.submit()
-        assertEquals(ProfileStrings.cpCurrentInvalid, sut.error)
+        assertEquals(StringsFr.cpCurrentInvalid, sut.error)
     }
 }

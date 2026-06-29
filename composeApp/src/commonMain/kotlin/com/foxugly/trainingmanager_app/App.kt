@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,6 +17,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
+import com.foxugly.trainingmanager_app.i18n.LanguageService
+import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.navigation.DeepLinkTarget
 import com.foxugly.trainingmanager_app.navigation.EmailConfirmRoute
 import com.foxugly.trainingmanager_app.navigation.HomeRoute
@@ -51,6 +54,7 @@ import org.koin.compose.koinInject
 @Composable
 fun App(
     authRepository: AuthRepository = koinInject(),
+    languageService: LanguageService = koinInject(),
     deepLink: DeepLinkTarget? = null,
     onDeepLinkConsumed: () -> Unit = {},
 ) {
@@ -58,10 +62,16 @@ fun App(
     LaunchedEffect(authRepository) {
         val hasRefresh = authRepository.hasRefreshToken()
         val refreshed = hasRefresh && authRepository.tryRefresh()
-        route = startupRoute(hasRefresh, refreshed)
+        val resolved = startupRoute(hasRefresh, refreshed)
+        // Initialize the UI language from the signed-in user's preference.
+        if (resolved == StartupRoute.Authenticated) {
+            authRepository.getCurrentUser().getOrNull()?.language?.let { languageService.setActive(it) }
+        }
+        route = resolved
     }
 
     TrainingManagerTheme {
+        CompositionLocalProvider(LocalStrings provides languageService.strings) {
         when (route) {
             StartupRoute.Loading ->
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -211,6 +221,7 @@ fun App(
                         val vm: ProfileViewModel = koinInject()
                         ProfileScreen(
                             viewModel = vm,
+                            languageService = languageService,
                             onChangePassword = { navController.navigate(ChangePasswordRoute) { launchSingleTop = true } },
                             onBack = { navController.popBackStack() },
                         )
@@ -221,6 +232,7 @@ fun App(
                     }
                 }
             }
+        }
         }
     }
 }

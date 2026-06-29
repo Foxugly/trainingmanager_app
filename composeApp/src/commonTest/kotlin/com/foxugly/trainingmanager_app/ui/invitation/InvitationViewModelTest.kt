@@ -3,6 +3,7 @@ package com.foxugly.trainingmanager_app.ui.invitation
 import com.foxugly.trainingmanager_app.FakeTokenStore
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
+import com.foxugly.trainingmanager_app.i18n.StringsFr
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
@@ -31,7 +32,7 @@ class InvitationViewModelTest {
     @Test fun load410SetsLookupError() = runTest {
         val sut = vm(MockEngine { respond("""{"code":"invitation_expired"}""", HttpStatusCode.Gone, jsonHeader) })
         sut.load("tok")
-        assertEquals(InvitationStrings.lookupFailed, sut.lookupError)
+        assertEquals(StringsFr.invitationLookupFailed, sut.lookupError)
     }
 
     @Test fun acceptMismatchSetsSubmitError() = runTest {
@@ -41,7 +42,7 @@ class InvitationViewModelTest {
         var ok = false
         sut.accept("tok") { ok = true }
         assertFalse(ok)
-        assertEquals(InvitationStrings.mismatch, sut.submitError)
+        assertEquals(StringsFr.mismatch, sut.submitError)
     }
 
     @Test fun acceptEmailTakenOn409() = runTest {
@@ -53,6 +54,6 @@ class InvitationViewModelTest {
         sut.load("tok")
         sut.password = "password1"; sut.confirmPassword = "password1"
         sut.accept("tok") {}
-        assertEquals(InvitationStrings.emailTaken, sut.submitError)
+        assertEquals(StringsFr.invitationEmailTaken, sut.submitError)
     }
 }
