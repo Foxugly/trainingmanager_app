@@ -83,5 +83,10 @@ dependencies {
     implementation(libs.compose.uiToolingPreview)
     implementation(libs.koin.core)
     implementation(libs.koin.compose)
+    implementation(libs.androidx.core.ktx) // NotificationCompat
+    // Firebase Cloud Messaging — the FirebaseMessagingService lives in this module
+    // (it references MainActivity for the tap intent).
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
     debugImplementation(libs.compose.uiTooling)
 }

@@ -60,6 +60,7 @@ import com.foxugly.trainingmanager_app.ui.login.LoginViewModel
 import com.foxugly.trainingmanager_app.ui.register.RegisterScreen
 import com.foxugly.trainingmanager_app.ui.register.RegisterViewModel
 import com.foxugly.trainingmanager_app.ui.notifications.NotificationTarget
+import com.foxugly.trainingmanager_app.ui.notifications.parseNotificationTarget
 import com.foxugly.trainingmanager_app.ui.notifications.NotificationsScreen
 import com.foxugly.trainingmanager_app.ui.notifications.NotificationsViewModel
 import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkExchangeScreen
@@ -88,6 +89,8 @@ fun App(
     fcmTokenProvider: FcmTokenProvider = koinInject(),
     deepLink: DeepLinkTarget? = null,
     onDeepLinkConsumed: () -> Unit = {},
+    notificationUrl: String? = null,
+    onNotificationConsumed: () -> Unit = {},
 ) {
     var route by remember { mutableStateOf(StartupRoute.Loading) }
     LaunchedEffect(authRepository) {
@@ -135,6 +138,22 @@ fun App(
                         is DeepLinkTarget.Invitation -> {
                             navController.navigate(InvitationRoute(d.token)) { launchSingleTop = true }
                             onDeepLinkConsumed()
+                        }
+                        null -> Unit
+                    }
+                }
+
+                // Route a tapped push notification to its target (signed-in only).
+                LaunchedEffect(notificationUrl, route) {
+                    if (route != StartupRoute.Authenticated) return@LaunchedEffect
+                    when (val t = parseNotificationTarget(notificationUrl)) {
+                        is NotificationTarget.Event -> {
+                            navController.navigate(EventDetailRoute(t.id)) { launchSingleTop = true }
+                            onNotificationConsumed()
+                        }
+                        is NotificationTarget.Team -> {
+                            navController.navigate(TeamDetailRoute(t.id)) { launchSingleTop = true }
+                            onNotificationConsumed()
                         }
                         null -> Unit
                     }

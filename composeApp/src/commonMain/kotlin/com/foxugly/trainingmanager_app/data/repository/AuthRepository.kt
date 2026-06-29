@@ -20,6 +20,9 @@ import kotlinx.coroutines.CancellationException
 class AuthRepository(
     private val api: TrainingManagerApi,
     private val tokenStorage: TokenStore,
+    // Supplies the current FCM token so logout can unregister this device. Default
+    // no-op keeps tests and non-push platforms simple.
+    private val fcmTokenProvider: suspend () -> String? = { null },
 ) {
     private val tag = "TM/AuthRepository"
 
@@ -40,6 +43,13 @@ class AuthRepository(
 
     suspend fun logout(): Result<Unit> {
         AppLogger.info(tag, "Logout requested")
+        // Unregister this device's push token first (while the bearer is still valid)
+        // so the logged-out user stops receiving pushes here. Best-effort.
+        runCatching { fcmTokenProvider() }.getOrNull()?.let { token ->
+            api.unregisterDevice(
+                com.foxugly.trainingmanager_app.data.api.DeviceUnregisterBody(token),
+            ).onFailure { if (it is CancellationException) throw it }
+        }
         val refreshToken = tokenStorage.getRefreshToken()
         if (refreshToken != null) {
             api.logout(refreshToken).onFailure {
