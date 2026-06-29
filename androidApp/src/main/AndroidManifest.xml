@@ -31,6 +31,8 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="tm.foxugly.com" android:pathPrefix="/auth/magic-link/"/>
+                <data android:scheme="https" android:host="tm.foxugly.com" android:pathPrefix="/auth/confirm-email/"/>
+                <data android:scheme="https" android:host="tm.foxugly.com" android:pathPrefix="/auth/reset-password/"/>
             </intent-filter>
         </activity>
     </application>
