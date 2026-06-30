@@ -78,3 +78,39 @@ internal fun notificationJson(
 /** A full `PaginatedNotificationList` JSON wrapping the given item JSON strings. */
 internal fun notificationListJson(vararg items: String): String =
     """{"count":${items.size},"results":[${items.joinToString(",")}]}"""
+
+/**
+ * One `DashboardMemberTeam` JSON item. The generated model marks `team_id`, `members_count`
+ * and `my_member_id` (key must be present, value may be null) as `@Required`.
+ */
+internal fun dashboardMemberTeamJson(
+    teamId: Int = 1,
+    membersCount: Int = 4,
+    myMemberId: Int? = null,
+): String =
+    """{"team_id":$teamId,"members_count":$membersCount,"my_member_id":${myMemberId ?: "null"}}"""
+
+/**
+ * Complete `GET /dashboard/summary/` JSON for the generated
+ * [com.foxugly.trainingmanager_app.api.generated.models.DashboardSummary] model. Every field
+ * (incl. the coach_* side) is `@Required`, so a mocked response MUST carry all ten keys or
+ * kotlinx.serialization throws at decode. The list params take pre-built JSON array strings
+ * (e.g. from [dashboardMemberTeamJson]); callers only supply what the test asserts on.
+ */
+internal fun dashboardSummaryJson(
+    coachTeams: String = "[]",
+    memberTeams: String = "[]",
+    coachUpcoming: String = "[]",
+    coachUpcomingTotal: Int = 0,
+    coachAttendancePending: String = "[]",
+    coachPendingTruncated: Boolean = false,
+    memberUpcoming: String = "[]",
+    memberUpcomingTotal: Int = 0,
+    memberAttendanceHistory: String = "[]",
+    memberHistoryTruncated: Boolean = false,
+): String =
+    """{"coach_teams":$coachTeams,"member_teams":$memberTeams,"coach_upcoming":$coachUpcoming,""" +
+        """"coach_upcoming_total":$coachUpcomingTotal,"coach_attendance_pending":$coachAttendancePending,""" +
+        """"coach_pending_truncated":$coachPendingTruncated,"member_upcoming":$memberUpcoming,""" +
+        """"member_upcoming_total":$memberUpcomingTotal,"member_attendance_history":$memberAttendanceHistory,""" +
+        """"member_history_truncated":$memberHistoryTruncated}"""

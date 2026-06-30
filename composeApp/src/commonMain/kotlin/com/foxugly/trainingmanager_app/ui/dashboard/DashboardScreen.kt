@@ -23,8 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.foxugly.trainingmanager_app.data.api.DashboardEventItem
-import com.foxugly.trainingmanager_app.data.api.DashboardHistoryItem
+import com.foxugly.trainingmanager_app.api.generated.models.DashboardEventItem
+import com.foxugly.trainingmanager_app.api.generated.models.DashboardHistoryItem
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import kotlinx.coroutines.launch

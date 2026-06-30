@@ -3,7 +3,7 @@ package com.foxugly.trainingmanager_app.ui.dashboard
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.foxugly.trainingmanager_app.data.api.DashboardSummary
+import com.foxugly.trainingmanager_app.api.generated.models.DashboardSummary
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.i18n.StringsFr
