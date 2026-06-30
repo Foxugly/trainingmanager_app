@@ -26,9 +26,13 @@ import com.foxugly.trainingmanager_app.api.generated.models.RotiUpsertRequest
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpSummary
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpUpsertRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Team
+import com.foxugly.trainingmanager_app.api.generated.models.TokenObtainPairResponse
+import com.foxugly.trainingmanager_app.api.generated.models.TokenRefresh
+import com.foxugly.trainingmanager_app.api.generated.models.TokenRefreshRequest
 import com.foxugly.trainingmanager_app.api.generated.models.TopicMessage
 import com.foxugly.trainingmanager_app.api.generated.models.TopicMessageRequest
 import com.foxugly.trainingmanager_app.api.generated.models.ValidateInvitation
+import com.foxugly.trainingmanager_app.api.generated.models.VerifiedTokenObtainPairRequest
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
 import com.foxugly.trainingmanager_app.i18n.LanguageProvider
@@ -122,11 +126,11 @@ class TrainingManagerApi(
         set(value) { authInterceptor.onAuthFailure = value }
 
     // --- Auth ---
-    suspend fun login(request: TokenObtainRequest): Result<TokenPair> = apiCall {
+    suspend fun login(request: VerifiedTokenObtainPairRequest): Result<TokenObtainPairResponse> = apiCall {
         client.post("auth/token/") { setBody(request) }
     }
 
-    suspend fun refresh(request: RefreshRequest): Result<RefreshResponse> = apiCall {
+    suspend fun refresh(request: TokenRefreshRequest): Result<TokenRefresh> = apiCall {
         client.post("auth/token/refresh/") { setBody(request) }
     }
 
@@ -143,7 +147,7 @@ class TrainingManagerApi(
     }
 
     suspend fun logout(refreshToken: String): Result<Unit> = runCatching {
-        val response = client.post("auth/logout/") { setBody(RefreshRequest(refreshToken)) }
+        val response = client.post("auth/logout/") { setBody(TokenRefreshRequest(refreshToken)) }
         logResponse("logout", response)
         // A 401 here means the session is already gone server-side; we're tearing
         // it down anyway, so don't turn logout into a scary error. Other non-2xx
@@ -165,15 +169,15 @@ class TrainingManagerApi(
         client.post("auth/magic-link/request/") { setBody(request) }
     }
 
-    suspend fun magicLinkExchange(request: MagicLinkExchangeRequestRequest): Result<TokenPair> = apiCall {
+    suspend fun magicLinkExchange(request: MagicLinkExchangeRequestRequest): Result<TokenObtainPairResponse> = apiCall {
         client.post("auth/magic-link/exchange/") { setBody(request) }
     }
 
-    suspend fun confirmEmail(request: EmailConfirmRequest): Result<TokenPair> = apiCall {
+    suspend fun confirmEmail(request: EmailConfirmRequest): Result<TokenObtainPairResponse> = apiCall {
         client.post("auth/email/confirm/") { setBody(request) }
     }
 
-    suspend fun confirmPasswordReset(request: PasswordResetConfirmRequest): Result<TokenPair> = apiCall {
+    suspend fun confirmPasswordReset(request: PasswordResetConfirmRequest): Result<TokenObtainPairResponse> = apiCall {
         client.post("auth/password/reset/confirm/") { setBody(request) }
     }
 
@@ -181,7 +185,7 @@ class TrainingManagerApi(
         client.get("invitations/lookup/$token/")
     }
 
-    suspend fun completeInvitation(token: String, request: CompleteInvitationRequest): Result<TokenPair> = apiCall {
+    suspend fun completeInvitation(token: String, request: CompleteInvitationRequest): Result<TokenObtainPairResponse> = apiCall {
         client.post("invitations/lookup/$token/") { setBody(request) }
     }
 

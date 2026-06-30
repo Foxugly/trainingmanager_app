@@ -1,5 +1,7 @@
 package com.foxugly.trainingmanager_app.data.api
 
+import com.foxugly.trainingmanager_app.api.generated.models.TokenRefresh
+import com.foxugly.trainingmanager_app.api.generated.models.TokenRefreshRequest
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
 import io.ktor.client.HttpClient
@@ -70,15 +72,16 @@ class AuthInterceptor(
                 AppLogger.info(tag, "Refreshing access token after HTTP 401")
                 val refreshResponse = client.post("auth/token/refresh/") {
                     contentType(ContentType.Application.Json)
-                    setBody(RefreshRequest(refreshToken))
+                    setBody(TokenRefreshRequest(refreshToken))
                 }
                 if (refreshResponse.status == HttpStatusCode.OK) {
-                    val body = refreshResponse.body<RefreshResponse>()
+                    val body = refreshResponse.body<TokenRefresh>()
                     tokenStorage.setAccessToken(body.access)
                     // Persist the rotated refresh token (ROTATE_REFRESH_TOKENS +
-                    // BLACKLIST_AFTER_ROTATION), else the next refresh sends a
-                    // blacklisted token and ejects the user right after login.
-                    body.refresh?.let { tokenStorage.setRefreshToken(it) }
+                    // BLACKLIST_AFTER_ROTATION). The generated TokenRefresh always carries a
+                    // refresh (rotation is on server-side), so write it unconditionally —
+                    // else the next refresh sends a blacklisted token and ejects the user.
+                    tokenStorage.setRefreshToken(body.refresh)
                     AppLogger.info(tag, "Access token refresh succeeded")
                     true
                 } else {

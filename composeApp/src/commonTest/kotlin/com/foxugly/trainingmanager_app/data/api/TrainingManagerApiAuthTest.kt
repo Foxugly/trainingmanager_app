@@ -1,6 +1,7 @@
 package com.foxugly.trainingmanager_app.data.api
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.api.generated.models.VerifiedTokenObtainPairRequest
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.respondError
@@ -27,7 +28,7 @@ class TrainingManagerApiAuthTest {
         // by call-count so the refresh→replay path is exercised without relying on the
         // Authorization header (which is intentionally omitted for auth/token/ by design).
         val store = FakeTokenStore(access = "stale", refresh = "refresh-1")
-        val loginRequest = TokenObtainRequest(email = "a@b.co", password = "secret")
+        val loginRequest = VerifiedTokenObtainPairRequest(email = "a@b.co", password = "secret")
         var loginCallCount = 0
         val seen = mutableListOf<Triple<String, HttpMethod, String>>()
         val engine = MockEngine { request ->
