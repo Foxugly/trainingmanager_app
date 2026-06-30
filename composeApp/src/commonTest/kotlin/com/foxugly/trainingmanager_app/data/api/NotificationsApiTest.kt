@@ -29,6 +29,18 @@ class NotificationsApiTest {
         assertEquals(false, list.results[0].isRead)
     }
 
+    @Test fun listRequestsServerMaxPageSize() = runTest {
+        var pageSize: String? = null
+        val api = api(
+            MockEngine { request ->
+                pageSize = request.url.parameters["page_size"]
+                respond("""{"count":0,"next":null,"previous":null,"results":[]}""", HttpStatusCode.OK, jsonHeader)
+            },
+        )
+        api.listNotifications().getOrThrow()
+        assertEquals("200", pageSize)
+    }
+
     @Test fun markReadSucceeds() = runTest {
         val api = api(MockEngine { respond("", HttpStatusCode.OK) })
         assertTrue(api.markNotificationRead(7).isSuccess)
