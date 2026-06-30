@@ -37,7 +37,7 @@ class InvitationViewModel(
         isLoading = true
         lookupError = null
         authRepository.lookupInvitation(token).fold(
-            onSuccess = { teamName = it.teamName; status = it.status },
+            onSuccess = { teamName = it.teamName; status = it.status.value },
             onFailure = { lookupError = strings.invitationLookupFailed },
         )
         isLoading = false

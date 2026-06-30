@@ -1,10 +1,14 @@
 package com.foxugly.trainingmanager_app.data.api
 
 import com.foxugly.trainingmanager_app.api.generated.models.AttachmentDownloadResponse
+import com.foxugly.trainingmanager_app.api.generated.models.CompleteInvitationRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DashboardSummary
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceRegisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceUnregisterRequest
+import com.foxugly.trainingmanager_app.api.generated.models.EmailConfirmRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Event
+import com.foxugly.trainingmanager_app.api.generated.models.MagicLinkExchangeRequestRequest
+import com.foxugly.trainingmanager_app.api.generated.models.MagicLinkRequestRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Me
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedAttachmentList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedEventList
@@ -13,6 +17,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.PaginatedNotificatio
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicMessageList
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordChangeRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetConfirmRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedMeRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetRequestRequest
 import com.foxugly.trainingmanager_app.api.generated.models.RegisterRequest
@@ -23,6 +28,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.RsvpUpsertRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Team
 import com.foxugly.trainingmanager_app.api.generated.models.TopicMessage
 import com.foxugly.trainingmanager_app.api.generated.models.TopicMessageRequest
+import com.foxugly.trainingmanager_app.api.generated.models.ValidateInvitation
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
 import com.foxugly.trainingmanager_app.i18n.LanguageProvider
@@ -155,19 +161,19 @@ class TrainingManagerApi(
         client.post("auth/password/reset/") { setBody(body) }
     }
 
-    suspend fun magicLinkRequest(request: MagicLinkRequestBody): Result<Unit> = apiCall {
+    suspend fun magicLinkRequest(request: MagicLinkRequestRequest): Result<Unit> = apiCall {
         client.post("auth/magic-link/request/") { setBody(request) }
     }
 
-    suspend fun magicLinkExchange(request: MagicLinkExchangeBody): Result<TokenPair> = apiCall {
+    suspend fun magicLinkExchange(request: MagicLinkExchangeRequestRequest): Result<TokenPair> = apiCall {
         client.post("auth/magic-link/exchange/") { setBody(request) }
     }
 
-    suspend fun confirmEmail(request: EmailConfirmBody): Result<TokenPair> = apiCall {
+    suspend fun confirmEmail(request: EmailConfirmRequest): Result<TokenPair> = apiCall {
         client.post("auth/email/confirm/") { setBody(request) }
     }
 
-    suspend fun confirmPasswordReset(request: PasswordResetConfirmBody): Result<TokenPair> = apiCall {
+    suspend fun confirmPasswordReset(request: PasswordResetConfirmRequest): Result<TokenPair> = apiCall {
         client.post("auth/password/reset/confirm/") { setBody(request) }
     }
 
@@ -175,7 +181,7 @@ class TrainingManagerApi(
         client.get("invitations/lookup/$token/")
     }
 
-    suspend fun completeInvitation(token: String, request: CompleteInvitationBody): Result<TokenPair> = apiCall {
+    suspend fun completeInvitation(token: String, request: CompleteInvitationRequest): Result<TokenPair> = apiCall {
         client.post("invitations/lookup/$token/") { setBody(request) }
     }
 

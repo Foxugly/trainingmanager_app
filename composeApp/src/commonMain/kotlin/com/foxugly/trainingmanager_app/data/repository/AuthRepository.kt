@@ -1,24 +1,24 @@
 package com.foxugly.trainingmanager_app.data.repository
 
-import com.foxugly.trainingmanager_app.data.api.CompleteInvitationBody
-import com.foxugly.trainingmanager_app.data.api.EmailConfirmBody
-import com.foxugly.trainingmanager_app.data.api.MagicLinkExchangeBody
-import com.foxugly.trainingmanager_app.data.api.MagicLinkRequestBody
-import com.foxugly.trainingmanager_app.data.api.PasswordResetConfirmBody
 import com.foxugly.trainingmanager_app.data.api.RefreshRequest
 import com.foxugly.trainingmanager_app.data.api.TokenObtainRequest
 import com.foxugly.trainingmanager_app.data.api.TokenPair
+import com.foxugly.trainingmanager_app.api.generated.models.CompleteInvitationRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceRegisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceUnregisterRequest
+import com.foxugly.trainingmanager_app.api.generated.models.EmailConfirmRequest
 import com.foxugly.trainingmanager_app.api.generated.models.LanguageEnum
+import com.foxugly.trainingmanager_app.api.generated.models.MagicLinkExchangeRequestRequest
+import com.foxugly.trainingmanager_app.api.generated.models.MagicLinkRequestRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Me
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordChangeRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetConfirmRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetRequestRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedMeRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PlatformEnum
 import com.foxugly.trainingmanager_app.api.generated.models.RegisterRequest
+import com.foxugly.trainingmanager_app.api.generated.models.ValidateInvitation
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
-import com.foxugly.trainingmanager_app.data.api.ValidateInvitation
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
 import kotlinx.coroutines.CancellationException
@@ -70,7 +70,7 @@ class AuthRepository(
     /** POST auth/magic-link/request/ — always-200, no token handling. */
     suspend fun requestMagicLink(email: String): Result<Unit> {
         AppLogger.info(tag, "Magic-link requested")
-        return api.magicLinkRequest(MagicLinkRequestBody(email.trim()))
+        return api.magicLinkRequest(MagicLinkRequestRequest(email.trim()))
             .onFailure { if (it is CancellationException) throw it }
     }
 
@@ -104,15 +104,15 @@ class AuthRepository(
 
     /** POST auth/magic-link/exchange/ → auto-login. */
     suspend fun exchangeMagicLink(token: String): Result<Me> =
-        autoLogin { api.magicLinkExchange(MagicLinkExchangeBody(token)) }
+        autoLogin { api.magicLinkExchange(MagicLinkExchangeRequestRequest(token)) }
 
     /** POST auth/email/confirm/ → auto-login. */
     suspend fun confirmEmail(key: String): Result<Me> =
-        autoLogin { api.confirmEmail(EmailConfirmBody(key)) }
+        autoLogin { api.confirmEmail(EmailConfirmRequest(key)) }
 
     /** POST auth/password/reset/confirm/ → auto-login. */
     suspend fun confirmPasswordReset(key: String, newPassword: String): Result<Me> =
-        autoLogin { api.confirmPasswordReset(PasswordResetConfirmBody(key, newPassword)) }
+        autoLogin { api.confirmPasswordReset(PasswordResetConfirmRequest(key, newPassword)) }
 
     /** Shared: a token-pair call → persist access+refresh+remember → GET me/ → profile. */
     private suspend inline fun autoLogin(
@@ -131,7 +131,7 @@ class AuthRepository(
 
     /** POST invitations/lookup/{token}/ → create account + join + auto-login. */
     suspend fun acceptInvitation(token: String, password: String): Result<Me> =
-        autoLogin { api.completeInvitation(token, CompleteInvitationBody(password)) }
+        autoLogin { api.completeInvitation(token, CompleteInvitationRequest(password)) }
 
     suspend fun getCurrentUser(): Result<Me> = api.getMe()
 
