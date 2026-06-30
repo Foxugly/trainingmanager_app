@@ -1,6 +1,7 @@
 package com.foxugly.trainingmanager_app.ui.invitation
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.validateInvitationJson
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.StringsFr
@@ -23,7 +24,7 @@ class InvitationViewModelTest {
     }
 
     @Test fun loadPendingSetsTeam() = runTest {
-        val sut = vm(MockEngine { respond("""{"email":"a@b.co","team_name":"Sharks","status":"pending","expires_at":"2026-12-01T00:00:00Z"}""", HttpStatusCode.OK, jsonHeader) })
+        val sut = vm(MockEngine { respond(validateInvitationJson(), HttpStatusCode.OK, jsonHeader) })
         sut.load("tok")
         assertEquals("Sharks", sut.teamName)
         assertTrue(sut.isPending)
@@ -36,7 +37,7 @@ class InvitationViewModelTest {
     }
 
     @Test fun acceptMismatchSetsSubmitError() = runTest {
-        val sut = vm(MockEngine { respond("""{"email":"a@b.co","team_name":"S","status":"pending","expires_at":"x"}""", HttpStatusCode.OK, jsonHeader) })
+        val sut = vm(MockEngine { respond(validateInvitationJson(teamName = "S"), HttpStatusCode.OK, jsonHeader) })
         sut.load("tok")
         sut.password = "password1"; sut.confirmPassword = "password2"
         var ok = false
@@ -47,7 +48,7 @@ class InvitationViewModelTest {
 
     @Test fun acceptEmailTakenOn409() = runTest {
         val engine = MockEngine { request ->
-            if (request.method.value == "GET") respond("""{"email":"a@b.co","team_name":"S","status":"pending","expires_at":"x"}""", HttpStatusCode.OK, jsonHeader)
+            if (request.method.value == "GET") respond(validateInvitationJson(teamName = "S"), HttpStatusCode.OK, jsonHeader)
             else respond("""{"code":"email_taken"}""", HttpStatusCode.Conflict, jsonHeader)
         }
         val sut = vm(engine)

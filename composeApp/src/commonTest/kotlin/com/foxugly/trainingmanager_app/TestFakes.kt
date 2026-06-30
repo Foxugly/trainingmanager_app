@@ -405,3 +405,19 @@ internal fun teamJson(
         """"managers":$managers,"default_pool":"","places":[],"default_place":null,"equipment":[],""" +
         """"logo_url":${logoUrl?.let { "\"$it\"" } ?: "null"},""" +
         """"created_at":"2026-01-01T00:00:00Z","updated_at":"2026-01-01T00:00:00Z"}"""
+
+// --- Invitations domain (generated models) ---
+
+/**
+ * Complete `ValidateInvitation` JSON for the generated model. `email`/`team_name`/`status`/
+ * `expires_at` are all `@Required`, and `status` is now the `InvitationStatusEnum` — its JSON value
+ * MUST be a wire serial name (`pending`/`completed`/`expired`/`cancelled`), not the Kotlin entry
+ * name, or kotlinx.serialization throws at decode.
+ */
+internal fun validateInvitationJson(
+    email: String = "a@b.co",
+    teamName: String = "Sharks",
+    status: String = "pending",
+    expiresAt: String = "2026-12-01T00:00:00Z",
+): String =
+    """{"email":"$email","team_name":"$teamName","status":"$status","expires_at":"$expiresAt"}"""
