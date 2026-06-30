@@ -3,7 +3,8 @@ package com.foxugly.trainingmanager_app.i18n
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.foxugly.trainingmanager_app.data.api.PatchMeBody
+import com.foxugly.trainingmanager_app.api.generated.models.LanguageEnum
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedMeRequest
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import kotlinx.coroutines.CancellationException
 
@@ -39,7 +40,9 @@ class LanguageService(
         if (lang !in supportedLanguages || lang == activeLang) return true
         val previous = activeLang
         setActive(lang)
-        return authRepository.updateProfile(PatchMeBody(language = lang)).fold(
+        // `lang` is already validated against supportedLanguages above, so decode succeeds;
+        // the generated request models `language` as an enum.
+        return authRepository.updateProfile(PatchedMeRequest(language = LanguageEnum.decode(lang))).fold(
             onSuccess = { true },
             onFailure = {
                 if (it is CancellationException) throw it

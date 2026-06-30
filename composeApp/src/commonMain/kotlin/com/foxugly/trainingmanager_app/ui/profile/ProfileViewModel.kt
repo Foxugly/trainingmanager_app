@@ -3,7 +3,7 @@ package com.foxugly.trainingmanager_app.ui.profile
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.foxugly.trainingmanager_app.data.api.PatchMeBody
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedMeRequest
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.i18n.StringsFr
@@ -60,7 +60,7 @@ class ProfileViewModel(
         saveError = null
         saved = false
         authRepository.updateProfile(
-            PatchMeBody(
+            PatchedMeRequest(
                 firstName = firstName,
                 lastName = lastName,
                 weeklyRecapOptIn = weeklyRecapOptIn,

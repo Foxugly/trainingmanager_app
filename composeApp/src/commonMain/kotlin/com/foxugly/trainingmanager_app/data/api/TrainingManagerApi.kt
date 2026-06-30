@@ -12,6 +12,10 @@ import com.foxugly.trainingmanager_app.api.generated.models.PaginatedMemberList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedNotificationList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicMessageList
+import com.foxugly.trainingmanager_app.api.generated.models.PasswordChangeRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedMeRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetRequestRequest
+import com.foxugly.trainingmanager_app.api.generated.models.RegisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.RotiSummary
 import com.foxugly.trainingmanager_app.api.generated.models.RotiUpsertRequest
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpSummary
@@ -124,11 +128,11 @@ class TrainingManagerApi(
         client.get("me/")
     }
 
-    suspend fun patchMe(body: PatchMeBody): Result<Me> = apiCall {
+    suspend fun patchMe(body: PatchedMeRequest): Result<Me> = apiCall {
         client.patch("me/") { setBody(body) }
     }
 
-    suspend fun changePassword(body: PasswordChangeBody): Result<Unit> = apiCall {
+    suspend fun changePassword(body: PasswordChangeRequest): Result<Unit> = apiCall {
         client.post("auth/password/change/") { setBody(body) }
     }
 
@@ -143,11 +147,11 @@ class TrainingManagerApi(
         }
     }.onFailure { if (it is CancellationException) throw it }
 
-    suspend fun register(body: RegisterBody): Result<Unit> = apiCall {
+    suspend fun register(body: RegisterRequest): Result<Unit> = apiCall {
         client.post("auth/register/") { setBody(body) }
     }
 
-    suspend fun requestPasswordReset(body: PasswordResetRequestBody): Result<Unit> = apiCall {
+    suspend fun requestPasswordReset(body: PasswordResetRequestRequest): Result<Unit> = apiCall {
         client.post("auth/password/reset/") { setBody(body) }
     }
 

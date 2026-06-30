@@ -4,16 +4,19 @@ import com.foxugly.trainingmanager_app.data.api.CompleteInvitationBody
 import com.foxugly.trainingmanager_app.data.api.EmailConfirmBody
 import com.foxugly.trainingmanager_app.data.api.MagicLinkExchangeBody
 import com.foxugly.trainingmanager_app.data.api.MagicLinkRequestBody
-import com.foxugly.trainingmanager_app.data.api.PasswordChangeBody
-import com.foxugly.trainingmanager_app.data.api.PatchMeBody
 import com.foxugly.trainingmanager_app.data.api.PasswordResetConfirmBody
 import com.foxugly.trainingmanager_app.data.api.RefreshRequest
 import com.foxugly.trainingmanager_app.data.api.TokenObtainRequest
 import com.foxugly.trainingmanager_app.data.api.TokenPair
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceRegisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceUnregisterRequest
+import com.foxugly.trainingmanager_app.api.generated.models.LanguageEnum
 import com.foxugly.trainingmanager_app.api.generated.models.Me
+import com.foxugly.trainingmanager_app.api.generated.models.PasswordChangeRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetRequestRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedMeRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PlatformEnum
+import com.foxugly.trainingmanager_app.api.generated.models.RegisterRequest
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.api.ValidateInvitation
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
@@ -81,15 +84,22 @@ class AuthRepository(
         turnstileToken: String,
     ): Result<Unit> =
         api.register(
-            com.foxugly.trainingmanager_app.data.api.RegisterBody(
-                firstName.trim(), lastName.trim(), email.trim(), password, language, turnstileToken,
+            RegisterRequest(
+                email = email.trim(),
+                password = password,
+                firstName = firstName.trim(),
+                lastName = lastName.trim(),
+                turnstileToken = turnstileToken,
+                // The generated request models `language` as an enum; callers pass a
+                // wire code ("en"/"fr"/…), so decode it back (null → field omitted).
+                language = LanguageEnum.decode(language),
             ),
         ).onFailure { if (it is CancellationException) throw it }
 
     /** POST auth/password/reset/ — always-200; carries the captcha token. */
     suspend fun requestPasswordReset(email: String, turnstileToken: String): Result<Unit> =
         api.requestPasswordReset(
-            com.foxugly.trainingmanager_app.data.api.PasswordResetRequestBody(email.trim(), turnstileToken),
+            PasswordResetRequestRequest(email = email.trim(), turnstileToken = turnstileToken),
         ).onFailure { if (it is CancellationException) throw it }
 
     /** POST auth/magic-link/exchange/ → auto-login. */
@@ -179,11 +189,11 @@ class AuthRepository(
         api.deleteMessage(teamId, topicId, messageId)
 
     /** PATCH me/ — partial profile update. */
-    suspend fun updateProfile(body: PatchMeBody): Result<Me> = api.patchMe(body)
+    suspend fun updateProfile(body: PatchedMeRequest): Result<Me> = api.patchMe(body)
 
     /** POST auth/password/change/ — no logout; tokens stay valid. */
     suspend fun changePassword(currentPassword: String, newPassword: String): Result<Unit> =
-        api.changePassword(PasswordChangeBody(currentPassword, newPassword))
+        api.changePassword(PasswordChangeRequest(currentPassword, newPassword))
             .onFailure { if (it is CancellationException) throw it }
 
     fun isAuthenticated(): Boolean = tokenStorage.getAccessToken() != null
