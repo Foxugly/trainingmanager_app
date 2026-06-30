@@ -58,6 +58,9 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
+            // Drop unreferenced resources alongside R8 code shrinking — minify
+            // without this leaves the (often larger) resource table untrimmed.
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

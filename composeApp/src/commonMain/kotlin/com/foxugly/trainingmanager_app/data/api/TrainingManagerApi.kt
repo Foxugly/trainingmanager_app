@@ -69,6 +69,13 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
+// DRF StandardPagination defaults to 50/page and caps page_size at 200. The
+// athlete app shows flat lists (no infinite scroll), so request the server max
+// on every list endpoint to avoid silently truncating events / notifications /
+// messages / members at 50. (A list genuinely exceeding 200 would still need
+// real .next paging — tracked as a follow-up.)
+private const val LIST_PAGE_SIZE = 200
+
 class TrainingManagerApi(
     private val tokenStorage: TokenStore,
     baseUrl: String = "https://tm-api.foxugly.com/api/v1/",
@@ -195,6 +202,7 @@ class TrainingManagerApi(
 
     suspend fun listEvents(dateGte: String? = null, page: Int? = null): Result<PaginatedEventList> = apiCall {
         client.get("events/") {
+            parameter("page_size", LIST_PAGE_SIZE)
             dateGte?.let { parameter("date__gte", it) }
             page?.let { parameter("page", it) }
         }
@@ -218,6 +226,7 @@ class TrainingManagerApi(
 
     suspend fun listAttachments(targetType: String, targetId: Int): Result<PaginatedAttachmentList> = apiCall {
         client.get("attachments/") {
+            parameter("page_size", LIST_PAGE_SIZE)
             parameter("target_type", targetType)
             parameter("target_id", targetId)
         }
@@ -232,7 +241,9 @@ class TrainingManagerApi(
     }
 
     suspend fun listMembers(): Result<PaginatedMemberList> = apiCall {
-        client.get("members/")
+        client.get("members/") {
+            parameter("page_size", LIST_PAGE_SIZE)
+        }
     }
 
     suspend fun registerDevice(body: DeviceRegisterRequest): Result<Unit> = apiCall {
@@ -244,7 +255,9 @@ class TrainingManagerApi(
     }
 
     suspend fun listNotifications(): Result<PaginatedNotificationList> = apiCall {
-        client.get("notifications/")
+        client.get("notifications/") {
+            parameter("page_size", LIST_PAGE_SIZE)
+        }
     }
 
     suspend fun markNotificationRead(id: Int): Result<Unit> = apiCall {
@@ -256,11 +269,15 @@ class TrainingManagerApi(
     }
 
     suspend fun listTopics(teamId: Int): Result<PaginatedTopicList> = apiCall {
-        client.get("teams/$teamId/topics/")
+        client.get("teams/$teamId/topics/") {
+            parameter("page_size", LIST_PAGE_SIZE)
+        }
     }
 
     suspend fun listMessages(teamId: Int, topicId: Int): Result<PaginatedTopicMessageList> = apiCall {
-        client.get("teams/$teamId/topics/$topicId/messages/")
+        client.get("teams/$teamId/topics/$topicId/messages/") {
+            parameter("page_size", LIST_PAGE_SIZE)
+        }
     }
 
     suspend fun postMessage(teamId: Int, topicId: Int, body: TopicMessageRequest): Result<TopicMessage> = apiCall {

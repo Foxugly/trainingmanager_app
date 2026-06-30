@@ -35,6 +35,20 @@ class EventsApiTest {
         assertEquals("Prépa", list.results[0].referProgram.name)
     }
 
+    @Test fun listRequestsServerMaxPageSize() = runTest {
+        // Without page_size the list silently truncates at the DRF default (50).
+        // The app shows flat lists, so it must ask for the server cap (200).
+        var pageSize: String? = null
+        val api = api(
+            MockEngine { request ->
+                pageSize = request.url.parameters["page_size"]
+                respond("""{"count":0,"next":null,"previous":null,"results":[]}""", HttpStatusCode.OK, jsonHeader)
+            },
+        )
+        api.listEvents().getOrThrow()
+        assertEquals("200", pageSize)
+    }
+
     @Test fun detailDecodesEvent() = runTest {
         val body = eventJson(
             id = 5,
