@@ -1,5 +1,6 @@
 package com.foxugly.trainingmanager_app.data.api
 
+import com.foxugly.trainingmanager_app.api.generated.models.CustomUserPublic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

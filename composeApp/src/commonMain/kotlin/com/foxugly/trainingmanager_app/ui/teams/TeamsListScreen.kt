@@ -22,7 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.foxugly.trainingmanager_app.data.api.TeamDto
+import com.foxugly.trainingmanager_app.api.generated.models.Team
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 
 @Composable
@@ -58,9 +58,9 @@ fun TeamsListScreen(
 }
 
 @Composable
-private fun TeamRow(team: TeamDto, onClick: () -> Unit) {
+private fun TeamRow(team: Team, onClick: () -> Unit) {
     Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 12.dp)) {
         Text(team.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-        team.sport?.name?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+        team.sport.name.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
     }
 }

@@ -1,9 +1,13 @@
 package com.foxugly.trainingmanager_app.ui.teams
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.customUserPublicJson
 import com.foxugly.trainingmanager_app.dashboardMemberTeamJson
 import com.foxugly.trainingmanager_app.dashboardSummaryJson
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
+import com.foxugly.trainingmanager_app.memberJson
+import com.foxugly.trainingmanager_app.memberListJson
+import com.foxugly.trainingmanager_app.teamJson
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.StringsFr
 import io.ktor.client.engine.mock.MockEngine
@@ -35,7 +39,7 @@ class TeamsViewModelTest {
                         jsonHeader,
                     )
                 request.url.encodedPath.endsWith("teams/3/") ->
-                    respond("""{"id":3,"name":"Sharks","sport":{"id":1,"name":"Natation"},"logo_url":null,"owner":{"id":1,"first_name":"Ann","last_name":"Lee"},"managers":[]}""", HttpStatusCode.OK, jsonHeader)
+                    respond(teamJson(id = 3, name = "Sharks"), HttpStatusCode.OK, jsonHeader)
                 else -> respond("", HttpStatusCode.NotFound)
             }
         }
@@ -43,7 +47,7 @@ class TeamsViewModelTest {
         vm.load()
         assertEquals(1, vm.teams.size)
         assertEquals("Sharks", vm.teams[0].name)
-        assertEquals("Natation", vm.teams[0].sport?.name)
+        assertEquals("Natation", vm.teams[0].sport.name)
     }
 
     @Test fun listFailureSetsError() = runTest {
@@ -56,9 +60,16 @@ class TeamsViewModelTest {
         val engine = MockEngine { request ->
             when {
                 request.url.encodedPath.endsWith("members/") ->
-                    respond("""{"count":2,"results":[{"id":1,"firstname":"A","lastname":"X","fullname":"A X","teams":[3]},{"id":2,"firstname":"B","lastname":"Y","fullname":"B Y","teams":[9]}]}""", HttpStatusCode.OK, jsonHeader)
+                    respond(
+                        memberListJson(
+                            memberJson(id = 1, firstname = "A", lastname = "X", fullname = "A X", teams = "[3]"),
+                            memberJson(id = 2, firstname = "B", lastname = "Y", fullname = "B Y", teams = "[9]"),
+                        ),
+                        HttpStatusCode.OK,
+                        jsonHeader,
+                    )
                 else ->
-                    respond("""{"id":3,"name":"Sharks","sport":{"id":1,"name":"Natation"},"logo_url":null,"owner":null,"managers":[]}""", HttpStatusCode.OK, jsonHeader)
+                    respond(teamJson(id = 3, name = "Sharks"), HttpStatusCode.OK, jsonHeader)
             }
         }
         val vm = TeamDetailViewModel(repo(engine))
@@ -68,7 +79,17 @@ class TeamsViewModelTest {
     }
 
     @Test fun detailLoadsTeam() = runTest {
-        val engine = MockEngine { respond("""{"id":3,"name":"Sharks","sport":{"id":1,"name":"Natation"},"logo_url":null,"owner":{"id":1,"first_name":"Ann","last_name":"Lee"},"managers":[{"id":2,"first_name":"Bob","last_name":"K"}]}""", HttpStatusCode.OK, jsonHeader) }
+        val engine = MockEngine {
+            respond(
+                teamJson(
+                    id = 3,
+                    name = "Sharks",
+                    managers = "[${customUserPublicJson(id = 2, firstName = "Bob", lastName = "K")}]",
+                ),
+                HttpStatusCode.OK,
+                jsonHeader,
+            )
+        }
         val vm = TeamDetailViewModel(repo(engine))
         vm.load(3)
         assertNotNull(vm.team)
