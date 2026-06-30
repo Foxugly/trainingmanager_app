@@ -1,6 +1,8 @@
 package com.foxugly.trainingmanager_app.ui.dashboard
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.dashboardMemberTeamJson
+import com.foxugly.trainingmanager_app.dashboardSummaryJson
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.StringsFr
@@ -23,7 +25,9 @@ class DashboardViewModelTest {
     }
 
     @Test fun loadSuccessPopulatesSummary() = runTest {
-        val body = """{"member_teams":[{"team_id":1,"members_count":4}],"member_upcoming":[],"member_upcoming_total":0,"member_attendance_history":[]}"""
+        val body = dashboardSummaryJson(
+            memberTeams = "[${dashboardMemberTeamJson(teamId = 1, membersCount = 4)}]",
+        )
         val sut = vm(MockEngine { respond(body, HttpStatusCode.OK, jsonHeader) })
         sut.load()
         assertNotNull(sut.summary)

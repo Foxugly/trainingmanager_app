@@ -1,6 +1,8 @@
 package com.foxugly.trainingmanager_app.ui.teams
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.dashboardMemberTeamJson
+import com.foxugly.trainingmanager_app.dashboardSummaryJson
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.StringsFr
@@ -25,7 +27,13 @@ class TeamsViewModelTest {
         val engine = MockEngine { request ->
             when {
                 request.url.encodedPath.endsWith("dashboard/summary/") ->
-                    respond("""{"member_teams":[{"team_id":3,"members_count":5}],"member_upcoming":[],"member_upcoming_total":0,"member_attendance_history":[]}""", HttpStatusCode.OK, jsonHeader)
+                    respond(
+                        dashboardSummaryJson(
+                            memberTeams = "[${dashboardMemberTeamJson(teamId = 3, membersCount = 5)}]",
+                        ),
+                        HttpStatusCode.OK,
+                        jsonHeader,
+                    )
                 request.url.encodedPath.endsWith("teams/3/") ->
                     respond("""{"id":3,"name":"Sharks","sport":{"id":1,"name":"Natation"},"logo_url":null,"owner":{"id":1,"first_name":"Ann","last_name":"Lee"},"managers":[]}""", HttpStatusCode.OK, jsonHeader)
                 else -> respond("", HttpStatusCode.NotFound)

@@ -3,8 +3,8 @@ package com.foxugly.trainingmanager_app.ui.events
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.foxugly.trainingmanager_app.api.generated.models.Attachment
 import com.foxugly.trainingmanager_app.data.api.ApiException
-import com.foxugly.trainingmanager_app.data.api.Attachment
 import com.foxugly.trainingmanager_app.data.api.EventDto
 import com.foxugly.trainingmanager_app.data.api.RsvpSummary
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository

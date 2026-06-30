@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.foxugly.trainingmanager_app.api.generated.models.AttachmentStatusEnum
 import com.foxugly.trainingmanager_app.data.api.ExerciseDto
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
@@ -117,7 +118,7 @@ fun EventDetailScreen(
                                     Text(att.filename, style = MaterialTheme.typography.bodyMedium)
                                     Text("${att.sizeBytes / 1024} KB", style = MaterialTheme.typography.bodySmall)
                                 }
-                                if (att.status == "ready") {
+                                if (att.status == AttachmentStatusEnum.READY) {
                                     TextButton(onClick = { scope.launch { viewModel.downloadAttachment(att.id) } }) { Text(s.download) }
                                 }
                             }
