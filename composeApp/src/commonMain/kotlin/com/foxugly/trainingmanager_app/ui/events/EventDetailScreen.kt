@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -29,6 +28,8 @@ import com.foxugly.trainingmanager_app.api.generated.models.RsvpStatusEnum
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpSummary
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
+import com.foxugly.trainingmanager_app.ui.components.ErrorState
+import com.foxugly.trainingmanager_app.ui.components.LoadingState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -53,12 +54,9 @@ fun EventDetailScreen(
         Spacer(Modifier.height(8.dp))
 
         when {
-            viewModel.isLoading ->
-                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator()
-                }
+            viewModel.isLoading -> LoadingState()
             viewModel.error != null || viewModel.event == null ->
-                Text(viewModel.error ?: s.eventLoadFailed)
+                ErrorState(viewModel.error ?: s.eventLoadFailed, onRetry = { scope.launch { viewModel.load(eventId) } }, retryLabel = s.retry)
             else -> {
                 val event = viewModel.event!!
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {

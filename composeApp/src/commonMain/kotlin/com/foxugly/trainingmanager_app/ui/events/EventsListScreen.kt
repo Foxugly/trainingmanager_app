@@ -1,7 +1,6 @@
 package com.foxugly.trainingmanager_app.ui.events
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,19 +10,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.foxugly.trainingmanager_app.api.generated.models.Event
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
+import com.foxugly.trainingmanager_app.ui.components.EmptyState
+import com.foxugly.trainingmanager_app.ui.components.ErrorState
+import com.foxugly.trainingmanager_app.ui.components.LoadingState
+import kotlinx.coroutines.launch
 
 @Composable
 fun EventsListScreen(
@@ -32,6 +35,7 @@ fun EventsListScreen(
     onBack: () -> Unit,
 ) {
     val s = LocalStrings.current
+    val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) { viewModel.load() }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -41,14 +45,11 @@ fun EventsListScreen(
         }
         Spacer(Modifier.height(8.dp))
         when {
-            viewModel.isLoading ->
-                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator()
-                }
+            viewModel.isLoading -> LoadingState()
             viewModel.error != null ->
-                Text(viewModel.error!!)
+                ErrorState(viewModel.error!!, onRetry = { scope.launch { viewModel.load() } }, retryLabel = s.retry)
             viewModel.events.isEmpty() ->
-                Text(s.eventsEmpty)
+                EmptyState(s.eventsEmpty)
             else ->
                 LazyColumn(Modifier.fillMaxSize()) {
                     items(viewModel.events, key = { it.id }) { event ->

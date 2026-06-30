@@ -1,6 +1,5 @@
 package com.foxugly.trainingmanager_app.ui.dashboard
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,8 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +24,8 @@ import com.foxugly.trainingmanager_app.api.generated.models.DashboardEventItem
 import com.foxugly.trainingmanager_app.api.generated.models.DashboardHistoryItem
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
+import com.foxugly.trainingmanager_app.ui.components.ErrorState
+import com.foxugly.trainingmanager_app.ui.components.LoadingState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -55,16 +54,9 @@ fun DashboardScreen(
         Spacer(Modifier.height(8.dp))
 
         when {
-            viewModel.isLoading ->
-                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator()
-                }
+            viewModel.isLoading -> LoadingState()
             viewModel.error != null ->
-                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(viewModel.error!!)
-                    Spacer(Modifier.height(12.dp))
-                    Button(onClick = { scope.launch { viewModel.load() } }) { Text(s.retry) }
-                }
+                ErrorState(viewModel.error!!, onRetry = { scope.launch { viewModel.load() } }, retryLabel = s.retry)
             else -> {
                 val summary = viewModel.summary
                 Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {

@@ -1,6 +1,5 @@
 package com.foxugly.trainingmanager_app.ui.discussions
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -27,6 +25,8 @@ import com.foxugly.trainingmanager_app.api.generated.models.CustomUserPublic
 import com.foxugly.trainingmanager_app.api.generated.models.TopicMessage
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
+import com.foxugly.trainingmanager_app.ui.components.ErrorState
+import com.foxugly.trainingmanager_app.ui.components.LoadingState
 import kotlinx.coroutines.launch
 
 /** Strip the server's sanitized HTML to plain text for display (no HTML renderer needed). */
@@ -54,12 +54,14 @@ fun TopicThreadScreen(
         }
         Spacer(Modifier.height(8.dp))
         when {
-            viewModel.isLoading ->
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator()
-                }
+            viewModel.isLoading -> LoadingState(Modifier.weight(1f))
             viewModel.error != null ->
-                Text(viewModel.error!!, modifier = Modifier.weight(1f))
+                ErrorState(
+                    viewModel.error!!,
+                    modifier = Modifier.weight(1f),
+                    onRetry = { scope.launch { viewModel.load(teamId, topicId) } },
+                    retryLabel = s.retry,
+                )
             else ->
                 LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                     items(viewModel.messages, key = { it.id }) { msg ->
