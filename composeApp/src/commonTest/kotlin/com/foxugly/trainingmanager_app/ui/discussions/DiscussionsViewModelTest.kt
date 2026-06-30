@@ -1,7 +1,12 @@
 package com.foxugly.trainingmanager_app.ui.discussions
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.customUserPublicJson
 import com.foxugly.trainingmanager_app.meJson
+import com.foxugly.trainingmanager_app.topicJson
+import com.foxugly.trainingmanager_app.topicListJson
+import com.foxugly.trainingmanager_app.topicMessageJson
+import com.foxugly.trainingmanager_app.topicMessageListJson
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.StringsFr
@@ -24,7 +29,10 @@ class DiscussionsViewModelTest {
     }
 
     @Test fun topicsLoadFiltersTeamAudience() = runTest {
-        val body = """{"count":2,"results":[{"id":1,"title":"Team","audience":"team","allow_athlete_replies":true},{"id":2,"title":"Staff","audience":"coaches","allow_athlete_replies":false}]}"""
+        val body = topicListJson(
+            topicJson(id = 1, title = "Team", audience = "team", allowAthleteReplies = true),
+            topicJson(id = 2, title = "Staff", audience = "coaches", allowAthleteReplies = false),
+        )
         val vm = TopicsListViewModel(repo(MockEngine { respond(body, HttpStatusCode.OK, jsonHeader) }))
         vm.load(3)
         assertEquals(1, vm.topics.size)
@@ -37,7 +45,7 @@ class DiscussionsViewModelTest {
                 request.url.encodedPath.endsWith("me/") ->
                     respond(meJson(id = 42), HttpStatusCode.OK, jsonHeader)
                 else ->
-                    respond("""{"count":1,"results":[{"id":9,"content":"hi","author":{"id":42,"first_name":"A","last_name":"B"},"edited_at":null,"created_at":"x"}]}""", HttpStatusCode.OK, jsonHeader)
+                    respond(topicMessageListJson(topicMessageJson(id = 9, content = "hi", author = customUserPublicJson(id = 42, firstName = "A", lastName = "B"))), HttpStatusCode.OK, jsonHeader)
             }
         }
         val vm = TopicThreadViewModel(repo(engine))
@@ -48,7 +56,7 @@ class DiscussionsViewModelTest {
     }
 
     @Test fun sendAppendsMessage() = runTest {
-        val engine = MockEngine { respond("""{"id":10,"content":"new","author":{"id":42,"first_name":"A","last_name":"B"},"edited_at":null,"created_at":"x"}""", HttpStatusCode.Created, jsonHeader) }
+        val engine = MockEngine { respond(topicMessageJson(id = 10, content = "new", author = customUserPublicJson(id = 42, firstName = "A", lastName = "B")), HttpStatusCode.Created, jsonHeader) }
         val vm = TopicThreadViewModel(repo(engine))
         vm.composeText = "new"
         vm.send(3, 7)

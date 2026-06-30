@@ -3,7 +3,8 @@ package com.foxugly.trainingmanager_app.ui.discussions
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.foxugly.trainingmanager_app.data.api.Topic
+import com.foxugly.trainingmanager_app.api.generated.models.AudienceEnum
+import com.foxugly.trainingmanager_app.api.generated.models.Topic
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.i18n.StringsFr
@@ -24,7 +25,7 @@ class TopicsListViewModel(
         error = null
         authRepository.listTopics(teamId).fold(
             // Athletes only see whole-team topics; coaches-only channels are hidden.
-            onSuccess = { topics = it.results.filter { t -> t.audience == "team" } },
+            onSuccess = { topics = it.results.filter { t -> t.audience == AudienceEnum.TEAM } },
             onFailure = { error = strings.topicsLoadFailed },
         )
         isLoading = false

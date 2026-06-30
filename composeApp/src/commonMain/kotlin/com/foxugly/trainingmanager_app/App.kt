@@ -332,7 +332,7 @@ fun App(
                             viewModel = vm,
                             teamId = args.teamId,
                             onTopicClick = { topic ->
-                                navController.navigate(TopicThreadRoute(args.teamId, topic.id, topic.allowAthleteReplies)) { launchSingleTop = true }
+                                navController.navigate(TopicThreadRoute(args.teamId, topic.id, topic.allowAthleteReplies ?: false)) { launchSingleTop = true }
                             },
                             onBack = { navController.popBackStack() },
                         )

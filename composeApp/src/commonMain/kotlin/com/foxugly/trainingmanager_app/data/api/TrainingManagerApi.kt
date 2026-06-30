@@ -10,11 +10,15 @@ import com.foxugly.trainingmanager_app.api.generated.models.PaginatedAttachmentL
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedEventList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedMemberList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedNotificationList
+import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicList
+import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicMessageList
 import com.foxugly.trainingmanager_app.api.generated.models.RotiSummary
 import com.foxugly.trainingmanager_app.api.generated.models.RotiUpsertRequest
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpSummary
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpUpsertRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Team
+import com.foxugly.trainingmanager_app.api.generated.models.TopicMessage
+import com.foxugly.trainingmanager_app.api.generated.models.TopicMessageRequest
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
 import com.foxugly.trainingmanager_app.i18n.LanguageProvider

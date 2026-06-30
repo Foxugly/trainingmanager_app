@@ -331,6 +331,63 @@ internal fun memberJson(
 internal fun memberListJson(vararg items: String): String =
     """{"count":${items.size},"results":[${items.joinToString(",")}]}"""
 
+// --- Discussions domain (generated models) ---
+// The generated `Topic`/`TopicMessage` are stricter than the old hand-written DTOs: `Topic` marks
+// id/title/author/message_count/created_at/updated_at as @Required (author is now NON-null), and
+// `audience` is the `AudienceEnum` ("team"/"coaches" wire values only). `TopicMessage` marks
+// id/content/author/edited_at/created_at @Required (author NON-null; edited_at key must be present,
+// value may be null). A mocked response MUST carry them all or kotlinx.serialization throws at decode.
+
+/**
+ * Complete `Topic` JSON. `id`/`title`/`author`/`message_count`/`created_at`/`updated_at` are
+ * `@Required`; `audience`/`allow_athlete_replies` optional. `audience`, when set, must be a valid
+ * `AudienceEnum` wire value (`team`/`coaches`).
+ */
+internal fun topicJson(
+    id: Int = 1,
+    title: String = "Topic",
+    audience: String? = "team",
+    allowAthleteReplies: Boolean? = true,
+    author: String = customUserPublicJson(),
+    messageCount: Int = 0,
+    createdAt: String = "2026-06-01T10:00:00Z",
+    updatedAt: String = "2026-06-01T10:00:00Z",
+): String {
+    val fields = buildList {
+        add("\"id\":$id")
+        add("\"title\":\"$title\"")
+        add("\"author\":$author")
+        add("\"message_count\":$messageCount")
+        add("\"created_at\":\"$createdAt\"")
+        add("\"updated_at\":\"$updatedAt\"")
+        audience?.let { add("\"audience\":\"$it\"") }
+        allowAthleteReplies?.let { add("\"allow_athlete_replies\":$it") }
+    }
+    return fields.joinToString(prefix = "{", postfix = "}")
+}
+
+/** A full `PaginatedTopicList` JSON wrapping the given `Topic` item JSON strings. */
+internal fun topicListJson(vararg items: String): String =
+    """{"count":${items.size},"results":[${items.joinToString(",")}]}"""
+
+/**
+ * Complete `TopicMessage` JSON. `id`/`content`/`author`/`edited_at`/`created_at` are `@Required`
+ * (`edited_at` key must be present, value may be null); `author` is NON-null.
+ */
+internal fun topicMessageJson(
+    id: Int = 9,
+    content: String = "hi",
+    author: String = customUserPublicJson(),
+    editedAt: String? = null,
+    createdAt: String = "2026-06-01T10:00:00Z",
+): String =
+    """{"id":$id,"content":"$content","author":$author,""" +
+        """"edited_at":${editedAt?.let { "\"$it\"" } ?: "null"},"created_at":"$createdAt"}"""
+
+/** A full `PaginatedTopicMessageList` JSON wrapping the given `TopicMessage` item JSON strings. */
+internal fun topicMessageListJson(vararg items: String): String =
+    """{"count":${items.size},"results":[${items.joinToString(",")}]}"""
+
 /**
  * Complete `Team` JSON for the generated model. Emits every `@Required` key (nullable-but-required
  * keys `level`/`default_place`/`logo_url` default to `null`); the many optional flags/enums are
