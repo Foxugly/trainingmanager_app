@@ -1,8 +1,5 @@
 package com.foxugly.trainingmanager_app.data.repository
 
-import com.foxugly.trainingmanager_app.data.api.RefreshRequest
-import com.foxugly.trainingmanager_app.data.api.TokenObtainRequest
-import com.foxugly.trainingmanager_app.data.api.TokenPair
 import com.foxugly.trainingmanager_app.api.generated.models.CompleteInvitationRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceRegisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceUnregisterRequest
@@ -17,7 +14,10 @@ import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedMeRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PlatformEnum
 import com.foxugly.trainingmanager_app.api.generated.models.RegisterRequest
+import com.foxugly.trainingmanager_app.api.generated.models.TokenObtainPairResponse
+import com.foxugly.trainingmanager_app.api.generated.models.TokenRefreshRequest
 import com.foxugly.trainingmanager_app.api.generated.models.ValidateInvitation
+import com.foxugly.trainingmanager_app.api.generated.models.VerifiedTokenObtainPairRequest
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
@@ -36,7 +36,7 @@ class AuthRepository(
     suspend fun login(email: String, password: String, remember: Boolean): Result<Me> {
         // Don't log the email — it's PII and would land in Logcat.
         AppLogger.info(tag, "Login requested (remember=$remember)")
-        return api.login(TokenObtainRequest(email, password, remember)).mapCatching { pair ->
+        return api.login(VerifiedTokenObtainPairRequest(email, password, remember)).mapCatching { pair ->
             tokenStorage.setAccessToken(pair.access)
             tokenStorage.setRefreshToken(pair.refresh)
             tokenStorage.setRemember(remember)
@@ -116,7 +116,7 @@ class AuthRepository(
 
     /** Shared: a token-pair call → persist access+refresh+remember → GET me/ → profile. */
     private suspend inline fun autoLogin(
-        crossinline tokenCall: suspend () -> Result<TokenPair>,
+        crossinline tokenCall: suspend () -> Result<TokenObtainPairResponse>,
     ): Result<Me> = tokenCall().mapCatching { pair ->
         tokenStorage.setAccessToken(pair.access)
         tokenStorage.setRefreshToken(pair.refresh)
@@ -204,10 +204,14 @@ class AuthRepository(
     suspend fun tryRefresh(): Boolean {
         val refreshToken = tokenStorage.getRefreshToken() ?: return false
         AppLogger.info(tag, "Trying startup token refresh")
-        return api.refresh(RefreshRequest(refreshToken)).fold(
+        return api.refresh(TokenRefreshRequest(refreshToken)).fold(
             onSuccess = { response ->
                 tokenStorage.setAccessToken(response.access)
-                response.refresh?.let { tokenStorage.setRefreshToken(it) }
+                // Persist the rotated refresh token (ROTATE_REFRESH_TOKENS +
+                // BLACKLIST_AFTER_ROTATION). The generated TokenRefresh always carries a
+                // refresh (rotation is on server-side), so write it unconditionally —
+                // skipping it would send a blacklisted token on the next refresh and eject the user.
+                tokenStorage.setRefreshToken(response.refresh)
                 AppLogger.info(tag, "Startup token refresh succeeded")
                 true
             },

@@ -63,7 +63,7 @@ class InterceptorTest {
     }
 
     /**
-     * Client for refresh tests: adds ContentNegotiation (needed by body<RefreshResponse>())
+     * Client for refresh tests: adds ContentNegotiation (needed by body<TokenRefresh>())
      * and a defaultRequest base URL so `client.post("auth/token/refresh/")` resolves
      * to an absolute URL that the MockEngine can match on encodedPath.
      */
