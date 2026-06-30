@@ -49,7 +49,7 @@ fun TopicsListScreen(
             viewModel.error != null -> Text(viewModel.error!!)
             viewModel.topics.isEmpty() -> Text(s.topicsEmpty)
             else -> LazyColumn(Modifier.fillMaxSize()) {
-                items(viewModel.topics) { topic ->
+                items(viewModel.topics, key = { it.id }) { topic ->
                     Column(Modifier.fillMaxWidth().clickable { onTopicClick(topic) }.padding(vertical = 12.dp)) {
                         Text(topic.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                         Text("${topic.messageCount}", style = MaterialTheme.typography.bodySmall)

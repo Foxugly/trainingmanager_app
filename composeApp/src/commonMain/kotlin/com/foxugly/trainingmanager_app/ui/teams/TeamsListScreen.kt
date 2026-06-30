@@ -48,7 +48,7 @@ fun TeamsListScreen(
             viewModel.error != null -> Text(viewModel.error!!)
             viewModel.teams.isEmpty() -> Text(s.teamsEmpty)
             else -> LazyColumn(Modifier.fillMaxSize()) {
-                items(viewModel.teams) { team ->
+                items(viewModel.teams, key = { it.id }) { team ->
                     TeamRow(team) { onTeamClick(team.id) }
                     HorizontalDivider()
                 }

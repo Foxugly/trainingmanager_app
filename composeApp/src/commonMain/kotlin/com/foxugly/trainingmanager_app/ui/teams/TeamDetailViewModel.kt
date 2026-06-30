@@ -8,6 +8,8 @@ import com.foxugly.trainingmanager_app.api.generated.models.Team
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.i18n.StringsFr
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 class TeamDetailViewModel(
     private val authRepository: AuthRepository,
@@ -25,13 +27,18 @@ class TeamDetailViewModel(
     suspend fun load(id: Int) {
         isLoading = true
         error = null
-        authRepository.getTeam(id).fold(
-            onSuccess = { team = it },
-            onFailure = { error = strings.teamLoadFailed },
-        )
-        // Roster is best-effort: /members/ is scoped to the caller's teams; filter to this one.
-        authRepository.listMembers().onSuccess { page ->
-            members = page.results.filter { it.teams.contains(id) }
+        // getTeam and listMembers are independent; run them concurrently.
+        coroutineScope {
+            val teamDeferred = async { authRepository.getTeam(id) }
+            val membersDeferred = async { authRepository.listMembers() }
+            teamDeferred.await().fold(
+                onSuccess = { team = it },
+                onFailure = { error = strings.teamLoadFailed },
+            )
+            // Roster is best-effort: /members/ is scoped to the caller's teams; filter to this one.
+            membersDeferred.await().onSuccess { page ->
+                members = page.results.filter { it.teams.contains(id) }
+            }
         }
         isLoading = false
     }
