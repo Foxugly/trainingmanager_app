@@ -173,7 +173,7 @@ class AuthRepository(
     suspend fun listMessages(teamId: Int, topicId: Int) = api.listMessages(teamId, topicId)
 
     suspend fun postMessage(teamId: Int, topicId: Int, content: String) =
-        api.postMessage(teamId, topicId, com.foxugly.trainingmanager_app.data.api.TopicMessageRequest(content))
+        api.postMessage(teamId, topicId, com.foxugly.trainingmanager_app.api.generated.models.TopicMessageRequest(content))
 
     suspend fun deleteMessage(teamId: Int, topicId: Int, messageId: Int) =
         api.deleteMessage(teamId, topicId, messageId)

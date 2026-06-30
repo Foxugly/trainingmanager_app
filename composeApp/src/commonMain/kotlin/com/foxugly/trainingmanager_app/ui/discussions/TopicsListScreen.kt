@@ -22,7 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.foxugly.trainingmanager_app.data.api.Topic
+import com.foxugly.trainingmanager_app.api.generated.models.Topic
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 
 @Composable
