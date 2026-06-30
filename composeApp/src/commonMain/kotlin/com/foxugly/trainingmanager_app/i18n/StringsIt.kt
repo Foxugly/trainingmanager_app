@@ -85,7 +85,7 @@ object StringsIt : Strings {
     override val dashboardNoUpcoming = "Nessuna sessione in arrivo."
     override val dashboardHistory = "Cronologia recente"
     override val dashboardNoHistory = "Nessuna cronologia."
-    override val dashboardLoadFailed = "Impossibile caricare il dashboard."
+    override val dashboardLoadFailed = "Impossibile caricare la dashboard."
     override val retry = "Riprova"
     override fun dashboardTeams(count: Int) = "$count ${if (count > 1) "squadre" else "squadra"}"
 
@@ -140,7 +140,7 @@ object StringsIt : Strings {
     override val registerPassword = "Password"
     override val registerPasswordTooShort = "Almeno 8 caratteri."
     override val registerSubmit = "Crea account"
-    override val registerCheckEmailTitle = "Controlla la tua email"
+    override val registerCheckEmailTitle = "Controlla la tua e-mail"
     override val registerCheckEmailBody = "Account creato. Tocca il link di conferma inviato a:"
     override val registerFailed = "Creazione dell'account non riuscita."
     override val registerInvalid = "Controlla i dati inseriti."

@@ -140,7 +140,7 @@ object StringsFr : Strings {
     override val registerPassword = "Mot de passe"
     override val registerPasswordTooShort = "Au moins 8 caractères."
     override val registerSubmit = "Créer le compte"
-    override val registerCheckEmailTitle = "Vérifiez vos emails"
+    override val registerCheckEmailTitle = "Vérifiez vos e-mails"
     override val registerCheckEmailBody = "Compte créé. Cliquez sur le lien de confirmation envoyé à :"
     override val registerFailed = "La création du compte a échoué."
     override val registerInvalid = "Vérifiez les informations saisies."
