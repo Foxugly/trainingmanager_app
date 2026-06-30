@@ -11,6 +11,8 @@ import com.foxugly.trainingmanager_app.data.api.ApiException
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.i18n.StringsFr
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
@@ -55,17 +57,23 @@ class EventDetailViewModel(
         isLoading = true
         error = null
         val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-        authRepository.getEvent(id).fold(
-            onSuccess = { e ->
-                event = e
-                isPast = isEventPast(e.date, today)
-            },
-            onFailure = { error = strings.eventLoadFailed },
-        )
-        // RSVP is best-effort (a member may not be able to read it on some teams).
-        authRepository.getRsvp(id).onSuccess { rsvp = it }
-        // Attachments are best-effort too.
-        authRepository.listEventAttachments(id).onSuccess { attachments = it.results }
+        // getEvent, getRsvp and listEventAttachments all depend only on `id`; run concurrently.
+        coroutineScope {
+            val eventDeferred = async { authRepository.getEvent(id) }
+            val rsvpDeferred = async { authRepository.getRsvp(id) }
+            val attachmentsDeferred = async { authRepository.listEventAttachments(id) }
+            eventDeferred.await().fold(
+                onSuccess = { e ->
+                    event = e
+                    isPast = isEventPast(e.date, today)
+                },
+                onFailure = { error = strings.eventLoadFailed },
+            )
+            // RSVP is best-effort (a member may not be able to read it on some teams).
+            rsvpDeferred.await().onSuccess { rsvp = it }
+            // Attachments are best-effort too.
+            attachmentsDeferred.await().onSuccess { attachments = it.results }
+        }
         isLoading = false
     }
 

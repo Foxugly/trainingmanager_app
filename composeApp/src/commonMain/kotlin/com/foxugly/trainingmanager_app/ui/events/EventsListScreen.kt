@@ -51,7 +51,7 @@ fun EventsListScreen(
                 Text(s.eventsEmpty)
             else ->
                 LazyColumn(Modifier.fillMaxSize()) {
-                    items(viewModel.events) { event ->
+                    items(viewModel.events, key = { it.id }) { event ->
                         EventRow(event, onClick = { onEventClick(event.id) })
                         HorizontalDivider()
                     }

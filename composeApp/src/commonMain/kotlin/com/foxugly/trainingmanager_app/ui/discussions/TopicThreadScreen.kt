@@ -62,7 +62,7 @@ fun TopicThreadScreen(
                 Text(viewModel.error!!, modifier = Modifier.weight(1f))
             else ->
                 LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
-                    items(viewModel.messages) { msg ->
+                    items(viewModel.messages, key = { it.id }) { msg ->
                         MessageRow(
                             msg = msg,
                             mine = viewModel.isMine(msg),

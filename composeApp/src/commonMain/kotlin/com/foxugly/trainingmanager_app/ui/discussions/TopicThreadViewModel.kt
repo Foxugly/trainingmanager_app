@@ -7,6 +7,8 @@ import com.foxugly.trainingmanager_app.api.generated.models.TopicMessage
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.i18n.StringsFr
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 class TopicThreadViewModel(
     private val authRepository: AuthRepository,
@@ -32,11 +34,16 @@ class TopicThreadViewModel(
     suspend fun load(teamId: Int, topicId: Int) {
         isLoading = true
         error = null
-        authRepository.getCurrentUser().onSuccess { myUserId = it.id }
-        authRepository.listMessages(teamId, topicId).fold(
-            onSuccess = { messages = it.results },
-            onFailure = { error = strings.messagesLoadFailed },
-        )
+        // getCurrentUser (for myUserId) and listMessages are independent; run concurrently.
+        coroutineScope {
+            val userDeferred = async { authRepository.getCurrentUser() }
+            val messagesDeferred = async { authRepository.listMessages(teamId, topicId) }
+            userDeferred.await().onSuccess { myUserId = it.id }
+            messagesDeferred.await().fold(
+                onSuccess = { messages = it.results },
+                onFailure = { error = strings.messagesLoadFailed },
+            )
+        }
         isLoading = false
     }
 

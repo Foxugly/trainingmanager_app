@@ -80,6 +80,7 @@ import com.foxugly.trainingmanager_app.ui.discussions.TopicThreadViewModel
 import com.foxugly.trainingmanager_app.ui.discussions.TopicsListScreen
 import com.foxugly.trainingmanager_app.ui.discussions.TopicsListViewModel
 import com.foxugly.trainingmanager_app.ui.theme.TrainingManagerTheme
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @Composable
@@ -97,15 +98,22 @@ fun App(
         val hasRefresh = authRepository.hasRefreshToken()
         val refreshed = hasRefresh && authRepository.tryRefresh()
         val resolved = startupRoute(hasRefresh, refreshed)
-        // Initialize the UI language from the signed-in user's preference.
+        // Initialize the UI language from the signed-in user's preference BEFORE first render
+        // so the initial frame is localized.
         if (resolved == StartupRoute.Authenticated) {
             authRepository.getCurrentUser().getOrNull()?.language?.value?.let { languageService.setActive(it) }
-            // Register this device's FCM token for push (best-effort; null on iOS until the SDK is wired).
-            fcmTokenProvider.token()?.let { token ->
-                authRepository.registerDevice(token, fcmTokenProvider.platform)
-            }
         }
         route = resolved
+        // FCM token fetch + device registration are pure side effects; run them off the
+        // critical path so they never gate first render.
+        if (resolved == StartupRoute.Authenticated) {
+            launch {
+                // Register this device's FCM token for push (best-effort; null on iOS until the SDK is wired).
+                fcmTokenProvider.token()?.let { token ->
+                    authRepository.registerDevice(token, fcmTokenProvider.platform)
+                }
+            }
+        }
     }
 
     TrainingManagerTheme {

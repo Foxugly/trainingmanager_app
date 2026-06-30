@@ -52,7 +52,7 @@ fun NotificationsScreen(
             viewModel.error != null -> Text(viewModel.error!!)
             viewModel.notifications.isEmpty() -> Text(s.notificationsEmpty)
             else -> LazyColumn(Modifier.fillMaxSize()) {
-                items(viewModel.notifications) { notif ->
+                items(viewModel.notifications, key = { it.id }) { notif ->
                     NotificationRow(notif) {
                         scope.launch { viewModel.markRead(notif.id) }
                         parseNotificationTarget(notif.url)?.let(onOpen)
