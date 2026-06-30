@@ -133,11 +133,11 @@ class AuthRepository(
 
     suspend fun getRsvp(eventId: Int) = api.getRsvp(eventId)
 
-    suspend fun setRsvp(eventId: Int, status: String) =
-        api.setRsvp(eventId, com.foxugly.trainingmanager_app.data.api.RsvpUpsertRequest(status))
+    suspend fun setRsvp(eventId: Int, status: com.foxugly.trainingmanager_app.api.generated.models.RsvpStatusEnum) =
+        api.setRsvp(eventId, com.foxugly.trainingmanager_app.api.generated.models.RsvpUpsertRequest(status))
 
     suspend fun setRoti(eventId: Int, score: Int) =
-        api.setRoti(eventId, com.foxugly.trainingmanager_app.data.api.RotiUpsertRequest(score))
+        api.setRoti(eventId, com.foxugly.trainingmanager_app.api.generated.models.RotiUpsertRequest(score))
 
     suspend fun listEventAttachments(eventId: Int) = api.listAttachments("event", eventId)
 

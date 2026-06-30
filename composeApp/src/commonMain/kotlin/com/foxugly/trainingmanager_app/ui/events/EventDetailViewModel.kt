@@ -4,9 +4,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.foxugly.trainingmanager_app.api.generated.models.Attachment
+import com.foxugly.trainingmanager_app.api.generated.models.Event
+import com.foxugly.trainingmanager_app.api.generated.models.RsvpStatusEnum
+import com.foxugly.trainingmanager_app.api.generated.models.RsvpSummary
 import com.foxugly.trainingmanager_app.data.api.ApiException
-import com.foxugly.trainingmanager_app.data.api.EventDto
-import com.foxugly.trainingmanager_app.data.api.RsvpSummary
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.i18n.StringsFr
@@ -24,7 +25,7 @@ class EventDetailViewModel(
         private set
     var error by mutableStateOf<String?>(null)
         private set
-    var event by mutableStateOf<EventDto?>(null)
+    var event by mutableStateOf<Event?>(null)
         private set
     var rsvp by mutableStateOf<RsvpSummary?>(null)
         private set
@@ -76,7 +77,7 @@ class EventDetailViewModel(
         )
     }
 
-    suspend fun setRsvp(id: Int, status: String) {
+    suspend fun setRsvp(id: Int, status: RsvpStatusEnum) {
         if (isSavingRsvp) return
         isSavingRsvp = true
         rsvpError = null

@@ -114,3 +114,187 @@ internal fun dashboardSummaryJson(
         """"coach_pending_truncated":$coachPendingTruncated,"member_upcoming":$memberUpcoming,""" +
         """"member_upcoming_total":$memberUpcomingTotal,"member_attendance_history":$memberAttendanceHistory,""" +
         """"member_history_truncated":$memberHistoryTruncated}"""
+
+// --- Events domain (generated models) ---
+// The generated event graph (Event → EventRoundDetail → Exercise → Modality/EnergySegment)
+// is far stricter than the old hand-written DTOs: every nested model carries its own set of
+// @Required fields (e.g. Event.sport, Exercise.language/usage_count, the nested Sport/EnergySystem),
+// so a mocked response MUST carry them all or kotlinx.serialization throws at decode. The visibility
+// and RSVP-status strings are now enums — their JSON values must be the wire serial names
+// (`always`/`after`/`never`, `going`/`maybe`/`not_going`).
+
+/** Complete `Sport` JSON — every field is `@Required`. */
+internal fun sportJson(
+    id: Int = 1,
+    name: String = "Natation",
+    slug: String = "natation",
+    isActive: Boolean = true,
+    energySystems: String = "[]",
+    defaultTrainingType: String = "structured",
+    createdAt: String = "2026-01-01T00:00:00Z",
+): String =
+    """{"id":$id,"name":"$name","slug":"$slug","is_active":$isActive,"energy_systems":$energySystems,""" +
+        """"default_training_type":"$defaultTrainingType","created_at":"$createdAt"}"""
+
+/** `PlaceMinimal` JSON — `id`/`name`/`address` all `@Required`. */
+internal fun placeMinimalJson(id: Int = 1, name: String = "Stade X", address: String = "Rue Y"): String =
+    """{"id":$id,"name":"$name","address":"$address"}"""
+
+/** `ProgramMinimal` JSON — `id`/`name` both `@Required`. */
+internal fun programMinimalJson(id: Int = 2, name: String = "Prépa"): String =
+    """{"id":$id,"name":"$name"}"""
+
+/** `EnergySystem` JSON — `id`/`name`/`is_active` all `@Required`. */
+internal fun energySystemJson(id: Int = 1, name: String = "Aérobie", isActive: Boolean = true): String =
+    """{"id":$id,"name":"$name","is_active":$isActive}"""
+
+/** `EnergySegment` JSON — `id`/`abv`/`energy_system`/`is_active` `@Required`. */
+internal fun energySegmentJson(id: Int = 3, abv: String = "PMA"): String =
+    """{"id":$id,"abv":"$abv","energy_system":${energySystemJson()},"is_active":true}"""
+
+/** `Modality` JSON — `id`/`name`/`sport`/`is_active` `@Required`. */
+internal fun modalityJson(id: Int = 2, name: String = "Crawl"): String =
+    """{"id":$id,"name":"$name","sport":${sportJson()},"is_active":true}"""
+
+/**
+ * `Exercise` JSON. `id`, `modality`, `energysegment`, `language`, `usage_count`, `created_at`
+ * and `updated_at` are `@Required`; `order`/`repetition`/`distance`/`notes`/`t_start`/`t_break`
+ * are optional and emitted only when supplied.
+ */
+internal fun exerciseJson(
+    id: Int = 9,
+    order: Long? = 1,
+    repetition: Long? = 4,
+    distance: Long? = 100,
+    notes: String? = "sprint",
+    tStart: String? = null,
+    tBreak: String? = null,
+    modality: String = modalityJson(),
+    energysegment: String = energySegmentJson(),
+): String {
+    val fields = buildList {
+        add("\"id\":$id")
+        add("\"modality\":$modality")
+        add("\"energysegment\":$energysegment")
+        add("\"language\":\"fr\"")
+        add("\"usage_count\":0")
+        add("\"created_at\":\"2026-01-01T00:00:00Z\"")
+        add("\"updated_at\":\"2026-01-01T00:00:00Z\"")
+        order?.let { add("\"order\":$it") }
+        repetition?.let { add("\"repetition\":$it") }
+        distance?.let { add("\"distance\":$it") }
+        notes?.let { add("\"notes\":\"$it\"") }
+        tStart?.let { add("\"t_start\":\"$it\"") }
+        tBreak?.let { add("\"t_break\":\"$it\"") }
+    }
+    return fields.joinToString(prefix = "{", postfix = "}")
+}
+
+/**
+ * `EventRoundDetail` JSON — `id`/`order`/`count`/`t_start`/`t_break`/`sport`/`exercises` are all
+ * `@Required` (the nullable `t_start`/`t_break` keys must still be present).
+ */
+internal fun roundDetailJson(
+    id: Int = 1,
+    order: Int = 1,
+    count: Int = 3,
+    tStart: String? = null,
+    tBreak: String? = null,
+    exercises: String = "[${exerciseJson()}]",
+): String =
+    """{"id":$id,"order":$order,"count":$count,""" +
+        """"t_start":${tStart?.let { "\"$it\"" } ?: "null"},"t_break":${tBreak?.let { "\"$it\"" } ?: "null"},""" +
+        """"sport":${sportJson()},"exercises":$exercises}"""
+
+/**
+ * Complete `Event` JSON. The generated model marks a large set of fields `@Required`
+ * (`place`/`equipment_items`/`refer_program`/`team_id`/`sport`/`rounds`/`rounds_detail`/`members`/
+ * `is_public`/`public_token`/`generated_by_ai`/`ai_response`/`ai_generated_at`/`created_at`/`updated_at`
+ * on top of `id`/`name`), so all are always emitted. Nullable-but-required keys (`place`,
+ * `public_token`, `ai_generated_at`) are emitted as `null` by default. The athlete-facing optional
+ * fields are emitted only when supplied. `refer_program` is now non-null on the wire.
+ */
+internal fun eventJson(
+    id: Int = 5,
+    name: String = "Séance",
+    place: String? = null,
+    referProgram: String = programMinimalJson(),
+    roundsDetail: String = "[]",
+    location: String? = "Gym",
+    equipment: String? = "",
+    goal: String? = null,
+    total: Long? = 0,
+    date: String? = null,
+    hourStart: String? = null,
+    hourEnd: String? = null,
+    visDistance: String? = "never",
+    visGoal: String? = "never",
+    visRounds: String? = "never",
+    debrief: String? = "",
+): String {
+    val fields = buildList {
+        add("\"id\":$id")
+        add("\"name\":\"$name\"")
+        add("\"place\":${place ?: "null"}")
+        add("\"equipment_items\":[]")
+        add("\"refer_program\":$referProgram")
+        add("\"team_id\":1")
+        add("\"sport\":${sportJson()}")
+        add("\"rounds\":[]")
+        add("\"rounds_detail\":$roundsDetail")
+        add("\"members\":[]")
+        add("\"is_public\":false")
+        add("\"public_token\":null")
+        add("\"generated_by_ai\":false")
+        add("\"ai_response\":\"\"")
+        add("\"ai_generated_at\":null")
+        add("\"created_at\":\"2026-01-01T00:00:00Z\"")
+        add("\"updated_at\":\"2026-01-01T00:00:00Z\"")
+        goal?.let { add("\"goal\":\"$it\"") }
+        location?.let { add("\"location\":\"$it\"") }
+        equipment?.let { add("\"equipment\":\"$it\"") }
+        total?.let { add("\"total\":$it") }
+        date?.let { add("\"date\":\"$it\"") }
+        hourStart?.let { add("\"hour_start\":\"$it\"") }
+        hourEnd?.let { add("\"hour_end\":\"$it\"") }
+        visDistance?.let { add("\"vis_distance\":\"$it\"") }
+        visGoal?.let { add("\"vis_goal\":\"$it\"") }
+        visRounds?.let { add("\"vis_rounds\":\"$it\"") }
+        debrief?.let { add("\"debrief\":\"$it\"") }
+    }
+    return fields.joinToString(prefix = "{", postfix = "}")
+}
+
+/** A full `PaginatedEventList` JSON wrapping the given `Event` item JSON strings. */
+internal fun eventListJson(vararg items: String): String =
+    """{"count":${items.size},"next":null,"previous":null,"results":[${items.joinToString(",")}]}"""
+
+/** `RsvpCounts` JSON — `going`/`maybe`/`not_going`/`no_response` all `@Required`. */
+internal fun rsvpCountsJson(going: Int = 0, maybe: Int = 0, notGoing: Int = 0, noResponse: Int = 0): String =
+    """{"going":$going,"maybe":$maybe,"not_going":$notGoing,"no_response":$noResponse}"""
+
+/**
+ * `RsvpSummary` JSON. `counts`/`total_members`/`my_status`/`by_member` are all `@Required`
+ * (`my_status` may be null but the key must be present). `myStatus`, when set, must be one of
+ * the wire enum values `going`/`maybe`/`not_going`.
+ */
+internal fun rsvpSummaryJson(
+    counts: String = rsvpCountsJson(going = 1, maybe = 1, noResponse = 2),
+    totalMembers: Int = 4,
+    myStatus: String? = "going",
+    byMember: String = "[]",
+): String =
+    """{"counts":$counts,"total_members":$totalMembers,""" +
+        """"my_status":${myStatus?.let { "\"$it\"" } ?: "null"},"by_member":$byMember}"""
+
+/**
+ * `RotiSummary` JSON. `average`/`count`/`distribution`/`my_score` are all `@Required`
+ * (`average`/`my_score` may be null but keys must be present).
+ */
+internal fun rotiSummaryJson(
+    average: Double? = null,
+    count: Int = 0,
+    distribution: String = "{}",
+    myScore: Int? = null,
+): String =
+    """{"average":${average ?: "null"},"count":$count,"distribution":$distribution,"my_score":${myScore ?: "null"}}"""

@@ -1,9 +1,16 @@
 package com.foxugly.trainingmanager_app.ui.events
 
 import com.foxugly.trainingmanager_app.FakeTokenStore
+import com.foxugly.trainingmanager_app.api.generated.models.RsvpStatusEnum
+import com.foxugly.trainingmanager_app.api.generated.models.RsvpSummary
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
+import com.foxugly.trainingmanager_app.eventJson
+import com.foxugly.trainingmanager_app.eventListJson
 import com.foxugly.trainingmanager_app.i18n.StringsFr
+import com.foxugly.trainingmanager_app.rsvpCountsJson
+import com.foxugly.trainingmanager_app.rsvpSummaryJson
+import com.foxugly.trainingmanager_app.rotiSummaryJson
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
@@ -22,7 +29,7 @@ class EventsViewModelTest {
     }
 
     @Test fun listLoadPopulatesEvents() = runTest {
-        val body = """{"count":1,"next":null,"previous":null,"results":[{"id":5,"name":"Séance","location":"Gym","equipment":"","total":0,"place":null,"refer_program":null,"vis_distance":"never","vis_goal":"never","vis_rounds":"never","debrief":""}]}"""
+        val body = eventListJson(eventJson(id = 5, name = "Séance", location = "Gym"))
         val vm = EventsListViewModel(repo(MockEngine { respond(body, HttpStatusCode.OK, jsonHeader) }))
         vm.load()
         assertEquals(1, vm.events.size)
@@ -39,34 +46,34 @@ class EventsViewModelTest {
         val engine = MockEngine { request ->
             when {
                 request.url.encodedPath.endsWith("/rsvp/") ->
-                    respond("""{"counts":{"going":1,"maybe":0,"not_going":0,"no_response":0},"total_members":1,"my_status":"going","by_member":[]}""", HttpStatusCode.OK, jsonHeader)
+                    respond(rsvpSummaryJson(counts = rsvpCountsJson(going = 1), totalMembers = 1, myStatus = "going"), HttpStatusCode.OK, jsonHeader)
                 else ->
-                    respond("""{"id":5,"name":"Match","location":"Stade","equipment":"","total":0,"place":null,"refer_program":null,"vis_distance":"always","vis_goal":"never","vis_rounds":"never","debrief":""}""", HttpStatusCode.OK, jsonHeader)
+                    respond(eventJson(id = 5, name = "Match", location = "Stade", visDistance = "always"), HttpStatusCode.OK, jsonHeader)
             }
         }
         val vm = EventDetailViewModel(repo(engine))
         vm.load(5)
         assertNotNull(vm.event)
-        assertEquals("going", vm.rsvp?.myStatus)
+        assertEquals(RsvpSummary.MyStatus.GOING, vm.rsvp?.myStatus)
         assertEquals(true, vm.showDistance)
     }
 
     @Test fun setRsvpUpdatesStatus() = runTest {
-        val engine = MockEngine { respond("""{"counts":{"going":2,"maybe":0,"not_going":0,"no_response":0},"total_members":2,"my_status":"maybe","by_member":[]}""", HttpStatusCode.OK, jsonHeader) }
+        val engine = MockEngine { respond(rsvpSummaryJson(counts = rsvpCountsJson(going = 2), totalMembers = 2, myStatus = "maybe"), HttpStatusCode.OK, jsonHeader) }
         val vm = EventDetailViewModel(repo(engine))
-        vm.setRsvp(5, "maybe")
-        assertEquals("maybe", vm.rsvp?.myStatus)
+        vm.setRsvp(5, RsvpStatusEnum.MAYBE)
+        assertEquals(RsvpSummary.MyStatus.MAYBE, vm.rsvp?.myStatus)
     }
 
     @Test fun setRsvpDisabledSetsError() = runTest {
         val engine = MockEngine { respond("""{"detail":"disabled"}""", HttpStatusCode.Forbidden, jsonHeader) }
         val vm = EventDetailViewModel(repo(engine))
-        vm.setRsvp(5, "going")
+        vm.setRsvp(5, RsvpStatusEnum.GOING)
         assertEquals(StringsFr.rsvpDisabled, vm.rsvpError)
     }
 
     @Test fun setRotiUpdatesScore() = runTest {
-        val engine = MockEngine { respond("""{"average":4.0,"count":3,"distribution":{},"my_score":4}""", HttpStatusCode.OK, jsonHeader) }
+        val engine = MockEngine { respond(rotiSummaryJson(average = 4.0, count = 3, myScore = 4), HttpStatusCode.OK, jsonHeader) }
         val vm = EventDetailViewModel(repo(engine))
         vm.setRoti(5, 4)
         assertEquals(4, vm.rotiScore)
