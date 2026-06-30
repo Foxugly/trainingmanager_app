@@ -298,3 +298,53 @@ internal fun rotiSummaryJson(
     myScore: Int? = null,
 ): String =
     """{"average":${average ?: "null"},"count":$count,"distribution":$distribution,"my_score":${myScore ?: "null"}}"""
+
+// --- Teams domain (generated models) ---
+// The generated `Team` is far richer and stricter than the old hand-written `TeamDto`: on top of
+// id/name it marks sports, sport, level (nullable key), owner, managers, default_pool, places,
+// default_place (nullable key), equipment, logo_url (nullable key), created_at and updated_at as
+// @Required, and `sport`/`owner` are now NON-null. `Member.user`/`created_at`/`updated_at` and
+// `CustomUserPublic.first_name`/`last_name` are likewise @Required, so a mocked response MUST carry
+// them all or kotlinx.serialization throws at decode.
+
+/** `CustomUserPublic` JSON — `id`/`first_name`/`last_name` all `@Required` (non-null). */
+internal fun customUserPublicJson(id: Int = 1, firstName: String = "Ann", lastName: String = "Lee"): String =
+    """{"id":$id,"first_name":"$firstName","last_name":"$lastName"}"""
+
+/**
+ * Complete `Member` JSON. `id`/`firstname`/`lastname`/`fullname`/`teams`/`user`/`created_at`/
+ * `updated_at` are `@Required`; `email`/`phonenumber` optional. `teams` takes a pre-built JSON
+ * int-array string (e.g. "[3]").
+ */
+internal fun memberJson(
+    id: Int = 1,
+    firstname: String = "A",
+    lastname: String = "X",
+    fullname: String = "A X",
+    teams: String = "[]",
+    user: String = customUserPublicJson(),
+): String =
+    """{"id":$id,"firstname":"$firstname","lastname":"$lastname","fullname":"$fullname","teams":$teams,""" +
+        """"user":$user,"created_at":"2026-01-01T00:00:00Z","updated_at":"2026-01-01T00:00:00Z"}"""
+
+/** A full `PaginatedMemberList` JSON wrapping the given `Member` item JSON strings. */
+internal fun memberListJson(vararg items: String): String =
+    """{"count":${items.size},"results":[${items.joinToString(",")}]}"""
+
+/**
+ * Complete `Team` JSON for the generated model. Emits every `@Required` key (nullable-but-required
+ * keys `level`/`default_place`/`logo_url` default to `null`); the many optional flags/enums are
+ * omitted (they decode to null). `sport`/`owner` are non-null on the wire.
+ */
+internal fun teamJson(
+    id: Int = 3,
+    name: String = "Sharks",
+    sport: String = sportJson(),
+    owner: String = customUserPublicJson(),
+    managers: String = "[]",
+    logoUrl: String? = null,
+): String =
+    """{"id":$id,"name":"$name","sports":[],"sport":$sport,"level":null,"owner":$owner,""" +
+        """"managers":$managers,"default_pool":"","places":[],"default_place":null,"equipment":[],""" +
+        """"logo_url":${logoUrl?.let { "\"$it\"" } ?: "null"},""" +
+        """"created_at":"2026-01-01T00:00:00Z","updated_at":"2026-01-01T00:00:00Z"}"""

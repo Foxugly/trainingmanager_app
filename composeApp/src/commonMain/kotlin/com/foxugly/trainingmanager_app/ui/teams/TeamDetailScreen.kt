@@ -20,7 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.foxugly.trainingmanager_app.data.api.CustomUserPublic
+import com.foxugly.trainingmanager_app.api.generated.models.CustomUserPublic
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 
 @Composable
@@ -49,8 +49,8 @@ fun TeamDetailScreen(
             else -> {
                 val team = viewModel.team!!
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                    team.sport?.name?.takeIf { it.isNotBlank() }?.let { Labeled(s.teamSport, it) }
-                    team.owner?.let { Labeled(s.teamOwner, fullName(it)) }
+                    team.sport.name.takeIf { it.isNotBlank() }?.let { Labeled(s.teamSport, it) }
+                    Labeled(s.teamOwner, fullName(team.owner))
                     if (team.managers.isNotEmpty()) {
                         Labeled(s.teamManagers, team.managers.joinToString(", ") { fullName(it) })
                     }

@@ -8,11 +8,13 @@ import com.foxugly.trainingmanager_app.api.generated.models.Event
 import com.foxugly.trainingmanager_app.api.generated.models.Me
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedAttachmentList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedEventList
+import com.foxugly.trainingmanager_app.api.generated.models.PaginatedMemberList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedNotificationList
 import com.foxugly.trainingmanager_app.api.generated.models.RotiSummary
 import com.foxugly.trainingmanager_app.api.generated.models.RotiUpsertRequest
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpSummary
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpUpsertRequest
+import com.foxugly.trainingmanager_app.api.generated.models.Team
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
 import com.foxugly.trainingmanager_app.i18n.LanguageProvider
@@ -207,7 +209,7 @@ class TrainingManagerApi(
         client.get("attachments/$id/download/")
     }
 
-    suspend fun getTeam(id: Int): Result<TeamDto> = apiCall {
+    suspend fun getTeam(id: Int): Result<Team> = apiCall {
         client.get("teams/$id/")
     }
 
