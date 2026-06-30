@@ -34,6 +34,11 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0.0"
+        // Sentry DSN injected at build time (git-ignored keystore.properties or
+        // env, like the signing config). Empty when unset → Sentry stays disabled
+        // (auto-init treats a blank DSN as "off"). A DSN is NOT a secret (it ships
+        // in every client), so it can live in CI config / SSM frontend params.
+        manifestPlaceholders["sentryDsn"] = releaseProp("SENTRY_DSN") ?: ""
     }
     buildFeatures {
         // BuildConfig.DEBUG is read in MainActivity to enable HTTP logging only
@@ -91,5 +96,9 @@ dependencies {
     // (it references MainActivity for the tap intent).
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+    // Crash + error reporting (OPERATIONS.md §3.8 parity with the backend/web).
+    // Auto-initializes from the io.sentry.* manifest meta-data; disabled while
+    // the DSN placeholder is empty.
+    implementation(libs.sentry.android)
     debugImplementation(libs.compose.uiTooling)
 }
