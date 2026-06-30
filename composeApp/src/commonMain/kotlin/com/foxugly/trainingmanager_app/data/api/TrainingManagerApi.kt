@@ -4,9 +4,15 @@ import com.foxugly.trainingmanager_app.api.generated.models.AttachmentDownloadRe
 import com.foxugly.trainingmanager_app.api.generated.models.DashboardSummary
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceRegisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceUnregisterRequest
+import com.foxugly.trainingmanager_app.api.generated.models.Event
 import com.foxugly.trainingmanager_app.api.generated.models.Me
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedAttachmentList
+import com.foxugly.trainingmanager_app.api.generated.models.PaginatedEventList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedNotificationList
+import com.foxugly.trainingmanager_app.api.generated.models.RotiSummary
+import com.foxugly.trainingmanager_app.api.generated.models.RotiUpsertRequest
+import com.foxugly.trainingmanager_app.api.generated.models.RsvpSummary
+import com.foxugly.trainingmanager_app.api.generated.models.RsvpUpsertRequest
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
 import com.foxugly.trainingmanager_app.i18n.LanguageProvider
@@ -174,7 +180,7 @@ class TrainingManagerApi(
         }
     }
 
-    suspend fun getEvent(id: Int): Result<EventDto> = apiCall {
+    suspend fun getEvent(id: Int): Result<Event> = apiCall {
         client.get("events/$id/")
     }
 

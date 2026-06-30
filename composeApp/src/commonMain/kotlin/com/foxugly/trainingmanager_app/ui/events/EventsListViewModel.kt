@@ -3,7 +3,7 @@ package com.foxugly.trainingmanager_app.ui.events
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.foxugly.trainingmanager_app.data.api.EventDto
+import com.foxugly.trainingmanager_app.api.generated.models.Event
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.i18n.StringsFr
@@ -16,7 +16,7 @@ class EventsListViewModel(
         private set
     var error by mutableStateOf<String?>(null)
         private set
-    var events by mutableStateOf<List<EventDto>>(emptyList())
+    var events by mutableStateOf<List<Event>>(emptyList())
         private set
 
     suspend fun load() {

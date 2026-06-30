@@ -1,11 +1,12 @@
 package com.foxugly.trainingmanager_app.ui.events
 
+import com.foxugly.trainingmanager_app.api.generated.models.VisibilityMode
 import kotlinx.datetime.LocalDate
 
-/** Honor a VisibilityMode: always → shown, after → only once the event is past, never → hidden. */
-fun fieldVisible(mode: String, isPast: Boolean): Boolean = when (mode) {
-    "always" -> true
-    "after" -> isPast
+/** Honor a VisibilityMode: always → shown, after → only once the event is past, never/null → hidden. */
+fun fieldVisible(mode: VisibilityMode?, isPast: Boolean): Boolean = when (mode) {
+    VisibilityMode.ALWAYS -> true
+    VisibilityMode.AFTER -> isPast
     else -> false
 }
 

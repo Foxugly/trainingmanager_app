@@ -22,7 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.foxugly.trainingmanager_app.data.api.EventDto
+import com.foxugly.trainingmanager_app.api.generated.models.Event
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 
 @Composable
@@ -61,13 +61,13 @@ fun EventsListScreen(
 }
 
 @Composable
-private fun EventRow(event: EventDto, onClick: () -> Unit) {
+private fun EventRow(event: Event, onClick: () -> Unit) {
     Column(
         Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 12.dp),
     ) {
         Text(event.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
         val when0 = listOfNotNull(event.date, event.hourStart).joinToString(" · ")
-        val where0 = listOfNotNull(event.location.ifBlank { null }, event.referProgram?.name).joinToString(" — ")
+        val where0 = listOfNotNull(event.location?.ifBlank { null }, event.referProgram.name.ifBlank { null }).joinToString(" — ")
         if (when0.isNotBlank()) Text(when0, style = MaterialTheme.typography.bodySmall)
         if (where0.isNotBlank()) Text(where0, style = MaterialTheme.typography.bodySmall)
     }
