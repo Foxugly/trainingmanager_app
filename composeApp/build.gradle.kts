@@ -73,6 +73,9 @@ kotlin {
             implementation(libs.androidx.security.crypto)
             implementation(project.dependencies.platform(libs.firebase.bom))
             implementation(libs.firebase.messaging)
+            // AppLogger.android forwards handled errors to Sentry (safe no-op
+            // until Sentry is initialized in the app's Application).
+            implementation(libs.sentry.android)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
