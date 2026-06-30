@@ -14,7 +14,6 @@ class LoginViewModel(
     var email by mutableStateOf("")
     var password by mutableStateOf("")
     var rememberMe by mutableStateOf(false)
-    var passwordVisible by mutableStateOf(false)
 
     var isLoading by mutableStateOf(false)
         private set

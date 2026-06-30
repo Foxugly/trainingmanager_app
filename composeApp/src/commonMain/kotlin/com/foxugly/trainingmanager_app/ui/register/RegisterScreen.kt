@@ -21,11 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.platform.TurnstileWebView
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
+import com.foxugly.trainingmanager_app.ui.components.PasswordField
 import kotlinx.coroutines.launch
 
 @Composable
@@ -79,20 +79,16 @@ fun RegisterScreen(viewModel: RegisterViewModel, onBack: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(12.dp))
-        OutlinedTextField(
+        PasswordField(
+            label = s.registerPassword,
             value = viewModel.password,
-            onValueChange = { viewModel.password = it; viewModel.clearError() },
-            label = { Text(s.registerPassword) },
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            singleLine = true,
             isError = viewModel.password.isNotEmpty() && !viewModel.passwordValid,
             supportingText = {
                 if (viewModel.password.isNotEmpty() && !viewModel.passwordValid) {
                     Text(s.registerPasswordTooShort)
                 }
             },
-            modifier = Modifier.fillMaxWidth(),
+            onValueChange = { viewModel.password = it; viewModel.clearError() },
         )
         Spacer(Modifier.height(16.dp))
 
