@@ -338,7 +338,11 @@ class TrainingManagerApi(
         // (ResponseDecodingException / ApiException embed up to 500 chars of body).
         val detail = when (e) {
             is ApiException -> "ApiException status=${e.statusCode}"
-            is ResponseDecodingException -> "ResponseDecodingException status=${e.statusCode}"
+            // The cause (kotlinx SerializationException) names the offending
+            // field/path/serial-name but NOT the response values — safe to log and
+            // essential for spotting a schema-vs-reality mismatch in prod.
+            is ResponseDecodingException ->
+                "ResponseDecodingException status=${e.statusCode} cause=${e.cause?.message?.take(300)}"
             is NetworkException -> "NetworkException kind=${e.kind}"
             else -> e::class.simpleName ?: "error"
         }
