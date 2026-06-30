@@ -1,0 +1,73 @@
+name: API schema drift
+
+# The app vendors openapi/Training_Manager_API.yaml (a copy of the backend's
+# openapi-schema.yaml) and generates its API models from it at BUILD TIME
+# (composeApp/build/generated/openapi — gitignored; nothing generated is
+# committed). So the only way the app drifts from the backend is the vendored
+# copy lagging behind. This guard fails when that happens.
+#
+# It mirrors the backend's own schema drift guard and the frontend's
+# api-drift workflow.
+#
+# REQUIRED REPO SECRET: BACKEND_REPO_TOKEN — a token (classic PAT or fine-grained)
+# with READ (contents) access to Foxugly/trainingmanager_server, used for the
+# cross-repo checkout of the backend schema. Until it is set, the guard SKIPS
+# with a notice (it cannot reach the private backend repo), so it never blocks
+# CI before the secret exists.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+concurrency:
+  group: api-drift-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout app
+        uses: actions/checkout@v5
+
+      - name: Gate on backend token
+        id: gate
+        env:
+          TOKEN: ${{ secrets.BACKEND_REPO_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::notice::BACKEND_REPO_TOKEN secret not set — skipping the OpenAPI drift guard. Add a token with read access to Foxugly/trainingmanager_server to enable it."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Only the backend's schema file is needed — sparse checkout keeps it fast.
+      - name: Checkout backend schema
+        if: steps.gate.outputs.enabled == 'true'
+        uses: actions/checkout@v5
+        with:
+          repository: Foxugly/trainingmanager_server
+          ref: main
+          token: ${{ secrets.BACKEND_REPO_TOKEN }}
+          path: backend
+          sparse-checkout: |
+            openapi-schema.yaml
+          sparse-checkout-cone-mode: false
+
+      - name: Compare vendored schema against the backend
+        if: steps.gate.outputs.enabled == 'true'
+        run: |
+          # --strip-trailing-cr: the vendored yaml may be CRLF, the backend's is
+          # LF — compare content, not line endings.
+          if diff --strip-trailing-cr backend/openapi-schema.yaml openapi/Training_Manager_API.yaml > /tmp/schema.diff; then
+            echo "Vendored OpenAPI schema in sync with the backend ✅"
+          else
+            echo "::error::openapi/Training_Manager_API.yaml is behind the backend. Re-vendor it (copy the backend openapi-schema.yaml over it), re-run the gradle OpenAPI codegen, and commit."
+            head -80 /tmp/schema.diff
+            exit 1
+          fi
