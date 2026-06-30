@@ -1,7 +1,6 @@
 package com.foxugly.trainingmanager_app.ui.notifications
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.foxugly.trainingmanager_app.api.generated.models.Notification
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
+import com.foxugly.trainingmanager_app.ui.components.EmptyState
+import com.foxugly.trainingmanager_app.ui.components.ErrorState
+import com.foxugly.trainingmanager_app.ui.components.LoadingState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -45,12 +46,10 @@ fun NotificationsScreen(
         }
         Spacer(Modifier.height(8.dp))
         when {
-            viewModel.isLoading ->
-                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator()
-                }
-            viewModel.error != null -> Text(viewModel.error!!)
-            viewModel.notifications.isEmpty() -> Text(s.notificationsEmpty)
+            viewModel.isLoading -> LoadingState()
+            viewModel.error != null ->
+                ErrorState(viewModel.error!!, onRetry = { scope.launch { viewModel.load() } }, retryLabel = s.retry)
+            viewModel.notifications.isEmpty() -> EmptyState(s.notificationsEmpty)
             else -> LazyColumn(Modifier.fillMaxSize()) {
                 items(viewModel.notifications, key = { it.id }) { notif ->
                     NotificationRow(notif) {
