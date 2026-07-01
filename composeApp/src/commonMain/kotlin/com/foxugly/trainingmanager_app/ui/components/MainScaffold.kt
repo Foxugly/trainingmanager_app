@@ -3,6 +3,7 @@ package com.foxugly.trainingmanager_app.ui.components
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -61,6 +63,36 @@ fun MainScaffold(
                     )
                 }
             }
+        },
+        content = content,
+    )
+}
+
+/**
+ * Chrome for a pushed detail screen: a [TopAppBar] with a back arrow (and
+ * optional [actions]), no bottom navigation. Mirrors [MainScaffold] so the app
+ * reads consistently.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DetailScaffold(
+    title: String,
+    onBack: () -> Unit,
+    actions: @Composable RowScope.() -> Unit = {},
+    content: @Composable (PaddingValues) -> Unit,
+) {
+    val s = LocalStrings.current
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = s.back)
+                    }
+                },
+                actions = actions,
+            )
         },
         content = content,
     )
