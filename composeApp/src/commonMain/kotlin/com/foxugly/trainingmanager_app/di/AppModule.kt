@@ -12,6 +12,7 @@ import com.foxugly.trainingmanager_app.ui.dashboard.DashboardViewModel
 import com.foxugly.trainingmanager_app.ui.events.EventDetailViewModel
 import com.foxugly.trainingmanager_app.ui.events.EventEditorViewModel
 import com.foxugly.trainingmanager_app.ui.events.EventsListViewModel
+import com.foxugly.trainingmanager_app.ui.events.TrainingEditorViewModel
 import com.foxugly.trainingmanager_app.ui.notifications.NotificationsViewModel
 import com.foxugly.trainingmanager_app.ui.discussions.TopicThreadViewModel
 import com.foxugly.trainingmanager_app.ui.discussions.TopicsListViewModel
@@ -58,6 +59,7 @@ fun appModule(
     factory { DashboardViewModel(get(), get<LanguageService>().strings) }
     factory { EventsListViewModel(get(), get<LanguageService>().strings) }
     factory { EventEditorViewModel(get(), get<LanguageService>().strings) }
+    factory { TrainingEditorViewModel(get(), get<LanguageService>().strings) }
     factory { val opener = get<UrlOpener>(); EventDetailViewModel(get(), get<LanguageService>().strings) { url -> opener.open(url) } }
     factory { TeamsListViewModel(get(), get<LanguageService>().strings) }
     factory { TeamDetailViewModel(get(), get<LanguageService>().strings) }

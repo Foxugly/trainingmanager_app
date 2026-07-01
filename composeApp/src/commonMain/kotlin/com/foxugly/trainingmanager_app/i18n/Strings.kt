@@ -142,6 +142,19 @@ interface Strings {
     val eventDeleteConfirm: String
     val eventSaveFailed: String
     val eventDeleteFailed: String
+
+    // Training editor (coach)
+    val trainingTitle: String
+    val trainingEditEntry: String
+    val trainingEmpty: String
+    val trainingGenerate: String
+    val trainingClear: String
+    val trainingClearConfirm: String
+    val trainingPromptHint: String
+    val trainingConflict: String
+    val trainingGenerateFailed: String
+    val trainingClearFailed: String
+    val trainingGeneratedOk: String
     val eventGoal: String
     val eventDistance: String
     val eventLocation: String
