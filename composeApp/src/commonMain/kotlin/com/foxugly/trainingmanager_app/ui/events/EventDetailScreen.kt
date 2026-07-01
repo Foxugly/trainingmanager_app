@@ -17,10 +17,13 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -115,7 +118,7 @@ fun EventDetailScreen(
                                 1 -> AttendanceTab(viewModel, attendanceViewModel, s, eventId, scope)
                                 2 -> RotiTab(viewModel, s, eventId, scope)
                                 3 -> AttachmentsTab(viewModel, s, scope) { attachmentPicker.launch() }
-                                else -> NotesVisibilityTab(event, s)
+                                else -> NotesVisibilityTab(event, viewModel, s, scope)
                             }
                         }
                     }
@@ -274,15 +277,68 @@ private fun AttachmentsTab(
 }
 
 @Composable
-private fun NotesVisibilityTab(event: Event, s: Strings) {
-    val debrief = event.debrief?.let { stripHtml(it) }?.takeIf { it.isNotBlank() }
-    Field(s.eventFieldDebrief, debrief ?: "—")
-    Spacer(Modifier.height(12.dp))
-    Text(s.eventVisSection, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-    Spacer(Modifier.height(4.dp))
-    CompactField(s.visShowDistance, visLabel(event.visDistance, s))
-    CompactField(s.visShowGoal, visLabel(event.visGoal, s))
-    CompactField(s.visShowRounds, visLabel(event.visRounds, s))
+private fun NotesVisibilityTab(
+    event: Event,
+    viewModel: EventDetailViewModel,
+    s: Strings,
+    scope: kotlinx.coroutines.CoroutineScope,
+) {
+    var editing by remember { mutableStateOf(false) }
+    if (viewModel.canManage && editing) {
+        var debrief by remember { mutableStateOf(event.debrief?.let { stripHtml(it) } ?: "") }
+        var vd by remember { mutableStateOf(event.visDistance ?: VisibilityMode.ALWAYS) }
+        var vg by remember { mutableStateOf(event.visGoal ?: VisibilityMode.ALWAYS) }
+        var vr by remember { mutableStateOf(event.visRounds ?: VisibilityMode.ALWAYS) }
+        viewModel.notesError?.let { ErrorBanner(it); Spacer(Modifier.height(8.dp)) }
+        OutlinedTextField(
+            value = debrief,
+            onValueChange = { debrief = it },
+            label = { Text(s.eventFieldDebrief) },
+            minLines = 3,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(s.eventVisSection, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        VisPicker(s.visShowDistance, vd, s) { vd = it }
+        VisPicker(s.visShowGoal, vg, s) { vg = it }
+        VisPicker(s.visShowRounds, vr, s) { vr = it }
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TextButton(onClick = { editing = false }) { Text(s.cancel) }
+            Button(
+                onClick = { scope.launch { viewModel.saveNotesVisibility(debrief, vd, vg, vr); editing = false } },
+                enabled = !viewModel.isSavingNotes,
+            ) { Text(s.save) }
+        }
+    } else {
+        if (viewModel.canManage) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                IconButton(onClick = { editing = true }) { Icon(Icons.Filled.Edit, contentDescription = s.edit) }
+            }
+        }
+        val debrief = event.debrief?.let { stripHtml(it) }?.takeIf { it.isNotBlank() }
+        Field(s.eventFieldDebrief, debrief ?: "—")
+        Spacer(Modifier.height(12.dp))
+        Text(s.eventVisSection, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.height(4.dp))
+        CompactField(s.visShowDistance, visLabel(event.visDistance, s))
+        CompactField(s.visShowGoal, visLabel(event.visGoal, s))
+        CompactField(s.visShowRounds, visLabel(event.visRounds, s))
+    }
+}
+
+@Composable
+private fun VisPicker(label: String, selected: VisibilityMode, s: Strings, onSelect: (VisibilityMode) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Text(label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+        OutlinedButton(onClick = { expanded = true }) { Text(visLabel(selected, s)) }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            listOf(VisibilityMode.ALWAYS, VisibilityMode.AFTER, VisibilityMode.NEVER).forEach { mode ->
+                DropdownMenuItem(text = { Text(visLabel(mode, s)) }, onClick = { onSelect(mode); expanded = false })
+            }
+        }
+    }
 }
 
 private fun visLabel(mode: VisibilityMode?, s: Strings): String = when (mode) {

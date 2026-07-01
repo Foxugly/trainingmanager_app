@@ -130,6 +130,33 @@ class EventDetailViewModel(
         )
     }
 
+    var isSavingNotes by mutableStateOf(false)
+        private set
+    var notesError by mutableStateOf<String?>(null)
+        private set
+
+    suspend fun saveNotesVisibility(
+        debrief: String,
+        visDistance: com.foxugly.trainingmanager_app.api.generated.models.VisibilityMode,
+        visGoal: com.foxugly.trainingmanager_app.api.generated.models.VisibilityMode,
+        visRounds: com.foxugly.trainingmanager_app.api.generated.models.VisibilityMode,
+    ) {
+        val id = event?.id ?: return
+        isSavingNotes = true
+        notesError = null
+        val body = com.foxugly.trainingmanager_app.api.generated.models.PatchedEventRequest(
+            debrief = debrief,
+            visDistance = visDistance,
+            visGoal = visGoal,
+            visRounds = visRounds,
+        )
+        authRepository.updateEvent(id, body).fold(
+            onSuccess = { event = it },
+            onFailure = { notesError = strings.eventSaveFailed },
+        )
+        isSavingNotes = false
+    }
+
     suspend fun setRsvp(id: Int, status: RsvpStatusEnum) {
         if (isSavingRsvp) return
         isSavingRsvp = true
