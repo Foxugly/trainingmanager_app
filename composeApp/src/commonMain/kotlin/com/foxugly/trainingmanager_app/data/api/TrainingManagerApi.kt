@@ -4,6 +4,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.AttachmentDownloadRe
 import com.foxugly.trainingmanager_app.api.generated.models.Attendance
 import com.foxugly.trainingmanager_app.api.generated.models.AttendanceRequest
 import com.foxugly.trainingmanager_app.api.generated.models.CompleteInvitationRequest
+import com.foxugly.trainingmanager_app.api.generated.models.CreateInvitationRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DashboardSummary
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceRegisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceUnregisterRequest
@@ -26,6 +27,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.PaginatedMemberList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedModalityList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedNotificationList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedProgramList
+import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTeamInvitationList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicMessageList
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordChangeRequest
@@ -48,6 +50,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.RotiUpsertRequest
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpSummary
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpUpsertRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Team
+import com.foxugly.trainingmanager_app.api.generated.models.TeamInvitation
 import com.foxugly.trainingmanager_app.api.generated.models.TokenObtainPairResponse
 import com.foxugly.trainingmanager_app.api.generated.models.TokenRefresh
 import com.foxugly.trainingmanager_app.api.generated.models.TokenRefreshRequest
@@ -282,6 +285,19 @@ class TrainingManagerApi(
 
     suspend fun createProgram(body: ProgramRequest): Result<Program> = apiCall {
         client.post("programs/") { setBody(body) }
+    }
+
+    // --- Team invitations (managers) ---
+    suspend fun listInvitations(): Result<PaginatedTeamInvitationList> = apiCall {
+        client.get("invitations/") { parameter("page_size", LIST_PAGE_SIZE) }
+    }
+
+    suspend fun createInvitation(body: CreateInvitationRequest): Result<TeamInvitation> = apiCall {
+        client.post("invitations/") { setBody(body) }
+    }
+
+    suspend fun deleteInvitation(id: Int): Result<Unit> = apiCall {
+        client.delete("invitations/$id/")
     }
 
     // Reference data for the manual training editor's exercise pickers.
