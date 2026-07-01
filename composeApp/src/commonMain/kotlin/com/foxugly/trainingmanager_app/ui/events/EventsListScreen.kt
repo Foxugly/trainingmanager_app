@@ -10,13 +10,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -34,13 +39,15 @@ fun EventsListScreen(
     viewModel: EventsListViewModel,
     onSelectTab: (MainTab) -> Unit,
     onEventClick: (Int) -> Unit,
+    onCreateEvent: () -> Unit,
 ) {
     val s = LocalStrings.current
     val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) { viewModel.load() }
 
     MainScaffold(title = s.eventsTitle, currentTab = MainTab.EVENTS, onSelectTab = onSelectTab) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
+        Box(Modifier.fillMaxSize().padding(padding)) {
+            Column(Modifier.fillMaxSize()) {
             EventsFilterRow(
                 selected = viewModel.filter,
                 onSelect = { scope.launch { viewModel.setFilter(it) } },
@@ -63,6 +70,13 @@ fun EventsListScreen(
                             }
                         }
                 }
+            }
+            }
+            if (viewModel.canCreate) {
+                FloatingActionButton(
+                    onClick = onCreateEvent,
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                ) { Icon(Icons.Filled.Add, contentDescription = s.addEvent) }
             }
         }
     }

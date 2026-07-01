@@ -24,17 +24,23 @@ class TeamDetailViewModel(
     var members by mutableStateOf<List<Member>>(emptyList())
         private set
 
+    /** True if the caller owns/manages this team — gates the coach affordances. */
+    var canManage by mutableStateOf(false)
+        private set
+
     suspend fun load(id: Int) {
         isLoading = true
         error = null
-        // getTeam and listMembers are independent; run them concurrently.
+        // getTeam, listMembers and me are independent; run them concurrently.
         coroutineScope {
             val teamDeferred = async { authRepository.getTeam(id) }
             val membersDeferred = async { authRepository.listMembers() }
+            val meDeferred = async { authRepository.getCurrentUser() }
             teamDeferred.await().fold(
                 onSuccess = { team = it },
                 onFailure = { error = strings.teamLoadFailed },
             )
+            canManage = team?.isManagedBy(meDeferred.await().getOrNull()?.id) == true
             // Roster is best-effort: /members/ is scoped to the caller's teams; filter to this one.
             membersDeferred.await().onSuccess { page ->
                 members = page.results.filter { it.teams.contains(id) }

@@ -22,12 +22,12 @@ import com.foxugly.trainingmanager_app.i18n.StringsFr
  */
 class EventEditorViewModel(
     private val authRepository: AuthRepository,
-    val eventId: Int? = null,
-    private val presetTeamId: Int? = null,
     private val strings: Strings = StringsFr,
 ) {
-    val isNew: Boolean get() = eventId == null
+    private var eventId: Int? = null
 
+    var isNew by mutableStateOf(true)
+        private set
     var isLoading by mutableStateOf(true)
         private set
     var loadError by mutableStateOf<String?>(null)
@@ -45,7 +45,7 @@ class EventEditorViewModel(
     var location by mutableStateOf("")
     var distance by mutableStateOf("")
 
-    var selectedTeamId by mutableStateOf(presetTeamId)
+    var selectedTeamId by mutableStateOf<Int?>(null)
         private set
     var selectedProgramId by mutableStateOf<Int?>(null)
         private set
@@ -64,7 +64,10 @@ class EventEditorViewModel(
         get() = name.isNotBlank() && !isSaving &&
             (eventId != null || (selectedTeamId != null && selectedProgramId != null))
 
-    suspend fun load() {
+    suspend fun load(eventId: Int?, teamId: Int?) {
+        this.eventId = eventId
+        selectedTeamId = teamId
+        isNew = eventId == null
         isLoading = true
         loadError = null
         if (eventId != null) {
@@ -81,8 +84,8 @@ class EventEditorViewModel(
                 },
                 onFailure = { loadError = strings.eventsLoadFailed },
             )
-        } else if (presetTeamId != null) {
-            loadPrograms(presetTeamId)
+        } else if (teamId != null) {
+            loadPrograms(teamId)
         } else {
             loadManagedTeams()
         }
@@ -117,7 +120,8 @@ class EventEditorViewModel(
     suspend fun save(onSaved: (Int) -> Unit) {
         isSaving = true
         saveError = null
-        val result = if (eventId == null) {
+        val id = eventId
+        val result = if (id == null) {
             authRepository.createEvent(
                 EventRequest(
                     name = name.trim(),
@@ -131,7 +135,7 @@ class EventEditorViewModel(
             )
         } else {
             authRepository.updateEvent(
-                eventId,
+                id,
                 PatchedEventRequest(
                     name = name.trim(),
                     date = date.ifBlank { null },
