@@ -12,6 +12,7 @@ import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.ui.teams.isManagedBy
 import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.i18n.StringsFr
+import io.ktor.http.encodeURLQueryComponent
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.datetime.TimeZone
@@ -86,6 +87,13 @@ class EventDetailViewModel(
             }
         }
         isLoading = false
+    }
+
+    /** Open the location in an external maps app (a GPS link, since places carry
+     *  a free-text address, not coordinates). */
+    fun openMap(query: String) {
+        if (query.isBlank()) return
+        openUrl("https://www.google.com/maps/search/?api=1&query=${query.encodeURLQueryComponent()}")
     }
 
     suspend fun downloadAttachment(attachmentId: Int) {

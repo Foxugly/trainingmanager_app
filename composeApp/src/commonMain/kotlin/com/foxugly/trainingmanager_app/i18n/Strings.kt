@@ -138,6 +138,14 @@ interface Strings {
     val eventFieldHourEnd: String
     val eventFieldLocation: String
     val eventFieldDistance: String
+    val eventFieldDebrief: String
+    val eventVisSection: String
+    val visShowDistance: String
+    val visShowGoal: String
+    val visShowRounds: String
+    val visAlways: String
+    val visAfter: String
+    val visNever: String
     val eventDelete: String
     val eventDeleteConfirm: String
     val eventSaveFailed: String
