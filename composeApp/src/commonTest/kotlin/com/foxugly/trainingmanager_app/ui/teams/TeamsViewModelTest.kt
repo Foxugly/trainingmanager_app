@@ -50,6 +50,33 @@ class TeamsViewModelTest {
         assertEquals("Natation", vm.teams[0].sport.name)
     }
 
+    @Test fun listIncludesManagedTeamsAndDedupes() = runTest {
+        val engine = MockEngine { request ->
+            when {
+                request.url.encodedPath.endsWith("dashboard/summary/") ->
+                    respond(
+                        dashboardSummaryJson(
+                            memberTeams = "[${dashboardMemberTeamJson(teamId = 3, membersCount = 5)}]",
+                            // team 3 is also managed (dedupe), team 7 is coach-only.
+                            coachTeams = """[{"team_id":3,"programs_active":1,"events_next_7d":0,"members_count":5},""" +
+                                """{"team_id":7,"programs_active":2,"events_next_7d":1,"members_count":8}]""",
+                        ),
+                        HttpStatusCode.OK,
+                        jsonHeader,
+                    )
+                request.url.encodedPath.endsWith("teams/3/") ->
+                    respond(teamJson(id = 3, name = "Sharks"), HttpStatusCode.OK, jsonHeader)
+                request.url.encodedPath.endsWith("teams/7/") ->
+                    respond(teamJson(id = 7, name = "Dolphins"), HttpStatusCode.OK, jsonHeader)
+                else -> respond("", HttpStatusCode.NotFound)
+            }
+        }
+        val vm = TeamsListViewModel(repo(engine))
+        vm.load()
+        assertEquals(2, vm.teams.size)
+        assertEquals(setOf("Sharks", "Dolphins"), vm.teams.map { it.name }.toSet())
+    }
+
     @Test fun listFailureSetsError() = runTest {
         val vm = TeamsListViewModel(repo(MockEngine { respond("", HttpStatusCode.InternalServerError) }))
         vm.load()

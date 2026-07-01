@@ -9,8 +9,10 @@ import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.i18n.StringsFr
 
 /**
- * The athlete's teams. /teams/ only lists managed + public teams, so we derive the
- * athlete's team ids from the dashboard (member_teams) and fetch each team's detail.
+ * The user's teams — both the ones they're a member of AND the ones they
+ * manage/own. /teams/ only lists managed + public teams (never member-only), so
+ * we take the team ids from the dashboard (member_teams + coach_teams), dedupe
+ * (a user can be both member and coach of a team), and fetch each team's detail.
  */
 class TeamsListViewModel(
     private val authRepository: AuthRepository,
@@ -28,7 +30,8 @@ class TeamsListViewModel(
         error = null
         authRepository.getDashboard().fold(
             onSuccess = { summary ->
-                teams = summary.memberTeams.mapNotNull { authRepository.getTeam(it.teamId).getOrNull() }
+                val ids = (summary.memberTeams.map { it.teamId } + summary.coachTeams.map { it.teamId }).distinct()
+                teams = ids.mapNotNull { authRepository.getTeam(it).getOrNull() }
             },
             onFailure = { error = strings.teamsLoadFailed },
         )
