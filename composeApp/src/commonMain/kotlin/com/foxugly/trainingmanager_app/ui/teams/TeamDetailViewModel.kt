@@ -3,8 +3,13 @@ package com.foxugly.trainingmanager_app.ui.teams
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.foxugly.trainingmanager_app.api.generated.models.Equipment
 import com.foxugly.trainingmanager_app.api.generated.models.InvitationStatusEnum
+import com.foxugly.trainingmanager_app.api.generated.models.LanguageEnum
 import com.foxugly.trainingmanager_app.api.generated.models.Member
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedTeamRequest
+import com.foxugly.trainingmanager_app.api.generated.models.TrainingSlotRequest
+import com.foxugly.trainingmanager_app.api.generated.models.WeekdayEnum
 import com.foxugly.trainingmanager_app.api.generated.models.Program
 import com.foxugly.trainingmanager_app.api.generated.models.Team
 import com.foxugly.trainingmanager_app.api.generated.models.TeamInvitation
@@ -107,6 +112,98 @@ class TeamDetailViewModel(
             onFailure = { inviteError = strings.inviteFailed },
         )
         isSavingInvite = false
+    }
+
+    // --- TT2: team info edit ---
+    var isSavingTeam by mutableStateOf(false)
+        private set
+    var teamError by mutableStateOf<String?>(null)
+        private set
+
+    suspend fun saveInfos(name: String, language: LanguageEnum?, isPublic: Boolean, rotiEnabled: Boolean, rsvpEnabled: Boolean) {
+        if (name.isBlank()) return
+        isSavingTeam = true
+        teamError = null
+        val body = PatchedTeamRequest(
+            name = name.trim(),
+            language = language,
+            isPublic = isPublic,
+            rotiEnabled = rotiEnabled,
+            rsvpEnabled = rsvpEnabled,
+        )
+        authRepository.patchTeam(teamId, body).fold(
+            onSuccess = { team = it },
+            onFailure = { teamError = strings.teamSaveFailed },
+        )
+        isSavingTeam = false
+    }
+
+    // --- TT4: places & training slots ---
+    var placesError by mutableStateOf<String?>(null)
+        private set
+
+    private suspend fun reloadTeam() {
+        authRepository.getTeam(teamId).onSuccess { team = it }
+    }
+
+    private suspend fun reloadSlots() {
+        authRepository.listTrainingSlots(teamId).onSuccess { slots = it }
+    }
+
+    suspend fun addPlace(name: String, address: String) {
+        if (name.isBlank()) return
+        placesError = null
+        authRepository.createPlace(name, address, teamId).fold(
+            onSuccess = { reloadTeam() },
+            onFailure = { placesError = strings.placeSaveFailed },
+        )
+    }
+
+    suspend fun removePlace(id: Int) {
+        placesError = null
+        authRepository.deletePlace(id).fold(
+            onSuccess = { reloadTeam() },
+            onFailure = { placesError = strings.placeSaveFailed },
+        )
+    }
+
+    suspend fun addSlot(weekday: Int, hourStart: String, hourEnd: String) {
+        placesError = null
+        val body = TrainingSlotRequest(
+            weekday = WeekdayEnum.decode(weekday) ?: WeekdayEnum._0,
+            hourStart = hourStart,
+            hourEnd = hourEnd,
+        )
+        authRepository.createTrainingSlot(teamId, body).fold(
+            onSuccess = { reloadSlots() },
+            onFailure = { placesError = strings.placeSaveFailed },
+        )
+    }
+
+    suspend fun removeSlot(id: Int) {
+        placesError = null
+        authRepository.deleteTrainingSlot(teamId, id).fold(
+            onSuccess = { reloadSlots() },
+            onFailure = { placesError = strings.placeSaveFailed },
+        )
+    }
+
+    // --- TT5: equipment (pick from the read-only catalog via team.equipment_ids) ---
+    var equipmentCatalog by mutableStateOf<List<Equipment>>(emptyList())
+        private set
+    var equipmentError by mutableStateOf<String?>(null)
+        private set
+
+    suspend fun loadEquipmentCatalog() {
+        authRepository.listEquipment().onSuccess { equipmentCatalog = it.results }
+    }
+
+    suspend fun setEquipment(ids: List<Int>) {
+        equipmentError = null
+        authRepository.patchTeam(teamId, PatchedTeamRequest(equipmentIds = ids)).fold(
+            onSuccess = { team = it },
+            onFailure = { equipmentError = strings.equipmentSaveFailed },
+        )
     }
 
     suspend fun addProgram(name: String) {

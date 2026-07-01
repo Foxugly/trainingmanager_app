@@ -197,6 +197,23 @@ class AuthRepository(
 
     suspend fun listTrainingSlots(teamId: Int) = api.listTrainingSlots(teamId)
 
+    suspend fun patchTeam(id: Int, body: com.foxugly.trainingmanager_app.api.generated.models.PatchedTeamRequest) =
+        api.patchTeam(id, body)
+
+    suspend fun createTrainingSlot(teamId: Int, body: com.foxugly.trainingmanager_app.api.generated.models.TrainingSlotRequest) =
+        api.createTrainingSlot(teamId, body)
+
+    suspend fun deleteTrainingSlot(teamId: Int, id: Int) = api.deleteTrainingSlot(teamId, id)
+
+    suspend fun createPlace(name: String, address: String, teamId: Int) =
+        api.createPlace(com.foxugly.trainingmanager_app.api.generated.models.PlaceRequest(name = name.trim(), address = address.trim().ifBlank { null }, team = teamId))
+
+    suspend fun deletePlace(id: Int) = api.deletePlace(id)
+
+    suspend fun getProgram(id: Int) = api.getProgram(id)
+
+    suspend fun listEquipment() = api.listEquipment()
+
     suspend fun listInvitations() = api.listInvitations()
 
     suspend fun createInvitation(teamId: Int, email: String, firstname: String, lastname: String) =

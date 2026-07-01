@@ -39,6 +39,7 @@ import com.foxugly.trainingmanager_app.navigation.RegisterRoute
 import com.foxugly.trainingmanager_app.navigation.ProfileRoute
 import com.foxugly.trainingmanager_app.navigation.ResetPasswordRoute
 import com.foxugly.trainingmanager_app.navigation.StartupRoute
+import com.foxugly.trainingmanager_app.navigation.ProgramDetailRoute
 import com.foxugly.trainingmanager_app.navigation.TeamDetailRoute
 import com.foxugly.trainingmanager_app.navigation.TeamsListRoute
 import com.foxugly.trainingmanager_app.navigation.TopicThreadRoute
@@ -81,6 +82,8 @@ import com.foxugly.trainingmanager_app.ui.profile.ChangePasswordScreen
 import com.foxugly.trainingmanager_app.ui.profile.ChangePasswordViewModel
 import com.foxugly.trainingmanager_app.ui.profile.ProfileScreen
 import com.foxugly.trainingmanager_app.ui.profile.ProfileViewModel
+import com.foxugly.trainingmanager_app.ui.teams.ProgramDetailScreen
+import com.foxugly.trainingmanager_app.ui.teams.ProgramDetailViewModel
 import com.foxugly.trainingmanager_app.ui.teams.TeamDetailScreen
 import com.foxugly.trainingmanager_app.ui.teams.TeamDetailViewModel
 import com.foxugly.trainingmanager_app.ui.teams.TeamsListScreen
@@ -396,6 +399,16 @@ fun App(
                             teamId = args.id,
                             onDiscussions = { navController.navigate(TopicsListRoute(args.id)) { launchSingleTop = true } },
                             onCreateEvent = { navController.navigate(EventEditorRoute(teamId = args.id)) { launchSingleTop = true } },
+                            onProgramClick = { pid -> navController.navigate(ProgramDetailRoute(pid)) { launchSingleTop = true } },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<ProgramDetailRoute> { entry ->
+                        val args = entry.toRoute<ProgramDetailRoute>()
+                        val vm: ProgramDetailViewModel = koinInject()
+                        ProgramDetailScreen(
+                            viewModel = vm,
+                            programId = args.programId,
                             onBack = { navController.popBackStack() },
                         )
                     }

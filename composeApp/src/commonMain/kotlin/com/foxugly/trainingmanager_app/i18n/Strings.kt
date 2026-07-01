@@ -240,6 +240,20 @@ interface Strings {
     val inviteButton: String
     val inviteFailed: String
     val teamLoadFailed: String
+    val teamName: String
+    val teamSaveFailed: String
+    val addPlace: String
+    val placeName: String
+    val placeAddress: String
+    val addSlot: String
+    val placeSaveFailed: String
+    val equipmentManage: String
+    val equipmentSaveFailed: String
+    val programEventsLabel: String
+    val programDatesLabel: String
+    val programFrequencyLabel: String
+    val programDescriptionField: String
+    val programLoadFailed: String
 
     // Discussions
     val discussionsEntry: String

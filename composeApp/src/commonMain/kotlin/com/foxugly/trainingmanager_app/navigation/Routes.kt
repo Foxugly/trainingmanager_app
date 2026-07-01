@@ -55,6 +55,9 @@ object TeamsListRoute
 data class TeamDetailRoute(val id: Int)
 
 @Serializable
+data class ProgramDetailRoute(val programId: Int)
+
+@Serializable
 data class TopicsListRoute(val teamId: Int)
 
 @Serializable

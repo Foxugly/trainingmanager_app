@@ -18,6 +18,7 @@ import com.foxugly.trainingmanager_app.ui.events.TrainingEditorViewModel
 import com.foxugly.trainingmanager_app.ui.notifications.NotificationsViewModel
 import com.foxugly.trainingmanager_app.ui.discussions.TopicThreadViewModel
 import com.foxugly.trainingmanager_app.ui.discussions.TopicsListViewModel
+import com.foxugly.trainingmanager_app.ui.teams.ProgramDetailViewModel
 import com.foxugly.trainingmanager_app.ui.teams.TeamDetailViewModel
 import com.foxugly.trainingmanager_app.ui.teams.TeamsListViewModel
 import com.foxugly.trainingmanager_app.ui.confirm.ResetPasswordViewModel
@@ -69,6 +70,7 @@ fun appModule(
     factory { val opener = get<UrlOpener>(); EventDetailViewModel(get(), get<LanguageService>().strings) { url -> opener.open(url) } }
     factory { TeamsListViewModel(get(), get<LanguageService>().strings) }
     factory { TeamDetailViewModel(get(), get<LanguageService>().strings) }
+    factory { ProgramDetailViewModel(get(), get<LanguageService>().strings) }
     factory { TopicsListViewModel(get(), get<LanguageService>().strings) }
     factory { TopicThreadViewModel(get(), get<LanguageService>().strings) }
     factory { NotificationsViewModel(get(), get<LanguageService>().strings) }
