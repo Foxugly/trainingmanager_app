@@ -11,6 +11,9 @@ import androidx.compose.runtime.staticCompositionLocalOf
 interface Strings {
     // Common
     val appName: String
+
+    /** Short "by " prefix shown before the Foxugly credit on the login footer. */
+    val credit: String
     val email: String
     val password: String
     val newPassword: String
