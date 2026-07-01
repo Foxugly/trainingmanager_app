@@ -15,6 +15,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -161,11 +162,32 @@ fun TeamDetailScreen(
                                         Text(s.programsEmpty, style = MaterialTheme.typography.bodyMedium)
                                     } else {
                                         viewModel.programs.forEach { p ->
-                                            Text(
-                                                p.name,
-                                                style = MaterialTheme.typography.bodyMedium,
+                                            val active = p.isActive == true
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
                                                 modifier = Modifier.fillMaxWidth().clickable { onProgramClick(p.id) }.padding(vertical = 8.dp),
-                                            )
+                                            ) {
+                                                Text(
+                                                    p.name,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                                                    color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                                    modifier = Modifier.weight(1f),
+                                                )
+                                                if (active) {
+                                                    Text(
+                                                        s.programActive,
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.padding(end = 8.dp),
+                                                    )
+                                                }
+                                                Icon(
+                                                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                )
+                                            }
                                         }
                                     }
                                     if (viewModel.canManage) {

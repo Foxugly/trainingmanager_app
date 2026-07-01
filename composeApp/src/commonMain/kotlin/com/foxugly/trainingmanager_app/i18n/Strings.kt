@@ -253,6 +253,7 @@ interface Strings {
     val programDatesLabel: String
     val programFrequencyLabel: String
     val programDescriptionField: String
+    val programActive: String
     val programLoadFailed: String
 
     // Discussions

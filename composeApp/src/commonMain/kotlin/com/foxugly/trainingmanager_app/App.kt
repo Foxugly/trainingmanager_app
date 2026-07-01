@@ -23,7 +23,6 @@ import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.navigation.DeepLinkTarget
 import com.foxugly.trainingmanager_app.navigation.EmailConfirmRoute
 import com.foxugly.trainingmanager_app.navigation.EventDetailRoute
-import com.foxugly.trainingmanager_app.navigation.AttendanceRoute
 import com.foxugly.trainingmanager_app.navigation.EventEditorRoute
 import com.foxugly.trainingmanager_app.navigation.EventsListRoute
 import com.foxugly.trainingmanager_app.navigation.TrainingEditorRoute
@@ -51,7 +50,6 @@ import com.foxugly.trainingmanager_app.ui.confirm.ResetPasswordScreen
 import com.foxugly.trainingmanager_app.ui.confirm.ResetPasswordViewModel
 import com.foxugly.trainingmanager_app.ui.dashboard.DashboardScreen
 import com.foxugly.trainingmanager_app.ui.dashboard.DashboardViewModel
-import com.foxugly.trainingmanager_app.ui.events.AttendanceScreen
 import com.foxugly.trainingmanager_app.ui.events.AttendanceViewModel
 import com.foxugly.trainingmanager_app.ui.events.EventDetailScreen
 import com.foxugly.trainingmanager_app.ui.events.EventDetailViewModel
@@ -336,21 +334,13 @@ fun App(
                     composable<EventDetailRoute> { entry ->
                         val args = entry.toRoute<EventDetailRoute>()
                         val vm: EventDetailViewModel = koinInject()
+                        val attendanceVm: AttendanceViewModel = koinInject()
                         EventDetailScreen(
                             viewModel = vm,
+                            attendanceViewModel = attendanceVm,
                             eventId = args.id,
                             onEdit = { navController.navigate(EventEditorRoute(eventId = args.id)) { launchSingleTop = true } },
                             onEditTraining = { navController.navigate(TrainingEditorRoute(args.id)) { launchSingleTop = true } },
-                            onAttendance = { navController.navigate(AttendanceRoute(args.id)) { launchSingleTop = true } },
-                            onBack = { navController.popBackStack() },
-                        )
-                    }
-                    composable<AttendanceRoute> { entry ->
-                        val args = entry.toRoute<AttendanceRoute>()
-                        val vm: AttendanceViewModel = koinInject()
-                        AttendanceScreen(
-                            viewModel = vm,
-                            eventId = args.eventId,
                             onBack = { navController.popBackStack() },
                         )
                     }
@@ -409,6 +399,7 @@ fun App(
                         ProgramDetailScreen(
                             viewModel = vm,
                             programId = args.programId,
+                            onEventClick = { id -> navController.navigate(EventDetailRoute(id)) { launchSingleTop = true } },
                             onBack = { navController.popBackStack() },
                         )
                     }
