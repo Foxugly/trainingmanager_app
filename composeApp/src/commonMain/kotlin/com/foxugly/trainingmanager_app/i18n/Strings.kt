@@ -14,6 +14,9 @@ interface Strings {
 
     /** Short "by " prefix shown before the Foxugly credit on the login footer. */
     val credit: String
+
+    /** Short label for the Home/Dashboard tab in the bottom navigation bar. */
+    val navHome: String
     val email: String
     val password: String
     val newPassword: String

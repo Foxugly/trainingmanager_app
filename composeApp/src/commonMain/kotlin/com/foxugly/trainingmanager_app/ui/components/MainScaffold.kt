@@ -108,7 +108,7 @@ private val MainTab.icon: ImageVector
     }
 
 private fun MainTab.label(s: Strings): String = when (this) {
-    MainTab.DASHBOARD -> s.dashboardTitle
+    MainTab.DASHBOARD -> s.navHome
     MainTab.EVENTS -> s.eventsEntry
     MainTab.TEAMS -> s.teamsEntry
     MainTab.NOTIFICATIONS -> s.notificationsEntry

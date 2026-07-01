@@ -1,6 +1,6 @@
 package com.foxugly.trainingmanager_app.ui.events
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,10 +46,13 @@ fun EventsListScreen(
                 viewModel.events.isEmpty() ->
                     EmptyState(s.eventsEmpty)
                 else ->
-                    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = 16.dp)) {
+                    LazyColumn(
+                        Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
                         items(viewModel.events, key = { it.id }) { event ->
                             EventRow(event, onClick = { onEventClick(event.id) })
-                            HorizontalDivider()
                         }
                     }
             }
@@ -59,13 +62,13 @@ fun EventsListScreen(
 
 @Composable
 private fun EventRow(event: Event, onClick: () -> Unit) {
-    Column(
-        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 12.dp),
-    ) {
-        Text(event.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+    Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth().padding(16.dp)) {
+            Text(event.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
         val when0 = listOfNotNull(event.date, event.hourStart).joinToString(" · ")
         val where0 = listOfNotNull(event.location?.ifBlank { null }, event.referProgram.name.ifBlank { null }).joinToString(" — ")
-        if (when0.isNotBlank()) Text(when0, style = MaterialTheme.typography.bodySmall)
-        if (where0.isNotBlank()) Text(where0, style = MaterialTheme.typography.bodySmall)
+            if (when0.isNotBlank()) Text(when0, style = MaterialTheme.typography.bodySmall)
+            if (where0.isNotBlank()) Text(where0, style = MaterialTheme.typography.bodySmall)
+        }
     }
 }

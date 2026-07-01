@@ -3,6 +3,7 @@ package com.foxugly.trainingmanager_app.i18n
 object StringsNl : Strings {
     override val appName = "TrainingManager"
     override val credit = "door "
+    override val navHome = "Start"
     override val email = "E-mail"
     override val password = "Wachtwoord"
     override val newPassword = "Nieuw wachtwoord"

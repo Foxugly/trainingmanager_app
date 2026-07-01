@@ -1,6 +1,6 @@
 package com.foxugly.trainingmanager_app.ui.discussions
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,13 +44,18 @@ fun TopicsListScreen(
                 viewModel.error != null ->
                     ErrorState(viewModel.error!!, onRetry = { scope.launch { viewModel.load(teamId) } }, retryLabel = s.retry)
                 viewModel.topics.isEmpty() -> EmptyState(s.topicsEmpty)
-                else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = 16.dp)) {
+                else -> LazyColumn(
+                    Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     items(viewModel.topics, key = { it.id }) { topic ->
-                        Column(Modifier.fillMaxWidth().clickable { onTopicClick(topic) }.padding(vertical = 12.dp)) {
-                            Text(topic.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-                            Text("${topic.messageCount}", style = MaterialTheme.typography.bodySmall)
+                        Card(onClick = { onTopicClick(topic) }, modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                                Text(topic.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                                Text("${topic.messageCount}", style = MaterialTheme.typography.bodySmall)
+                            }
                         }
-                        HorizontalDivider()
                     }
                 }
             }
