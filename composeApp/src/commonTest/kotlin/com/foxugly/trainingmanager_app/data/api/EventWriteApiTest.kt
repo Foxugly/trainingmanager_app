@@ -67,4 +67,20 @@ class EventWriteApiTest {
         api.reorderRounds(5, ReorderRoundsRequestRequest(roundIds = listOf(3, 1, 2))).getOrThrow()
         assertEquals("/api/v1/events/5/rounds/reorder/", path)
     }
+
+    private val emptyPage = """{"count":0,"next":null,"previous":null,"results":[]}"""
+
+    @Test fun listModalitiesHitsNestedSportPath() = runTest {
+        var path = ""
+        val api = api(MockEngine { req -> path = req.url.encodedPath; respond(emptyPage, HttpStatusCode.OK, jsonHeader) })
+        api.listModalities(9).getOrThrow()
+        assertEquals("/api/v1/sports/9/modalities/", path)
+    }
+
+    @Test fun listEnergySegmentsHitsEndpoint() = runTest {
+        var path = ""
+        val api = api(MockEngine { req -> path = req.url.encodedPath; respond(emptyPage, HttpStatusCode.OK, jsonHeader) })
+        api.listEnergySegments().getOrThrow()
+        assertEquals("/api/v1/energy-segments/", path)
+    }
 }
