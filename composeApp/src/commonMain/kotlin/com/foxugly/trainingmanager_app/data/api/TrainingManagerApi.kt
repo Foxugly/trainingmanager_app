@@ -212,10 +212,15 @@ class TrainingManagerApi(
         client.get("dashboard/summary/")
     }
 
-    suspend fun listEvents(dateGte: String? = null, page: Int? = null): Result<PaginatedEventList> = apiCall {
+    suspend fun listEvents(
+        dateGte: String? = null,
+        dateLte: String? = null,
+        page: Int? = null,
+    ): Result<PaginatedEventList> = apiCall {
         client.get("events/") {
             parameter("page_size", LIST_PAGE_SIZE)
             dateGte?.let { parameter("date__gte", it) }
+            dateLte?.let { parameter("date__lte", it) }
             page?.let { parameter("page", it) }
         }
     }

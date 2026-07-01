@@ -146,7 +146,8 @@ class AuthRepository(
 
     suspend fun getDashboard() = api.getDashboard()
 
-    suspend fun listEvents(dateGte: String? = null) = api.listEvents(dateGte = dateGte)
+    suspend fun listEvents(dateGte: String? = null, dateLte: String? = null) =
+        api.listEvents(dateGte = dateGte, dateLte = dateLte)
 
     suspend fun getEvent(id: Int) = api.getEvent(id)
 

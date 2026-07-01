@@ -118,6 +118,11 @@ interface Strings {
     val eventsEntry: String
     val eventsEmpty: String
     val eventsLoadFailed: String
+
+    /** Events list date-window filter chips. */
+    val eventsFilterUpcoming: String
+    val eventsFilterPast: String
+    val eventsFilterAll: String
     val eventGoal: String
     val eventDistance: String
     val eventLocation: String

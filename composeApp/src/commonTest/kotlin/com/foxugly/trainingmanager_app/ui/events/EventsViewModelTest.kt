@@ -19,7 +19,9 @@ import io.ktor.http.headersOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class EventsViewModelTest {
     private val jsonHeader = headersOf(HttpHeaders.ContentType, "application/json")
@@ -34,6 +36,27 @@ class EventsViewModelTest {
         vm.load()
         assertEquals(1, vm.events.size)
         assertEquals("Séance", vm.events[0].name)
+    }
+
+    @Test fun filterDefaultsToUpcomingThenWidens() = runTest {
+        val queries = mutableListOf<String>()
+        val engine = MockEngine { request ->
+            queries.add(request.url.encodedQuery)
+            respond(eventListJson(eventJson(id = 5, name = "Séance")), HttpStatusCode.OK, jsonHeader)
+        }
+        val vm = EventsListViewModel(repo(engine))
+        vm.load()
+        assertEquals(EventsFilter.UPCOMING, vm.filter)
+        assertTrue(queries.last().contains("date__gte"))
+        assertFalse(queries.last().contains("date__lte"))
+
+        vm.setFilter(EventsFilter.PAST)
+        assertTrue(queries.last().contains("date__lte"))
+        assertFalse(queries.last().contains("date__gte"))
+
+        vm.setFilter(EventsFilter.ALL)
+        assertFalse(queries.last().contains("date__gte"))
+        assertFalse(queries.last().contains("date__lte"))
     }
 
     @Test fun listLoadFailureSetsError() = runTest {
