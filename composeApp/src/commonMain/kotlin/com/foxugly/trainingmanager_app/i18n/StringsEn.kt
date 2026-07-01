@@ -220,6 +220,7 @@ object StringsEn : Strings {
     override val programDatesLabel = "Dates"
     override val programFrequencyLabel = "Frequency / week"
     override val programDescriptionField = "Description"
+    override val programActive = "Active"
     override val programLoadFailed = "Couldn't load the program."
     override val discussionsEntry = "Discussions"
     override val topicsEmpty = "No discussions."

@@ -44,10 +44,6 @@ data class EventEditorRoute(val eventId: Int? = null, val teamId: Int? = null)
 @Serializable
 data class TrainingEditorRoute(val eventId: Int)
 
-/** Manager attendance management for an event. */
-@Serializable
-data class AttendanceRoute(val eventId: Int)
-
 @Serializable
 object TeamsListRoute
 

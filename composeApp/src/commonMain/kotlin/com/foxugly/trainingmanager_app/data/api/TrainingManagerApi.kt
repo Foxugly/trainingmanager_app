@@ -253,12 +253,14 @@ class TrainingManagerApi(
         dateGte: String? = null,
         dateLte: String? = null,
         page: Int? = null,
+        referProgram: Int? = null,
     ): Result<PaginatedEventList> = apiCall {
         client.get("events/") {
             parameter("page_size", LIST_PAGE_SIZE)
             dateGte?.let { parameter("date__gte", it) }
             dateLte?.let { parameter("date__lte", it) }
             page?.let { parameter("page", it) }
+            referProgram?.let { parameter("refer_program", it) }
         }
     }
 

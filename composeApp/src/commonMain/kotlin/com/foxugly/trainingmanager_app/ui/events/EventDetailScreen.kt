@@ -58,10 +58,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun EventDetailScreen(
     viewModel: EventDetailViewModel,
+    attendanceViewModel: AttendanceViewModel,
     eventId: Int,
     onEdit: () -> Unit,
     onEditTraining: () -> Unit,
-    onAttendance: () -> Unit,
     onBack: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -112,7 +112,7 @@ fun EventDetailScreen(
                         ) {
                             when (selectedTab) {
                                 0 -> TrainingTab(event, viewModel, s, onEditTraining)
-                                1 -> AttendanceTab(viewModel, s, eventId, scope, onAttendance)
+                                1 -> AttendanceTab(viewModel, attendanceViewModel, s, eventId, scope)
                                 2 -> RotiTab(viewModel, s, eventId, scope)
                                 3 -> AttachmentsTab(viewModel, s, scope) { attachmentPicker.launch() }
                                 else -> NotesVisibilityTab(event, s)
@@ -176,10 +176,10 @@ private fun TrainingTab(event: Event, viewModel: EventDetailViewModel, s: String
 @Composable
 private fun AttendanceTab(
     viewModel: EventDetailViewModel,
+    attendanceViewModel: AttendanceViewModel,
     s: Strings,
     eventId: Int,
     scope: kotlinx.coroutines.CoroutineScope,
-    onAttendance: () -> Unit,
 ) {
     viewModel.rsvpError?.let { ErrorBanner(it); Spacer(Modifier.height(8.dp)) }
     RsvpRow(
@@ -192,7 +192,9 @@ private fun AttendanceTab(
     )
     if (viewModel.canManage) {
         Spacer(Modifier.height(16.dp))
-        OutlinedButton(onClick = onAttendance, modifier = Modifier.fillMaxWidth()) { Text(s.eventManageAttendance) }
+        Text(s.eventManageAttendance, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(8.dp))
+        AttendanceContent(attendanceViewModel, eventId)
     }
 }
 

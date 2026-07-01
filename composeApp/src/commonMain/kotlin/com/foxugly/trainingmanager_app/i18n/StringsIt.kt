@@ -220,6 +220,7 @@ object StringsIt : Strings {
     override val programDatesLabel = "Date"
     override val programFrequencyLabel = "Frequenza / settimana"
     override val programDescriptionField = "Descrizione"
+    override val programActive = "Attivo"
     override val programLoadFailed = "Impossibile caricare il programma."
     override val discussionsEntry = "Discussioni"
     override val topicsEmpty = "Nessuna discussione."
