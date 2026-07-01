@@ -18,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.LanguageService
+import com.foxugly.trainingmanager_app.i18n.LocalAppLanguage
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.navigation.DeepLinkTarget
 import com.foxugly.trainingmanager_app.navigation.EmailConfirmRoute
@@ -142,7 +143,10 @@ fun App(
     }
 
     TrainingManagerTheme {
-        CompositionLocalProvider(LocalStrings provides languageService.strings) {
+        CompositionLocalProvider(
+            LocalStrings provides languageService.strings,
+            LocalAppLanguage provides languageService.activeLang,
+        ) {
         when (route) {
             StartupRoute.Loading ->
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
