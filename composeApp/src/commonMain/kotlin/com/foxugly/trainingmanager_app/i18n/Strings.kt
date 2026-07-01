@@ -209,6 +209,10 @@ interface Strings {
     val addProgram: String
     val programName: String
     val programSaveFailed: String
+    val invitationsSection: String
+    val invitationsEmpty: String
+    val inviteButton: String
+    val inviteFailed: String
     val teamLoadFailed: String
 
     // Discussions
