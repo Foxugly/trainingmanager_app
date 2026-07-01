@@ -302,7 +302,11 @@ fun App(
                     }
                     composable<HomeRoute> {
                         val vm: DashboardViewModel = koinInject()
-                        DashboardScreen(viewModel = vm, onSelectTab = navController::selectTab)
+                        DashboardScreen(
+                            viewModel = vm,
+                            onSelectTab = navController::selectTab,
+                            onTeamClick = { id -> navController.navigate(TeamDetailRoute(id)) { launchSingleTop = true } },
+                        )
                     }
                     composable<EventsListRoute> {
                         val vm: EventsListViewModel = koinInject()
