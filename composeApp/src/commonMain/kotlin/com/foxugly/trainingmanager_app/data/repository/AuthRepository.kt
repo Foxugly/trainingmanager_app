@@ -4,7 +4,16 @@ import com.foxugly.trainingmanager_app.api.generated.models.CompleteInvitationRe
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceRegisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceUnregisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.EmailConfirmRequest
+import com.foxugly.trainingmanager_app.api.generated.models.EventRequest
+import com.foxugly.trainingmanager_app.api.generated.models.ExerciseRequest
+import com.foxugly.trainingmanager_app.api.generated.models.GenerateTrainingRequestRequest
 import com.foxugly.trainingmanager_app.api.generated.models.LanguageEnum
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedEventRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedExerciseRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedRoundRequest
+import com.foxugly.trainingmanager_app.api.generated.models.ReorderExercisesRequestRequest
+import com.foxugly.trainingmanager_app.api.generated.models.ReorderRoundsRequestRequest
+import com.foxugly.trainingmanager_app.api.generated.models.RoundRequest
 import com.foxugly.trainingmanager_app.api.generated.models.MagicLinkExchangeRequestRequest
 import com.foxugly.trainingmanager_app.api.generated.models.MagicLinkRequestRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Me
@@ -187,6 +196,31 @@ class AuthRepository(
 
     suspend fun deleteMessage(teamId: Int, topicId: Int, messageId: Int) =
         api.deleteMessage(teamId, topicId, messageId)
+
+    // --- Coach writes (managers only, enforced server-side) ---
+    suspend fun createEvent(body: EventRequest) = api.createEvent(body)
+
+    suspend fun updateEvent(id: Int, body: PatchedEventRequest) = api.updateEvent(id, body)
+
+    suspend fun deleteEvent(id: Int) = api.deleteEvent(id)
+
+    suspend fun generateTraining(id: Int, body: GenerateTrainingRequestRequest) = api.generateTraining(id, body)
+
+    suspend fun createRound(body: RoundRequest) = api.createRound(body)
+
+    suspend fun updateRound(id: Int, body: PatchedRoundRequest) = api.updateRound(id, body)
+
+    suspend fun deleteRound(id: Int) = api.deleteRound(id)
+
+    suspend fun reorderRounds(eventId: Int, body: ReorderRoundsRequestRequest) = api.reorderRounds(eventId, body)
+
+    suspend fun createExercise(body: ExerciseRequest) = api.createExercise(body)
+
+    suspend fun updateExercise(id: Int, body: PatchedExerciseRequest) = api.updateExercise(id, body)
+
+    suspend fun deleteExercise(id: Int) = api.deleteExercise(id)
+
+    suspend fun reorderExercises(roundId: Int, body: ReorderExercisesRequestRequest) = api.reorderExercises(roundId, body)
 
     /** PATCH me/ — partial profile update. */
     suspend fun updateProfile(body: PatchedMeRequest): Result<Me> = api.patchMe(body)
