@@ -11,8 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -53,7 +57,16 @@ fun TeamDetailScreen(
     DetailScaffold(
         title = viewModel.team?.name ?: s.teamsTitle,
         onBack = onBack,
-        actions = { TextButton(onClick = onDiscussions) { Text(s.discussionsEntry) } },
+        actions = {
+            if (viewModel.canManage) {
+                IconButton(onClick = onCreateEvent) {
+                    Icon(Icons.Filled.Add, contentDescription = s.addEvent)
+                }
+            }
+            IconButton(onClick = onDiscussions) {
+                Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = s.discussionsEntry)
+            }
+        },
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when {
@@ -63,12 +76,6 @@ fun TeamDetailScreen(
                 else -> {
                     val team = viewModel.team!!
                     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-                        if (viewModel.canManage) {
-                            Button(onClick = onCreateEvent, modifier = Modifier.fillMaxWidth()) {
-                                Text(s.addEvent)
-                            }
-                            Spacer(Modifier.height(12.dp))
-                        }
                         team.sport.name.takeIf { it.isNotBlank() }?.let { Labeled(s.teamSport, it) }
                         Labeled(s.teamOwner, fullName(team.owner))
                         if (team.managers.isNotEmpty()) {
