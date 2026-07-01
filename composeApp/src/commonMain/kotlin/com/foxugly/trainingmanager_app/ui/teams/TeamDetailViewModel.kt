@@ -8,6 +8,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.Member
 import com.foxugly.trainingmanager_app.api.generated.models.Program
 import com.foxugly.trainingmanager_app.api.generated.models.Team
 import com.foxugly.trainingmanager_app.api.generated.models.TeamInvitation
+import com.foxugly.trainingmanager_app.api.generated.models.TrainingSlot
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.i18n.StringsFr
@@ -31,6 +32,8 @@ class TeamDetailViewModel(
     var programs by mutableStateOf<List<Program>>(emptyList())
         private set
     var invitations by mutableStateOf<List<TeamInvitation>>(emptyList())
+        private set
+    var slots by mutableStateOf<List<TrainingSlot>>(emptyList())
         private set
     var isSavingProgram by mutableStateOf(false)
         private set
@@ -56,6 +59,7 @@ class TeamDetailViewModel(
             val meDeferred = async { authRepository.getCurrentUser() }
             val programsDeferred = async { authRepository.listPrograms(id) }
             val invitationsDeferred = async { authRepository.listInvitations() }
+            val slotsDeferred = async { authRepository.listTrainingSlots(id) }
             teamDeferred.await().fold(
                 onSuccess = { team = it },
                 onFailure = { error = strings.teamLoadFailed },
@@ -67,6 +71,7 @@ class TeamDetailViewModel(
                 members = page.results.filter { it.teams.contains(id) }
             }
             programsDeferred.await().onSuccess { programs = it.results }
+            slotsDeferred.await().onSuccess { slots = it }
             // Invitations: managers only see them; filter to this team + still pending.
             if (canManage) {
                 invitationsDeferred.await().onSuccess { page ->

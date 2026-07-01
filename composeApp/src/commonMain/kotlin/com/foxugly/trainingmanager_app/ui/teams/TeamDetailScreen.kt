@@ -20,6 +20,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,6 +38,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.foxugly.trainingmanager_app.api.generated.models.CustomUserPublic
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
+import com.foxugly.trainingmanager_app.i18n.languageDisplayNames
 import com.foxugly.trainingmanager_app.ui.components.DetailScaffold
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import com.foxugly.trainingmanager_app.ui.components.ErrorState
@@ -75,83 +78,113 @@ fun TeamDetailScreen(
                     ErrorState(viewModel.error ?: s.teamLoadFailed, onRetry = { scope.launch { viewModel.load(teamId) } }, retryLabel = s.retry)
                 else -> {
                     val team = viewModel.team!!
-                    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-                        team.sport.name.takeIf { it.isNotBlank() }?.let { Labeled(s.teamSport, it) }
-                        Labeled(s.teamOwner, fullName(team.owner))
-                        if (team.managers.isNotEmpty()) {
-                            Labeled(s.teamManagers, team.managers.joinToString(", ") { fullName(it) })
-                        }
-                        if (viewModel.members.isNotEmpty()) {
-                            Labeled(
-                                s.teamMembers,
-                                viewModel.members.joinToString(", ") {
-                                    it.fullname.ifBlank { listOf(it.firstname, it.lastname).filter { p -> p.isNotBlank() }.joinToString(" ") }
-                                },
-                            )
-                        }
-
-                        Spacer(Modifier.height(16.dp))
-                        Text(s.programsSection, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(4.dp))
-                        viewModel.programError?.let { ErrorBanner(it); Spacer(Modifier.height(8.dp)) }
-                        if (viewModel.programs.isEmpty()) {
-                            Text(s.programsEmpty, style = MaterialTheme.typography.bodyMedium)
-                        } else {
-                            viewModel.programs.forEach { p ->
-                                Text(p.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 4.dp))
+                    var selectedTab by remember { mutableStateOf(0) }
+                    val tabs = listOf(
+                        s.teamTabInfos,
+                        s.programsSection,
+                        s.teamTabMembers,
+                        s.teamTabPlaces,
+                        s.teamTabEquipment,
+                    )
+                    Column(Modifier.fillMaxSize()) {
+                        ScrollableTabRow(selectedTabIndex = selectedTab, edgePadding = 0.dp) {
+                            tabs.forEachIndexed { i, title ->
+                                Tab(selected = selectedTab == i, onClick = { selectedTab = i }, text = { Text(title) })
                             }
                         }
-                        if (viewModel.canManage) {
-                            var showAddProgram by remember { mutableStateOf(false) }
-                            Spacer(Modifier.height(8.dp))
-                            OutlinedButton(
-                                onClick = { showAddProgram = true },
-                                enabled = !viewModel.isSavingProgram,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) { Text(s.addProgram) }
-                            if (showAddProgram) {
-                                AddNameDialog(
-                                    title = s.addProgram,
-                                    label = s.programName,
-                                    onDismiss = { showAddProgram = false },
-                                    onConfirm = { name -> showAddProgram = false; scope.launch { viewModel.addProgram(name) } },
-                                )
-                            }
-                        }
-
-                        if (viewModel.canManage) {
-                            Spacer(Modifier.height(16.dp))
-                            Text(s.invitationsSection, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.height(4.dp))
-                            viewModel.inviteError?.let { ErrorBanner(it); Spacer(Modifier.height(8.dp)) }
-                            if (viewModel.invitations.isEmpty()) {
-                                Text(s.invitationsEmpty, style = MaterialTheme.typography.bodyMedium)
-                            } else {
-                                viewModel.invitations.forEach { inv ->
-                                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                                        Text(inv.email, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-                                        TextButton(
-                                            onClick = { scope.launch { viewModel.cancelInvitation(inv.id) } },
-                                            enabled = !viewModel.isSavingInvite,
-                                        ) { Text(s.cancel) }
+                        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
+                            when (selectedTab) {
+                                0 -> {
+                                    team.sport.name.takeIf { it.isNotBlank() }?.let { Labeled(s.teamSport, it) }
+                                    team.level?.name?.takeIf { it.isNotBlank() }?.let { Labeled(s.teamLevel, it) }
+                                    Labeled(s.teamOwner, fullName(team.owner))
+                                    if (team.managers.isNotEmpty()) {
+                                        Labeled(s.teamManagers, team.managers.joinToString(", ") { fullName(it) })
+                                    }
+                                    team.language?.let { Labeled(s.languageLabel, languageDisplayNames[it.value] ?: it.value) }
+                                    Labeled(s.teamPublic, if (team.isPublic == true) s.yes else s.no)
+                                    Labeled(s.teamRotiEnabled, if (team.rotiEnabled == true) s.yes else s.no)
+                                    Labeled(s.teamRsvpEnabled, if (team.rsvpEnabled == true) s.yes else s.no)
+                                }
+                                1 -> {
+                                    viewModel.programError?.let { ErrorBanner(it); Spacer(Modifier.height(8.dp)) }
+                                    if (viewModel.programs.isEmpty()) {
+                                        Text(s.programsEmpty, style = MaterialTheme.typography.bodyMedium)
+                                    } else {
+                                        viewModel.programs.forEach { p ->
+                                            Text(p.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 4.dp))
+                                        }
+                                    }
+                                    if (viewModel.canManage) {
+                                        var showAddProgram by remember { mutableStateOf(false) }
+                                        Spacer(Modifier.height(8.dp))
+                                        OutlinedButton(onClick = { showAddProgram = true }, enabled = !viewModel.isSavingProgram, modifier = Modifier.fillMaxWidth()) { Text(s.addProgram) }
+                                        if (showAddProgram) {
+                                            AddNameDialog(title = s.addProgram, label = s.programName, onDismiss = { showAddProgram = false }, onConfirm = { name -> showAddProgram = false; scope.launch { viewModel.addProgram(name) } })
+                                        }
                                     }
                                 }
-                            }
-                            var showInvite by remember { mutableStateOf(false) }
-                            Spacer(Modifier.height(8.dp))
-                            OutlinedButton(
-                                onClick = { showInvite = true },
-                                enabled = !viewModel.isSavingInvite,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) { Text(s.inviteButton) }
-                            if (showInvite) {
-                                InviteDialog(
-                                    onDismiss = { showInvite = false },
-                                    onConfirm = { email, first, last ->
-                                        showInvite = false
-                                        scope.launch { viewModel.invite(email, first, last) }
-                                    },
-                                )
+                                2 -> {
+                                    Labeled(s.teamOwner, fullName(team.owner))
+                                    if (team.managers.isNotEmpty()) Labeled(s.teamManagers, team.managers.joinToString(", ") { fullName(it) })
+                                    Labeled(
+                                        s.teamMembers,
+                                        if (viewModel.members.isEmpty()) "—" else viewModel.members.joinToString(", ") { it.fullname.ifBlank { listOf(it.firstname, it.lastname).filter { p -> p.isNotBlank() }.joinToString(" ") } },
+                                    )
+                                    if (viewModel.canManage) {
+                                        Spacer(Modifier.height(16.dp))
+                                        Text(s.invitationsSection, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                        Spacer(Modifier.height(4.dp))
+                                        viewModel.inviteError?.let { ErrorBanner(it); Spacer(Modifier.height(8.dp)) }
+                                        if (viewModel.invitations.isEmpty()) {
+                                            Text(s.invitationsEmpty, style = MaterialTheme.typography.bodyMedium)
+                                        } else {
+                                            viewModel.invitations.forEach { inv ->
+                                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                                                    Text(inv.email, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                                                    TextButton(onClick = { scope.launch { viewModel.cancelInvitation(inv.id) } }, enabled = !viewModel.isSavingInvite) { Text(s.cancel) }
+                                                }
+                                            }
+                                        }
+                                        var showInvite by remember { mutableStateOf(false) }
+                                        Spacer(Modifier.height(8.dp))
+                                        OutlinedButton(onClick = { showInvite = true }, enabled = !viewModel.isSavingInvite, modifier = Modifier.fillMaxWidth()) { Text(s.inviteButton) }
+                                        if (showInvite) {
+                                            InviteDialog(onDismiss = { showInvite = false }, onConfirm = { email, first, last -> showInvite = false; scope.launch { viewModel.invite(email, first, last) } })
+                                        }
+                                    }
+                                }
+                                3 -> {
+                                    Text(s.teamPlacesSection, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                    Spacer(Modifier.height(4.dp))
+                                    if (team.places.isEmpty()) {
+                                        Text("—", style = MaterialTheme.typography.bodyMedium)
+                                    } else {
+                                        team.places.forEach { p ->
+                                            Text(listOfNotNull(p.name.ifBlank { null }, p.address.ifBlank { null }).joinToString(" — "), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 2.dp))
+                                        }
+                                    }
+                                    Spacer(Modifier.height(16.dp))
+                                    Text(s.teamSlotsSection, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                    Spacer(Modifier.height(4.dp))
+                                    if (viewModel.slots.isEmpty()) {
+                                        Text("—", style = MaterialTheme.typography.bodyMedium)
+                                    } else {
+                                        viewModel.slots.forEach { slot ->
+                                            val place = slot.place?.name?.takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""
+                                            Text("${s.weekdayName(slot.weekday.value)} ${slot.hourStart}–${slot.hourEnd}$place", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 2.dp))
+                                        }
+                                    }
+                                }
+                                else -> {
+                                    if (team.equipment.isEmpty()) {
+                                        Text("—", style = MaterialTheme.typography.bodyMedium)
+                                    } else {
+                                        team.equipment.forEach { e ->
+                                            Text(e.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 2.dp))
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

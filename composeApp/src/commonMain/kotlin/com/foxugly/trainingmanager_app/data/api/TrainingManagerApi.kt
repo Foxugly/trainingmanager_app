@@ -55,6 +55,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.RsvpSummary
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpUpsertRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Team
 import com.foxugly.trainingmanager_app.api.generated.models.TeamInvitation
+import com.foxugly.trainingmanager_app.api.generated.models.TrainingSlot
 import com.foxugly.trainingmanager_app.api.generated.models.TokenObtainPairResponse
 import com.foxugly.trainingmanager_app.api.generated.models.TokenRefresh
 import com.foxugly.trainingmanager_app.api.generated.models.TokenRefreshRequest
@@ -310,6 +311,10 @@ class TrainingManagerApi(
         if (!response.status.isSuccess()) throw response.toApiException("s3-put")
         Unit
     }.onFailure { if (it is CancellationException) throw it }
+
+    suspend fun listTrainingSlots(teamId: Int): Result<List<TrainingSlot>> = apiCall {
+        client.get("teams/$teamId/training-slots/")
+    }
 
     suspend fun getTeam(id: Int): Result<Team> = apiCall {
         client.get("teams/$id/")

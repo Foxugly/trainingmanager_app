@@ -215,6 +215,21 @@ interface Strings {
     val teamOwner: String
     val teamManagers: String
     val teamMembers: String
+    val teamTabInfos: String
+    val teamTabMembers: String
+    val teamTabPlaces: String
+    val teamTabEquipment: String
+    val teamLevel: String
+    val teamPublic: String
+    val teamRotiEnabled: String
+    val teamRsvpEnabled: String
+    val teamPlacesSection: String
+    val teamSlotsSection: String
+    val yes: String
+    val no: String
+
+    /** Localized weekday name for a 0=Monday..6=Sunday index. */
+    fun weekdayName(index: Int): String
     val programsSection: String
     val programsEmpty: String
     val addProgram: String
