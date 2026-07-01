@@ -44,6 +44,7 @@ fun EventDetailScreen(
     viewModel: EventDetailViewModel,
     eventId: Int,
     onEdit: () -> Unit,
+    onEditTraining: () -> Unit,
     onBack: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -84,6 +85,13 @@ fun EventDetailScreen(
                             val roundTitle = s.roundLabel(round.order) + if (round.count > 1) " ×${round.count}" else ""
                             Text(roundTitle, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                             round.exercises.sortedBy { it.order ?: 0 }.forEach { ex -> ExerciseRow(ex) }
+                        }
+                    }
+
+                    if (viewModel.canManage) {
+                        Spacer(Modifier.height(12.dp))
+                        OutlinedButton(onClick = onEditTraining, modifier = Modifier.fillMaxWidth()) {
+                            Text(s.trainingEditEntry)
                         }
                     }
 

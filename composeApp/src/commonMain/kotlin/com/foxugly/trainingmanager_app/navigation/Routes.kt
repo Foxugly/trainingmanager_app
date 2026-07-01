@@ -40,6 +40,10 @@ data class EventDetailRoute(val id: Int)
 @Serializable
 data class EventEditorRoute(val eventId: Int? = null, val teamId: Int? = null)
 
+/** Training editor for an event (AI generate / clear). */
+@Serializable
+data class TrainingEditorRoute(val eventId: Int)
+
 @Serializable
 object TeamsListRoute
 

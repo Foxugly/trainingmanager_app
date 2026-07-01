@@ -24,6 +24,7 @@ import com.foxugly.trainingmanager_app.navigation.EmailConfirmRoute
 import com.foxugly.trainingmanager_app.navigation.EventDetailRoute
 import com.foxugly.trainingmanager_app.navigation.EventEditorRoute
 import com.foxugly.trainingmanager_app.navigation.EventsListRoute
+import com.foxugly.trainingmanager_app.navigation.TrainingEditorRoute
 import com.foxugly.trainingmanager_app.navigation.HomeRoute
 import com.foxugly.trainingmanager_app.navigation.InvitationRoute
 import com.foxugly.trainingmanager_app.navigation.ChangePasswordRoute
@@ -53,6 +54,8 @@ import com.foxugly.trainingmanager_app.ui.events.EventEditorScreen
 import com.foxugly.trainingmanager_app.ui.events.EventEditorViewModel
 import com.foxugly.trainingmanager_app.ui.events.EventsListScreen
 import com.foxugly.trainingmanager_app.ui.events.EventsListViewModel
+import com.foxugly.trainingmanager_app.ui.events.TrainingEditorScreen
+import com.foxugly.trainingmanager_app.ui.events.TrainingEditorViewModel
 import com.foxugly.trainingmanager_app.ui.invitation.InvitationScreen
 import com.foxugly.trainingmanager_app.ui.invitation.InvitationViewModel
 import com.foxugly.trainingmanager_app.platform.FcmTokenProvider
@@ -327,6 +330,16 @@ fun App(
                             viewModel = vm,
                             eventId = args.id,
                             onEdit = { navController.navigate(EventEditorRoute(eventId = args.id)) { launchSingleTop = true } },
+                            onEditTraining = { navController.navigate(TrainingEditorRoute(args.id)) { launchSingleTop = true } },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TrainingEditorRoute> { entry ->
+                        val args = entry.toRoute<TrainingEditorRoute>()
+                        val vm: TrainingEditorViewModel = koinInject()
+                        TrainingEditorScreen(
+                            viewModel = vm,
+                            eventId = args.eventId,
                             onBack = { navController.popBackStack() },
                         )
                     }
@@ -343,7 +356,10 @@ fun App(
                                     launchSingleTop = true
                                 }
                             },
-                            onDeleted = { navController.popBackStack() },
+                            // Delete happens in edit mode (reached from the now-stale
+                            // event detail) — pop the detail too so we don't land on a
+                            // "can't load event" screen.
+                            onDeleted = { navController.popBackStack<EventDetailRoute>(inclusive = true) },
                             onBack = { navController.popBackStack() },
                         )
                     }
