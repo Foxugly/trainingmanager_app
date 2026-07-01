@@ -167,6 +167,16 @@ class AuthRepository(
 
     suspend fun listPrograms(teamId: Int) = api.listPrograms(teamId)
 
+    suspend fun listAttendance(eventId: Int) = api.listAttendance(eventId)
+
+    suspend fun listAttendanceStatuses() = api.listAttendanceStatuses()
+
+    suspend fun createAttendance(eventId: Int, body: com.foxugly.trainingmanager_app.api.generated.models.AttendanceRequest) =
+        api.createAttendance(eventId, body)
+
+    suspend fun updateAttendance(eventId: Int, id: Int, body: com.foxugly.trainingmanager_app.api.generated.models.PatchedAttendanceRequest) =
+        api.updateAttendance(eventId, id, body)
+
     suspend fun listModalities(sportId: Int) = api.listModalities(sportId)
 
     suspend fun listEnergySegments() = api.listEnergySegments()

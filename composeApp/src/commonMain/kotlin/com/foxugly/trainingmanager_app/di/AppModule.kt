@@ -11,6 +11,7 @@ import com.foxugly.trainingmanager_app.platform.UrlOpener
 import com.foxugly.trainingmanager_app.ui.confirm.EmailConfirmViewModel
 import com.foxugly.trainingmanager_app.ui.dashboard.DashboardViewModel
 import com.foxugly.trainingmanager_app.ui.events.EventDetailViewModel
+import com.foxugly.trainingmanager_app.ui.events.AttendanceViewModel
 import com.foxugly.trainingmanager_app.ui.events.EventEditorViewModel
 import com.foxugly.trainingmanager_app.ui.events.EventsListViewModel
 import com.foxugly.trainingmanager_app.ui.events.TrainingEditorViewModel
@@ -64,6 +65,7 @@ fun appModule(
         val ls = get<LanguageService>()
         TrainingEditorViewModel(get(), ls.strings, LanguageEnum.decode(ls.activeLang) ?: LanguageEnum.FR)
     }
+    factory { AttendanceViewModel(get(), get<LanguageService>().strings) }
     factory { val opener = get<UrlOpener>(); EventDetailViewModel(get(), get<LanguageService>().strings) { url -> opener.open(url) } }
     factory { TeamsListViewModel(get(), get<LanguageService>().strings) }
     factory { TeamDetailViewModel(get(), get<LanguageService>().strings) }

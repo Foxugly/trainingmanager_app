@@ -184,6 +184,9 @@ interface Strings {
     val rsvpFailed: String
     val rotiLabel: String
     val rotiScaleHint: String
+    val attendanceTitle: String
+    val attendanceEmpty: String
+    val attendanceSaveFailed: String
     val rotiFailed: String
     val trainingSection: String
     fun roundLabel(order: Int): String
