@@ -1,5 +1,6 @@
 package com.foxugly.trainingmanager_app.data.api
 
+import com.foxugly.trainingmanager_app.api.generated.models.Attachment
 import com.foxugly.trainingmanager_app.api.generated.models.AttachmentDownloadResponse
 import com.foxugly.trainingmanager_app.api.generated.models.Attendance
 import com.foxugly.trainingmanager_app.api.generated.models.AttendanceRequest
@@ -35,6 +36,8 @@ import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetConfirm
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedAttendanceRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedEventRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedTopicMessageRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PresignUploadRequestRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PresignUploadResponse
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedExerciseRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedMeRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedRoundRequest
@@ -152,8 +155,20 @@ class TrainingManagerApi(
 
     private val client = if (engine != null) HttpClient(engine, clientConfig) else HttpClient(clientConfig)
 
+    // Bare client for direct uploads to presigned S3 URLs: no baseUrl, no auth
+    // header (S3 rejects an extra Authorization), no JSON content type.
+    private val rawClientConfig: HttpClientConfig<*>.() -> Unit = {
+        install(HttpTimeout) {
+            requestTimeoutMillis = 120_000
+            connectTimeoutMillis = 15_000
+            socketTimeoutMillis = 120_000
+        }
+    }
+    private val rawClient = if (engine != null) HttpClient(engine, rawClientConfig) else HttpClient(rawClientConfig)
+
     override fun close() {
         client.close()
+        rawClient.close()
     }
 
     var onAuthFailure: (() -> Unit)?
@@ -272,6 +287,29 @@ class TrainingManagerApi(
     suspend fun attachmentDownloadUrl(id: Int): Result<AttachmentDownloadResponse> = apiCall {
         client.get("attachments/$id/download/")
     }
+
+    // --- Attachment write (upload = presign -> S3 PUT -> complete; + delete) ---
+    suspend fun presignAttachment(body: PresignUploadRequestRequest): Result<PresignUploadResponse> = apiCall {
+        client.post("attachments/presign/") { setBody(body) }
+    }
+
+    suspend fun completeAttachment(id: Int): Result<Attachment> = apiCall {
+        client.post("attachments/$id/complete/")
+    }
+
+    suspend fun deleteAttachment(id: Int): Result<Unit> = apiCall {
+        client.delete("attachments/$id/")
+    }
+
+    /** Direct PUT of the file bytes to the presigned S3 URL, using the exact content type S3 expects. */
+    suspend fun putToPresignedUrl(uploadUrl: String, bytes: ByteArray, contentTypeValue: String): Result<Unit> = runCatching {
+        val response = rawClient.put(uploadUrl) {
+            contentType(ContentType.parse(contentTypeValue))
+            setBody(bytes)
+        }
+        if (!response.status.isSuccess()) throw response.toApiException("s3-put")
+        Unit
+    }.onFailure { if (it is CancellationException) throw it }
 
     suspend fun getTeam(id: Int): Result<Team> = apiCall {
         client.get("teams/$id/")

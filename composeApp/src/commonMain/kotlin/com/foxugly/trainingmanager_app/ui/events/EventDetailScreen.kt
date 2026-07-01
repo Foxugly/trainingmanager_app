@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -34,6 +35,9 @@ import com.foxugly.trainingmanager_app.api.generated.models.Exercise
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpStatusEnum
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpSummary
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.readBytes
 import com.foxugly.trainingmanager_app.ui.components.DetailScaffold
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import com.foxugly.trainingmanager_app.ui.components.ErrorState
@@ -54,6 +58,10 @@ fun EventDetailScreen(
     val scope = rememberCoroutineScope()
     val s = LocalStrings.current
     LaunchedEffect(eventId) { viewModel.load(eventId) }
+
+    val attachmentPicker = rememberFilePickerLauncher { file ->
+        file?.let { pf -> scope.launch { viewModel.uploadAttachment(pf.name, mimeType(pf.name), pf.readBytes()) } }
+    }
 
     DetailScaffold(
         title = viewModel.event?.name ?: s.eventsTitle,
@@ -157,7 +165,7 @@ fun EventDetailScreen(
                         }
                     }
 
-                    if (viewModel.attachments.isNotEmpty()) {
+                    if (viewModel.attachments.isNotEmpty() || viewModel.canManage) {
                         Spacer(Modifier.height(16.dp))
                         Text(s.attachmentsSection, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         viewModel.attachmentError?.let { Spacer(Modifier.height(8.dp)); ErrorBanner(it) }
@@ -173,7 +181,20 @@ fun EventDetailScreen(
                                 if (att.status == AttachmentStatusEnum.READY) {
                                     TextButton(onClick = { scope.launch { viewModel.downloadAttachment(att.id) } }) { Text(s.download) }
                                 }
+                                if (viewModel.canManage) {
+                                    IconButton(onClick = { scope.launch { viewModel.deleteAttachment(att.id) } }) {
+                                        Icon(Icons.Filled.Delete, contentDescription = s.attachmentDelete)
+                                    }
+                                }
                             }
+                        }
+                        if (viewModel.canManage) {
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedButton(
+                                onClick = { attachmentPicker.launch() },
+                                enabled = !viewModel.isUploadingAttachment,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) { Text(if (viewModel.isUploadingAttachment) s.attachmentUploading else s.attachmentAdd) }
                         }
                     }
                 }
@@ -249,4 +270,24 @@ private fun RsvpButton(label: String, selected: Boolean, enabled: Boolean, onCli
     } else {
         OutlinedButton(onClick = onClick, enabled = enabled) { Text(label) }
     }
+}
+
+/** Best-effort MIME type from a filename extension (backend enforces its own allow-list). */
+private fun mimeType(filename: String): String = when (filename.substringAfterLast('.', "").lowercase()) {
+    "pdf" -> "application/pdf"
+    "jpg", "jpeg" -> "image/jpeg"
+    "png" -> "image/png"
+    "gif" -> "image/gif"
+    "webp" -> "image/webp"
+    "heic" -> "image/heic"
+    "doc" -> "application/msword"
+    "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    "xls" -> "application/vnd.ms-excel"
+    "xlsx" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    "csv" -> "text/csv"
+    "txt" -> "text/plain"
+    "mp4" -> "video/mp4"
+    "mov" -> "video/quicktime"
+    "zip" -> "application/zip"
+    else -> "application/octet-stream"
 }

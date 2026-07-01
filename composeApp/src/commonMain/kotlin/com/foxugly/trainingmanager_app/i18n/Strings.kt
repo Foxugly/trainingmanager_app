@@ -194,6 +194,11 @@ interface Strings {
     val attachmentsSection: String
     val download: String
     val downloadFailed: String
+    val attachmentAdd: String
+    val attachmentUploading: String
+    val attachmentDelete: String
+    val attachmentUploadFailed: String
+    val attachmentDeleteFailed: String
 
     // Teams
     val teamsTitle: String

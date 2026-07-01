@@ -63,6 +63,8 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.navigation.compose)
             implementation(libs.reorderable)
+            implementation(libs.filekit.core)
+            implementation(libs.filekit.dialogs.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
