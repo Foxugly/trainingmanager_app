@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.foxugly.trainingmanager_app.api.generated.models.CustomUserPublic
 import com.foxugly.trainingmanager_app.api.generated.models.TopicMessage
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
+import com.foxugly.trainingmanager_app.ui.components.DetailScaffold
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import com.foxugly.trainingmanager_app.ui.components.ErrorState
 import com.foxugly.trainingmanager_app.ui.components.LoadingState
@@ -47,49 +48,46 @@ fun TopicThreadScreen(
     val s = LocalStrings.current
     LaunchedEffect(teamId, topicId) { viewModel.load(teamId, topicId) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Text(s.discussionsEntry, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
-            TextButton(onClick = onBack) { Text(s.back) }
-        }
-        Spacer(Modifier.height(8.dp))
-        when {
-            viewModel.isLoading -> LoadingState(Modifier.weight(1f))
-            viewModel.error != null ->
-                ErrorState(
-                    viewModel.error!!,
-                    modifier = Modifier.weight(1f),
-                    onRetry = { scope.launch { viewModel.load(teamId, topicId) } },
-                    retryLabel = s.retry,
-                )
-            else ->
-                LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
-                    items(viewModel.messages, key = { it.id }) { msg ->
-                        MessageRow(
-                            msg = msg,
-                            mine = viewModel.isMine(msg),
-                            editedLabel = s.editedLabel,
-                            deleteLabel = s.deleteMessage,
-                            onDelete = { scope.launch { viewModel.delete(teamId, topicId, msg.id) } },
-                        )
-                        HorizontalDivider()
+    DetailScaffold(title = s.discussionsEntry, onBack = onBack) { padding ->
+        Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
+            when {
+                viewModel.isLoading -> LoadingState(Modifier.weight(1f))
+                viewModel.error != null ->
+                    ErrorState(
+                        viewModel.error!!,
+                        modifier = Modifier.weight(1f),
+                        onRetry = { scope.launch { viewModel.load(teamId, topicId) } },
+                        retryLabel = s.retry,
+                    )
+                else ->
+                    LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
+                        items(viewModel.messages, key = { it.id }) { msg ->
+                            MessageRow(
+                                msg = msg,
+                                mine = viewModel.isMine(msg),
+                                editedLabel = s.editedLabel,
+                                deleteLabel = s.deleteMessage,
+                                onDelete = { scope.launch { viewModel.delete(teamId, topicId, msg.id) } },
+                            )
+                            HorizontalDivider()
+                        }
                     }
-                }
-        }
+            }
 
-        if (allowReplies) {
-            viewModel.sendError?.let { Spacer(Modifier.height(4.dp)); ErrorBanner(it) }
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                OutlinedTextField(
-                    value = viewModel.composeText,
-                    onValueChange = { viewModel.composeText = it },
-                    placeholder = { Text(s.messagePlaceholder) },
-                    modifier = Modifier.weight(1f),
-                )
-                TextButton(
-                    onClick = { scope.launch { viewModel.send(teamId, topicId) } },
-                    enabled = !viewModel.isSending && viewModel.composeText.isNotBlank(),
-                ) { Text(s.sendMessage) }
+            if (allowReplies) {
+                viewModel.sendError?.let { Spacer(Modifier.height(4.dp)); ErrorBanner(it) }
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                    OutlinedTextField(
+                        value = viewModel.composeText,
+                        onValueChange = { viewModel.composeText = it },
+                        placeholder = { Text(s.messagePlaceholder) },
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(
+                        onClick = { scope.launch { viewModel.send(teamId, topicId) } },
+                        enabled = !viewModel.isSending && viewModel.composeText.isNotBlank(),
+                    ) { Text(s.sendMessage) }
+                }
             }
         }
     }

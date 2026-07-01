@@ -1,6 +1,7 @@
 package com.foxugly.trainingmanager_app.ui.events
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,6 +28,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.Exercise
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpStatusEnum
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpSummary
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
+import com.foxugly.trainingmanager_app.ui.components.DetailScaffold
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import com.foxugly.trainingmanager_app.ui.components.ErrorState
 import com.foxugly.trainingmanager_app.ui.components.LoadingState
@@ -42,24 +44,15 @@ fun EventDetailScreen(
     val s = LocalStrings.current
     LaunchedEffect(eventId) { viewModel.load(eventId) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Text(
-                viewModel.event?.name ?: s.eventsTitle,
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.weight(1f),
-            )
-            TextButton(onClick = onBack) { Text(s.back) }
-        }
-        Spacer(Modifier.height(8.dp))
-
+    DetailScaffold(title = viewModel.event?.name ?: s.eventsTitle, onBack = onBack) { padding ->
+        Box(Modifier.fillMaxSize().padding(padding)) {
         when {
             viewModel.isLoading -> LoadingState()
             viewModel.error != null || viewModel.event == null ->
                 ErrorState(viewModel.error ?: s.eventLoadFailed, onRetry = { scope.launch { viewModel.load(eventId) } }, retryLabel = s.retry)
             else -> {
                 val event = viewModel.event!!
-                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
                     val schedule = listOfNotNull(event.date, listOfNotNull(event.hourStart, event.hourEnd).joinToString("–").ifBlank { null }).joinToString(" · ")
                     if (schedule.isNotBlank()) Field(null, schedule)
                     event.location?.takeIf { it.isNotBlank() }?.let { Field(s.eventLocation, it) }
@@ -126,6 +119,7 @@ fun EventDetailScreen(
                     }
                 }
             }
+        }
         }
     }
 }
