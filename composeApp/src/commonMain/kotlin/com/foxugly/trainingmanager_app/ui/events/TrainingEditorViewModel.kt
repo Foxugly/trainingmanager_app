@@ -11,6 +11,8 @@ import com.foxugly.trainingmanager_app.api.generated.models.LanguageEnum
 import com.foxugly.trainingmanager_app.api.generated.models.Modality
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedExerciseRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedRoundRequest
+import com.foxugly.trainingmanager_app.api.generated.models.ReorderExercisesRequestRequest
+import com.foxugly.trainingmanager_app.api.generated.models.ReorderRoundsRequestRequest
 import com.foxugly.trainingmanager_app.api.generated.models.RoundRequest
 import com.foxugly.trainingmanager_app.data.api.ApiException
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
@@ -175,6 +177,35 @@ class TrainingEditorViewModel(
 
     suspend fun removeExercise(exerciseId: Int) = mutate {
         authRepository.deleteExercise(exerciseId)
+    }
+
+    /** Optimistically move a round then persist the new order (revert on failure). */
+    suspend fun moveRound(from: Int, to: Int) {
+        if (from == to || from !in rounds.indices || to !in rounds.indices) return
+        val reordered = rounds.toMutableList().apply { add(to, removeAt(from)) }
+        rounds = reordered
+        isMutating = true
+        actionError = null
+        authRepository.reorderRounds(eventId, ReorderRoundsRequestRequest(reordered.map { it.id })).fold(
+            onSuccess = { reload() },
+            onFailure = { actionError = strings.trainingSaveFailed; reload() },
+        )
+        isMutating = false
+    }
+
+    suspend fun moveExercise(roundId: Int, from: Int, to: Int) {
+        val round = rounds.firstOrNull { it.id == roundId } ?: return
+        val ordered = round.exercises.sortedBy { it.order ?: 0 }
+        if (from == to || from !in ordered.indices || to !in ordered.indices) return
+        val reordered = ordered.toMutableList().apply { add(to, removeAt(from)) }
+        rounds = rounds.map { if (it.id == roundId) it.copy(exercises = reordered) else it }
+        isMutating = true
+        actionError = null
+        authRepository.reorderExercises(roundId, ReorderExercisesRequestRequest(reordered.map { it.id })).fold(
+            onSuccess = { reload() },
+            onFailure = { actionError = strings.trainingSaveFailed; reload() },
+        )
+        isMutating = false
     }
 
     private suspend fun mutate(block: suspend () -> Result<*>) {
