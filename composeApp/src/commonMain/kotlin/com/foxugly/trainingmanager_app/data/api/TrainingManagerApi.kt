@@ -36,6 +36,8 @@ import com.foxugly.trainingmanager_app.api.generated.models.PatchedExerciseReque
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedMeRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedRoundRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetRequestRequest
+import com.foxugly.trainingmanager_app.api.generated.models.Program
+import com.foxugly.trainingmanager_app.api.generated.models.ProgramRequest
 import com.foxugly.trainingmanager_app.api.generated.models.RegisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.ReorderExercisesRequestRequest
 import com.foxugly.trainingmanager_app.api.generated.models.ReorderRoundsRequestRequest
@@ -276,6 +278,10 @@ class TrainingManagerApi(
             parameter("team", teamId)
             parameter("is_active", true)
         }
+    }
+
+    suspend fun createProgram(body: ProgramRequest): Result<Program> = apiCall {
+        client.post("programs/") { setBody(body) }
     }
 
     // Reference data for the manual training editor's exercise pickers.

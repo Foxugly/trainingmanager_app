@@ -9,19 +9,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.foxugly.trainingmanager_app.api.generated.models.CustomUserPublic
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.ui.components.DetailScaffold
+import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import com.foxugly.trainingmanager_app.ui.components.ErrorState
 import com.foxugly.trainingmanager_app.ui.components.LoadingState
 import kotlinx.coroutines.launch
@@ -70,6 +78,35 @@ fun TeamDetailScreen(
                                 },
                             )
                         }
+
+                        Spacer(Modifier.height(16.dp))
+                        Text(s.programsSection, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        viewModel.programError?.let { ErrorBanner(it); Spacer(Modifier.height(8.dp)) }
+                        if (viewModel.programs.isEmpty()) {
+                            Text(s.programsEmpty, style = MaterialTheme.typography.bodyMedium)
+                        } else {
+                            viewModel.programs.forEach { p ->
+                                Text(p.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 4.dp))
+                            }
+                        }
+                        if (viewModel.canManage) {
+                            var showAddProgram by remember { mutableStateOf(false) }
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedButton(
+                                onClick = { showAddProgram = true },
+                                enabled = !viewModel.isSavingProgram,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) { Text(s.addProgram) }
+                            if (showAddProgram) {
+                                AddNameDialog(
+                                    title = s.addProgram,
+                                    label = s.programName,
+                                    onDismiss = { showAddProgram = false },
+                                    onConfirm = { name -> showAddProgram = false; scope.launch { viewModel.addProgram(name) } },
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -86,4 +123,28 @@ private fun Labeled(label: String, value: String) {
         Text(label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
         Text(value, style = MaterialTheme.typography.bodyMedium)
     }
+}
+
+/** Simple dialog that asks for a single name and confirms it. */
+@Composable
+fun AddNameDialog(title: String, label: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+    val s = LocalStrings.current
+    var name by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text(label) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { if (name.isNotBlank()) onConfirm(name) }, enabled = name.isNotBlank()) { Text(s.save) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(s.cancel) } },
+    )
 }

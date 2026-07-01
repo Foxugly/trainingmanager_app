@@ -169,6 +169,9 @@ class AuthRepository(
 
     suspend fun listPrograms(teamId: Int) = api.listPrograms(teamId)
 
+    suspend fun createProgram(teamId: Int, name: String) =
+        api.createProgram(com.foxugly.trainingmanager_app.api.generated.models.ProgramRequest(name = name.trim(), teamId = teamId))
+
     suspend fun listAttendance(eventId: Int) = api.listAttendance(eventId)
 
     suspend fun listAttendanceStatuses() = api.listAttendanceStatuses()

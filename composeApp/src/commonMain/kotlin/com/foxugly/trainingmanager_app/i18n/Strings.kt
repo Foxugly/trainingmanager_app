@@ -204,6 +204,11 @@ interface Strings {
     val teamOwner: String
     val teamManagers: String
     val teamMembers: String
+    val programsSection: String
+    val programsEmpty: String
+    val addProgram: String
+    val programName: String
+    val programSaveFailed: String
     val teamLoadFailed: String
 
     // Discussions
