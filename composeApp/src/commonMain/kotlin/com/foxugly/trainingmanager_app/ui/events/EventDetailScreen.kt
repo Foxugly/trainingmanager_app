@@ -47,6 +47,7 @@ fun EventDetailScreen(
     eventId: Int,
     onEdit: () -> Unit,
     onEditTraining: () -> Unit,
+    onAttendance: () -> Unit,
     onBack: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -97,6 +98,10 @@ fun EventDetailScreen(
                         Spacer(Modifier.height(12.dp))
                         OutlinedButton(onClick = onEditTraining, modifier = Modifier.fillMaxWidth()) {
                             Text(s.trainingEditEntry)
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedButton(onClick = onAttendance, modifier = Modifier.fillMaxWidth()) {
+                            Text(s.attendanceTitle)
                         }
                     }
 

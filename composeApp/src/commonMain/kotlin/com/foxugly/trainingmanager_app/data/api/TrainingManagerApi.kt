@@ -1,6 +1,8 @@
 package com.foxugly.trainingmanager_app.data.api
 
 import com.foxugly.trainingmanager_app.api.generated.models.AttachmentDownloadResponse
+import com.foxugly.trainingmanager_app.api.generated.models.Attendance
+import com.foxugly.trainingmanager_app.api.generated.models.AttendanceRequest
 import com.foxugly.trainingmanager_app.api.generated.models.CompleteInvitationRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DashboardSummary
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceRegisterRequest
@@ -17,6 +19,8 @@ import com.foxugly.trainingmanager_app.api.generated.models.MagicLinkRequestRequ
 import com.foxugly.trainingmanager_app.api.generated.models.Me
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedAttachmentList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedEventList
+import com.foxugly.trainingmanager_app.api.generated.models.PaginatedAttendanceList
+import com.foxugly.trainingmanager_app.api.generated.models.PaginatedAttendanceStatusList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedEnergySegmentList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedMemberList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedModalityList
@@ -26,6 +30,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicMessageList
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordChangeRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetConfirmRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedAttendanceRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedEventRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedExerciseRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedMeRequest
@@ -286,6 +291,23 @@ class TrainingManagerApi(
         client.get("members/") {
             parameter("page_size", LIST_PAGE_SIZE)
         }
+    }
+
+    // --- Attendance (manager-managed present/absent per member) ---
+    suspend fun listAttendance(eventId: Int): Result<PaginatedAttendanceList> = apiCall {
+        client.get("events/$eventId/attendance/") { parameter("page_size", LIST_PAGE_SIZE) }
+    }
+
+    suspend fun listAttendanceStatuses(): Result<PaginatedAttendanceStatusList> = apiCall {
+        client.get("attendance-statuses/") { parameter("page_size", LIST_PAGE_SIZE) }
+    }
+
+    suspend fun createAttendance(eventId: Int, body: AttendanceRequest): Result<Attendance> = apiCall {
+        client.post("events/$eventId/attendance/") { setBody(body) }
+    }
+
+    suspend fun updateAttendance(eventId: Int, id: Int, body: PatchedAttendanceRequest): Result<Attendance> = apiCall {
+        client.patch("events/$eventId/attendance/$id/") { setBody(body) }
     }
 
     suspend fun registerDevice(body: DeviceRegisterRequest): Result<Unit> = apiCall {
