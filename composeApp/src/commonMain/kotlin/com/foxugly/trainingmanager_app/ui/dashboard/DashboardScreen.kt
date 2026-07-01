@@ -1,5 +1,6 @@
 package com.foxugly.trainingmanager_app.ui.dashboard
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -31,6 +32,7 @@ import kotlinx.coroutines.launch
 fun DashboardScreen(
     viewModel: DashboardViewModel,
     onSelectTab: (MainTab) -> Unit,
+    onTeamClick: (Int) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val s = LocalStrings.current
@@ -45,7 +47,26 @@ fun DashboardScreen(
                 else -> {
                     val summary = viewModel.summary
                     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-                        Text(s.dashboardTeams(summary?.memberTeams?.size ?: 0), style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            s.dashboardTeams(viewModel.teams.size),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        if (viewModel.teams.isEmpty()) {
+                            Text(s.teamsEmpty, style = MaterialTheme.typography.bodyMedium)
+                        } else {
+                            viewModel.teams.forEach { team ->
+                                Column(
+                                    Modifier.fillMaxWidth().clickable { onTeamClick(team.id) }.padding(vertical = 8.dp),
+                                ) {
+                                    Text(team.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                                    team.sport.name.takeIf { it.isNotBlank() }
+                                        ?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                                }
+                                HorizontalDivider()
+                            }
+                        }
                         Spacer(Modifier.height(16.dp))
 
                         Text(s.dashboardUpcoming, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
