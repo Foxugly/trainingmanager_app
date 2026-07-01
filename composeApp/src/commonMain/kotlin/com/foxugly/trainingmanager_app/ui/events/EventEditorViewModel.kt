@@ -7,9 +7,11 @@ import com.foxugly.trainingmanager_app.api.generated.models.EventRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedEventRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Program
 import com.foxugly.trainingmanager_app.api.generated.models.Team
+import com.foxugly.trainingmanager_app.api.generated.models.VisibilityMode
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.i18n.StringsFr
+import com.foxugly.trainingmanager_app.ui.components.stripHtml
 
 /**
  * Create or edit an event. [eventId] null = create. [presetTeamId] pre-selects
@@ -45,6 +47,21 @@ class EventEditorViewModel(
     var location by mutableStateOf("")
     var distance by mutableStateOf("")
 
+    // Manager-only content. goal/equipment/debrief may be rich text server-side;
+    // we prefill the plain text and only PATCH them when actually edited, so an
+    // unrelated save doesn't flatten the HTML.
+    var goal by mutableStateOf("")
+    var equipment by mutableStateOf("")
+    var debrief by mutableStateOf("")
+    private var originalGoal = ""
+    private var originalEquipment = ""
+    private var originalDebrief = ""
+
+    // Athlete visibility of each field (always / after the session / never).
+    var visDistance by mutableStateOf(VisibilityMode.ALWAYS)
+    var visGoal by mutableStateOf(VisibilityMode.ALWAYS)
+    var visRounds by mutableStateOf(VisibilityMode.ALWAYS)
+
     var selectedTeamId by mutableStateOf<Int?>(null)
         private set
     var selectedProgramId by mutableStateOf<Int?>(null)
@@ -79,6 +96,12 @@ class EventEditorViewModel(
                     hourEnd = ev.hourEnd.orEmpty()
                     location = ev.location.orEmpty()
                     distance = ev.total?.toString().orEmpty()
+                    goal = stripHtml(ev.goal.orEmpty()); originalGoal = goal
+                    equipment = stripHtml(ev.equipment.orEmpty()); originalEquipment = equipment
+                    debrief = stripHtml(ev.debrief.orEmpty()); originalDebrief = debrief
+                    visDistance = ev.visDistance ?: VisibilityMode.ALWAYS
+                    visGoal = ev.visGoal ?: VisibilityMode.ALWAYS
+                    visRounds = ev.visRounds ?: VisibilityMode.ALWAYS
                     existingProgramName = ev.referProgram.name
                     selectedProgramId = ev.referProgram.id
                 },
@@ -131,6 +154,12 @@ class EventEditorViewModel(
                     hourEnd = hourEnd.ifBlank { null },
                     location = location.ifBlank { null },
                     total = distance.trim().toLongOrNull(),
+                    goal = goal.ifBlank { null },
+                    equipment = equipment.ifBlank { null },
+                    debrief = debrief.ifBlank { null },
+                    visDistance = visDistance,
+                    visGoal = visGoal,
+                    visRounds = visRounds,
                 ),
             )
         } else {
@@ -143,6 +172,13 @@ class EventEditorViewModel(
                     hourEnd = hourEnd.ifBlank { null },
                     location = location.ifBlank { null },
                     total = distance.trim().toLongOrNull(),
+                    // Only send rich-text fields when edited (null = omitted = unchanged).
+                    goal = if (goal != originalGoal) goal else null,
+                    equipment = if (equipment != originalEquipment) equipment else null,
+                    debrief = if (debrief != originalDebrief) debrief else null,
+                    visDistance = visDistance,
+                    visGoal = visGoal,
+                    visRounds = visRounds,
                 ),
             )
         }

@@ -1,5 +1,6 @@
 package com.foxugly.trainingmanager_app.ui.events
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,8 +72,11 @@ fun EventDetailScreen(
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
                     val schedule = listOfNotNull(event.date, listOfNotNull(event.hourStart, event.hourEnd).joinToString("–").ifBlank { null }).joinToString(" · ")
                     if (schedule.isNotBlank()) Field(null, schedule)
-                    event.location?.takeIf { it.isNotBlank() }?.let { Field(s.eventLocation, it) }
-                    event.place?.let { Field(null, listOfNotNull(it.name.ifBlank { null }, it.address.ifBlank { null }).joinToString(" — ")) }
+                    event.location?.takeIf { it.isNotBlank() }?.let { loc -> MapField(s.eventLocation, loc) { viewModel.openMap(loc) } }
+                    event.place?.let { p ->
+                        val text = listOfNotNull(p.name.ifBlank { null }, p.address.ifBlank { null }).joinToString(" — ")
+                        MapField(null, text) { viewModel.openMap(p.address.ifBlank { p.name }) }
+                    }
                     event.referProgram.name.takeIf { it.isNotBlank() }?.let { Field(s.eventProgram, it) }
                     if (viewModel.showDistance) Field(s.eventDistance, (event.total ?: 0).toString())
                     if (viewModel.showGoal) event.goal?.takeIf { it.isNotBlank() }?.let { Field(s.eventGoal, stripHtml(it)) }
@@ -173,6 +178,21 @@ private fun Field(label: String?, value: String) {
     Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         if (label != null) Text(label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
         Text(value, style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+/** Like [Field] but tappable — opens the location in a maps app (GPS link). */
+@Composable
+private fun MapField(label: String?, value: String, onOpen: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen).padding(vertical = 6.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            if (label != null) Text(label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+            Text(value, style = MaterialTheme.typography.bodyMedium)
+        }
+        Icon(Icons.Filled.Place, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
     }
 }
 

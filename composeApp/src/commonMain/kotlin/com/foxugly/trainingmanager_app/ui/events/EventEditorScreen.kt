@@ -39,8 +39,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.foxugly.trainingmanager_app.api.generated.models.VisibilityMode
 import com.foxugly.trainingmanager_app.i18n.LocalAppLanguage
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.ui.components.DetailScaffold
@@ -126,6 +128,15 @@ fun EventEditorScreen(
                 TimeField(s.eventFieldHourEnd, viewModel.hourEnd) { viewModel.hourEnd = it }
                 Field(s.eventFieldLocation, viewModel.location) { viewModel.location = it }
                 Field(s.eventFieldDistance, viewModel.distance, keyboard = KeyboardType.Number) { viewModel.distance = it }
+                Field(s.eventGoal, viewModel.goal, singleLine = false, minLines = 2) { viewModel.goal = it }
+                Field(s.eventEquipment, viewModel.equipment) { viewModel.equipment = it }
+                Field(s.eventFieldDebrief, viewModel.debrief, singleLine = false, minLines = 2) { viewModel.debrief = it }
+
+                Text(s.eventVisSection, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(8.dp))
+                VisibilityPicker(s.visShowDistance, viewModel.visDistance) { viewModel.visDistance = it }
+                VisibilityPicker(s.visShowGoal, viewModel.visGoal) { viewModel.visGoal = it }
+                VisibilityPicker(s.visShowRounds, viewModel.visRounds) { viewModel.visRounds = it }
 
                 Spacer(Modifier.height(4.dp))
                 Button(
@@ -175,16 +186,43 @@ private fun Field(
     label: String,
     value: String,
     keyboard: KeyboardType = KeyboardType.Text,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
     onChange: (String) -> Unit,
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onChange,
         label = { Text(label) },
-        singleLine = true,
+        singleLine = singleLine,
+        minLines = minLines,
         keyboardOptions = KeyboardOptions(keyboardType = keyboard),
         modifier = Modifier.fillMaxWidth(),
     )
+    Spacer(Modifier.height(12.dp))
+}
+
+@Composable
+private fun VisibilityPicker(label: String, value: VisibilityMode, onSelect: (VisibilityMode) -> Unit) {
+    val s = LocalStrings.current
+    val options = listOf(
+        VisibilityMode.ALWAYS to s.visAlways,
+        VisibilityMode.AFTER to s.visAfter,
+        VisibilityMode.NEVER to s.visNever,
+    )
+    Text(label, style = MaterialTheme.typography.labelLarge)
+    var expanded by remember { mutableStateOf(false) }
+    OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+        Text(options.firstOrNull { it.first == value }?.second ?: "")
+    }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        options.forEach { (mode, text) ->
+            DropdownMenuItem(text = { Text(text) }, onClick = {
+                expanded = false
+                onSelect(mode)
+            })
+        }
+    }
     Spacer(Modifier.height(12.dp))
 }
 
