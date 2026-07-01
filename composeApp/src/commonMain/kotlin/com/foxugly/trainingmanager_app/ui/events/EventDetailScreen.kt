@@ -32,6 +32,7 @@ import com.foxugly.trainingmanager_app.ui.components.DetailScaffold
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import com.foxugly.trainingmanager_app.ui.components.ErrorState
 import com.foxugly.trainingmanager_app.ui.components.LoadingState
+import com.foxugly.trainingmanager_app.ui.components.stripHtml
 import kotlinx.coroutines.launch
 
 @Composable
@@ -59,8 +60,8 @@ fun EventDetailScreen(
                     event.place?.let { Field(null, listOfNotNull(it.name.ifBlank { null }, it.address.ifBlank { null }).joinToString(" — ")) }
                     event.referProgram.name.takeIf { it.isNotBlank() }?.let { Field(s.eventProgram, it) }
                     if (viewModel.showDistance) Field(s.eventDistance, (event.total ?: 0).toString())
-                    if (viewModel.showGoal) event.goal?.takeIf { it.isNotBlank() }?.let { Field(s.eventGoal, it) }
-                    event.equipment?.takeIf { it.isNotBlank() }?.let { Field(s.eventEquipment, it) }
+                    if (viewModel.showGoal) event.goal?.takeIf { it.isNotBlank() }?.let { Field(s.eventGoal, stripHtml(it)) }
+                    event.equipment?.takeIf { it.isNotBlank() }?.let { Field(s.eventEquipment, stripHtml(it)) }
 
                     if (viewModel.showRounds && event.roundsDetail.isNotEmpty()) {
                         Spacer(Modifier.height(16.dp))

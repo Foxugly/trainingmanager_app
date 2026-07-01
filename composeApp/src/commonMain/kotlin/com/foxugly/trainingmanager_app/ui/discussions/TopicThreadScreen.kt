@@ -28,13 +28,8 @@ import com.foxugly.trainingmanager_app.ui.components.DetailScaffold
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import com.foxugly.trainingmanager_app.ui.components.ErrorState
 import com.foxugly.trainingmanager_app.ui.components.LoadingState
+import com.foxugly.trainingmanager_app.ui.components.stripHtml
 import kotlinx.coroutines.launch
-
-/** Strip the server's sanitized HTML to plain text for display (no HTML renderer needed). */
-internal fun stripHtml(s: String): String =
-    s.replace(Regex("<[^>]*>"), "")
-        .replace("&nbsp;", " ").replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&#39;", "'")
-        .trim()
 
 @Composable
 fun TopicThreadScreen(
