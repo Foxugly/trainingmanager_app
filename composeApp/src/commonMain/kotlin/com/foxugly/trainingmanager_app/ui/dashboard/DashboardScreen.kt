@@ -1,7 +1,7 @@
 package com.foxugly.trainingmanager_app.ui.dashboard
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,74 +12,60 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.foxugly.trainingmanager_app.api.generated.models.DashboardEventItem
 import com.foxugly.trainingmanager_app.api.generated.models.DashboardHistoryItem
-import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.ui.components.ErrorState
 import com.foxugly.trainingmanager_app.ui.components.LoadingState
+import com.foxugly.trainingmanager_app.ui.components.MainScaffold
+import com.foxugly.trainingmanager_app.ui.components.MainTab
 import kotlinx.coroutines.launch
 
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
-    authRepository: AuthRepository,
-    onEvents: () -> Unit,
-    onTeams: () -> Unit,
-    onNotifications: () -> Unit,
-    onProfile: () -> Unit,
-    onLoggedOut: () -> Unit,
+    onSelectTab: (MainTab) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val s = LocalStrings.current
     LaunchedEffect(Unit) { viewModel.load() }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Text(s.dashboardTitle, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
-            TextButton(onClick = onEvents) { Text(s.eventsEntry) }
-            TextButton(onClick = onTeams) { Text(s.teamsEntry) }
-            TextButton(onClick = onNotifications) { Text(s.notificationsEntry) }
-            TextButton(onClick = onProfile) { Text(s.profileTitle) }
-            TextButton(onClick = { scope.launch { authRepository.logout(); onLoggedOut() } }) { Text(s.logout) }
-        }
-        Spacer(Modifier.height(8.dp))
+    MainScaffold(title = s.dashboardTitle, currentTab = MainTab.DASHBOARD, onSelectTab = onSelectTab) { padding ->
+        Box(Modifier.fillMaxSize().padding(padding)) {
+            when {
+                viewModel.isLoading -> LoadingState()
+                viewModel.error != null ->
+                    ErrorState(viewModel.error!!, onRetry = { scope.launch { viewModel.load() } }, retryLabel = s.retry)
+                else -> {
+                    val summary = viewModel.summary
+                    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
+                        Text(s.dashboardTeams(summary?.memberTeams?.size ?: 0), style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(16.dp))
 
-        when {
-            viewModel.isLoading -> LoadingState()
-            viewModel.error != null ->
-                ErrorState(viewModel.error!!, onRetry = { scope.launch { viewModel.load() } }, retryLabel = s.retry)
-            else -> {
-                val summary = viewModel.summary
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                    Text(s.dashboardTeams(summary?.memberTeams?.size ?: 0), style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(16.dp))
+                        Text(s.dashboardUpcoming, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        val upcoming = summary?.memberUpcoming.orEmpty()
+                        if (upcoming.isEmpty()) {
+                            Text(s.dashboardNoUpcoming, style = MaterialTheme.typography.bodyMedium)
+                        } else {
+                            upcoming.forEach { EventRow(it); HorizontalDivider() }
+                        }
+                        Spacer(Modifier.height(16.dp))
 
-                    Text(s.dashboardUpcoming, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(4.dp))
-                    val upcoming = summary?.memberUpcoming.orEmpty()
-                    if (upcoming.isEmpty()) {
-                        Text(s.dashboardNoUpcoming, style = MaterialTheme.typography.bodyMedium)
-                    } else {
-                        upcoming.forEach { EventRow(it); HorizontalDivider() }
-                    }
-                    Spacer(Modifier.height(16.dp))
-
-                    Text(s.dashboardHistory, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(4.dp))
-                    val history = summary?.memberAttendanceHistory.orEmpty()
-                    if (history.isEmpty()) {
-                        Text(s.dashboardNoHistory, style = MaterialTheme.typography.bodyMedium)
-                    } else {
-                        history.forEach { HistoryRow(it); HorizontalDivider() }
+                        Text(s.dashboardHistory, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        val history = summary?.memberAttendanceHistory.orEmpty()
+                        if (history.isEmpty()) {
+                            Text(s.dashboardNoHistory, style = MaterialTheme.typography.bodyMedium)
+                        } else {
+                            history.forEach { HistoryRow(it); HorizontalDivider() }
+                        }
                     }
                 }
             }

@@ -79,9 +79,28 @@ import com.foxugly.trainingmanager_app.ui.discussions.TopicThreadScreen
 import com.foxugly.trainingmanager_app.ui.discussions.TopicThreadViewModel
 import com.foxugly.trainingmanager_app.ui.discussions.TopicsListScreen
 import com.foxugly.trainingmanager_app.ui.discussions.TopicsListViewModel
+import com.foxugly.trainingmanager_app.ui.components.MainTab
 import com.foxugly.trainingmanager_app.ui.theme.TrainingManagerTheme
+import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+
+/** Bottom-nav switch between the five top-level destinations: single back-stack
+ * entry per tab, state saved/restored, so switching never piles up history. */
+private fun NavController.selectTab(tab: MainTab) {
+    val route: Any = when (tab) {
+        MainTab.DASHBOARD -> HomeRoute
+        MainTab.EVENTS -> EventsListRoute
+        MainTab.TEAMS -> TeamsListRoute
+        MainTab.NOTIFICATIONS -> NotificationsRoute
+        MainTab.PROFILE -> ProfileRoute
+    }
+    navigate(route) {
+        popUpTo(HomeRoute) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
 
 @Composable
 fun App(
@@ -283,27 +302,14 @@ fun App(
                     }
                     composable<HomeRoute> {
                         val vm: DashboardViewModel = koinInject()
-                        DashboardScreen(
-                            viewModel = vm,
-                            authRepository = authRepository,
-                            onEvents = { navController.navigate(EventsListRoute) { launchSingleTop = true } },
-                            onTeams = { navController.navigate(TeamsListRoute) { launchSingleTop = true } },
-                            onNotifications = { navController.navigate(NotificationsRoute) { launchSingleTop = true } },
-                            onProfile = { navController.navigate(ProfileRoute) { launchSingleTop = true } },
-                            onLoggedOut = {
-                                navController.navigate(LoginRoute) {
-                                    popUpTo<HomeRoute> { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            },
-                        )
+                        DashboardScreen(viewModel = vm, onSelectTab = navController::selectTab)
                     }
                     composable<EventsListRoute> {
                         val vm: EventsListViewModel = koinInject()
                         EventsListScreen(
                             viewModel = vm,
+                            onSelectTab = navController::selectTab,
                             onEventClick = { id -> navController.navigate(EventDetailRoute(id)) { launchSingleTop = true } },
-                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<EventDetailRoute> { entry ->
@@ -319,8 +325,8 @@ fun App(
                         val vm: TeamsListViewModel = koinInject()
                         TeamsListScreen(
                             viewModel = vm,
+                            onSelectTab = navController::selectTab,
                             onTeamClick = { id -> navController.navigate(TeamDetailRoute(id)) { launchSingleTop = true } },
-                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<TeamDetailRoute> { entry ->
@@ -360,13 +366,13 @@ fun App(
                         val vm: NotificationsViewModel = koinInject()
                         NotificationsScreen(
                             viewModel = vm,
+                            onSelectTab = navController::selectTab,
                             onOpen = { target ->
                                 when (target) {
                                     is NotificationTarget.Event -> navController.navigate(EventDetailRoute(target.id)) { launchSingleTop = true }
                                     is NotificationTarget.Team -> navController.navigate(TeamDetailRoute(target.id)) { launchSingleTop = true }
                                 }
                             },
-                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<ProfileRoute> {
@@ -374,8 +380,15 @@ fun App(
                         ProfileScreen(
                             viewModel = vm,
                             languageService = languageService,
+                            authRepository = authRepository,
+                            onSelectTab = navController::selectTab,
                             onChangePassword = { navController.navigate(ChangePasswordRoute) { launchSingleTop = true } },
-                            onBack = { navController.popBackStack() },
+                            onLoggedOut = {
+                                navController.navigate(LoginRoute) {
+                                    popUpTo(0) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            },
                         )
                     }
                     composable<ChangePasswordRoute> {
