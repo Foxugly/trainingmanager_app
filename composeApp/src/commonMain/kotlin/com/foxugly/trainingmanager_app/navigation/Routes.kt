@@ -35,6 +35,11 @@ object EventsListRoute
 @Serializable
 data class EventDetailRoute(val id: Int)
 
+/** Event create/edit. [eventId] null = create; [teamId] pre-selects the team
+ *  (from the team detail entry) — null lets the editor pick a managed team. */
+@Serializable
+data class EventEditorRoute(val eventId: Int? = null, val teamId: Int? = null)
+
 @Serializable
 object TeamsListRoute
 

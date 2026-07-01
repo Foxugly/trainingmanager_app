@@ -19,6 +19,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.PaginatedAttachmentL
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedEventList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedMemberList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedNotificationList
+import com.foxugly.trainingmanager_app.api.generated.models.PaginatedProgramList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicMessageList
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordChangeRequest
@@ -255,6 +256,15 @@ class TrainingManagerApi(
 
     suspend fun getTeam(id: Int): Result<Team> = apiCall {
         client.get("teams/$id/")
+    }
+
+    // Programs of a team — used by the event editor's program picker.
+    suspend fun listPrograms(teamId: Int): Result<PaginatedProgramList> = apiCall {
+        client.get("programs/") {
+            parameter("page_size", LIST_PAGE_SIZE)
+            parameter("team", teamId)
+            parameter("is_active", true)
+        }
     }
 
     suspend fun listMembers(): Result<PaginatedMemberList> = apiCall {
