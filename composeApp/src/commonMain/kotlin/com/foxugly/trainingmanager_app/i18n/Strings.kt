@@ -185,6 +185,12 @@ interface Strings {
     val rotiLabel: String
     val rotiScaleHint: String
     val rotiSummaryTitle: String
+    val eventTabTraining: String
+    val eventTabAttendance: String
+    val eventTabRoti: String
+    val eventTabAttachments: String
+    val eventTabNotes: String
+    val eventManageAttendance: String
     val attendanceTitle: String
     val attendanceEmpty: String
     val attendanceSaveFailed: String
