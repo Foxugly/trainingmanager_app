@@ -34,6 +34,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.PasswordChangeReques
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetConfirmRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedAttendanceRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedEventRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedTopicMessageRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedExerciseRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedMeRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedRoundRequest
@@ -54,8 +55,10 @@ import com.foxugly.trainingmanager_app.api.generated.models.TeamInvitation
 import com.foxugly.trainingmanager_app.api.generated.models.TokenObtainPairResponse
 import com.foxugly.trainingmanager_app.api.generated.models.TokenRefresh
 import com.foxugly.trainingmanager_app.api.generated.models.TokenRefreshRequest
+import com.foxugly.trainingmanager_app.api.generated.models.Topic
 import com.foxugly.trainingmanager_app.api.generated.models.TopicMessage
 import com.foxugly.trainingmanager_app.api.generated.models.TopicMessageRequest
+import com.foxugly.trainingmanager_app.api.generated.models.TopicRequest
 import com.foxugly.trainingmanager_app.api.generated.models.ValidateInvitation
 import com.foxugly.trainingmanager_app.api.generated.models.VerifiedTokenObtainPairRequest
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
@@ -376,6 +379,18 @@ class TrainingManagerApi(
 
     suspend fun deleteMessage(teamId: Int, topicId: Int, messageId: Int): Result<Unit> = apiCall {
         client.delete("teams/$teamId/topics/$topicId/messages/$messageId/")
+    }
+
+    suspend fun createTopic(teamId: Int, body: TopicRequest): Result<Topic> = apiCall {
+        client.post("teams/$teamId/topics/") { setBody(body) }
+    }
+
+    suspend fun deleteTopic(teamId: Int, topicId: Int): Result<Unit> = apiCall {
+        client.delete("teams/$teamId/topics/$topicId/")
+    }
+
+    suspend fun updateMessage(teamId: Int, topicId: Int, messageId: Int, body: PatchedTopicMessageRequest): Result<TopicMessage> = apiCall {
+        client.patch("teams/$teamId/topics/$topicId/messages/$messageId/") { setBody(body) }
     }
 
     // --- Coach writes: events ---
