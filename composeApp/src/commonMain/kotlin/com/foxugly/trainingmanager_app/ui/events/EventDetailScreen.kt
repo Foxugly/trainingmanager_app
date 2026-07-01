@@ -108,12 +108,14 @@ fun EventDetailScreen(
 
                     Spacer(Modifier.height(16.dp))
                     Text(s.rotiLabel, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                    Text(s.rotiScaleHint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(4.dp))
                     viewModel.rotiError?.let { ErrorBanner(it); Spacer(Modifier.height(8.dp)) }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        val rotiEmojis = listOf("😞", "🙁", "😐", "🙂", "😄")
                         (1..5).forEach { n ->
                             RsvpButton(
-                                label = n.toString(),
+                                label = rotiEmojis[n - 1],
                                 selected = viewModel.rotiScore == n,
                                 enabled = !viewModel.isSavingRoti,
                             ) { scope.launch { viewModel.setRoti(eventId, n) } }
