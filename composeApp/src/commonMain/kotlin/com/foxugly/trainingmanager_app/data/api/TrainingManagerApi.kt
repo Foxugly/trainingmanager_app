@@ -27,6 +27,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.PaginatedEnergySegme
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedMemberList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedModalityList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedNotificationList
+import com.foxugly.trainingmanager_app.api.generated.models.PaginatedEquipmentList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedProgramList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTeamInvitationList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicList
@@ -35,7 +36,10 @@ import com.foxugly.trainingmanager_app.api.generated.models.PasswordChangeReques
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetConfirmRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedAttendanceRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedEventRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedTeamRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedTopicMessageRequest
+import com.foxugly.trainingmanager_app.api.generated.models.Place
+import com.foxugly.trainingmanager_app.api.generated.models.PlaceRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PresignUploadRequestRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PresignUploadResponse
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedExerciseRequest
@@ -56,6 +60,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.RsvpUpsertRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Team
 import com.foxugly.trainingmanager_app.api.generated.models.TeamInvitation
 import com.foxugly.trainingmanager_app.api.generated.models.TrainingSlot
+import com.foxugly.trainingmanager_app.api.generated.models.TrainingSlotRequest
 import com.foxugly.trainingmanager_app.api.generated.models.TokenObtainPairResponse
 import com.foxugly.trainingmanager_app.api.generated.models.TokenRefresh
 import com.foxugly.trainingmanager_app.api.generated.models.TokenRefreshRequest
@@ -314,6 +319,34 @@ class TrainingManagerApi(
 
     suspend fun listTrainingSlots(teamId: Int): Result<List<TrainingSlot>> = apiCall {
         client.get("teams/$teamId/training-slots/")
+    }
+
+    suspend fun patchTeam(id: Int, body: PatchedTeamRequest): Result<Team> = apiCall {
+        client.patch("teams/$id/") { setBody(body) }
+    }
+
+    suspend fun createTrainingSlot(teamId: Int, body: TrainingSlotRequest): Result<TrainingSlot> = apiCall {
+        client.post("teams/$teamId/training-slots/") { setBody(body) }
+    }
+
+    suspend fun deleteTrainingSlot(teamId: Int, id: Int): Result<Unit> = apiCall {
+        client.delete("teams/$teamId/training-slots/$id/")
+    }
+
+    suspend fun createPlace(body: PlaceRequest): Result<Place> = apiCall {
+        client.post("places/") { setBody(body) }
+    }
+
+    suspend fun deletePlace(id: Int): Result<Unit> = apiCall {
+        client.delete("places/$id/")
+    }
+
+    suspend fun getProgram(id: Int): Result<Program> = apiCall {
+        client.get("programs/$id/")
+    }
+
+    suspend fun listEquipment(): Result<PaginatedEquipmentList> = apiCall {
+        client.get("equipment/") { parameter("page_size", LIST_PAGE_SIZE) }
     }
 
     suspend fun getTeam(id: Int): Result<Team> = apiCall {
