@@ -230,6 +230,17 @@ class AuthRepository(
     suspend fun deleteMessage(teamId: Int, topicId: Int, messageId: Int) =
         api.deleteMessage(teamId, topicId, messageId)
 
+    suspend fun createTopic(teamId: Int, title: String) =
+        api.createTopic(teamId, com.foxugly.trainingmanager_app.api.generated.models.TopicRequest(title = title.trim()))
+
+    suspend fun deleteTopic(teamId: Int, topicId: Int) = api.deleteTopic(teamId, topicId)
+
+    suspend fun updateMessage(teamId: Int, topicId: Int, messageId: Int, content: String) =
+        api.updateMessage(
+            teamId, topicId, messageId,
+            com.foxugly.trainingmanager_app.api.generated.models.PatchedTopicMessageRequest(content = content.trim()),
+        )
+
     // --- Coach writes (managers only, enforced server-side) ---
     suspend fun createEvent(body: EventRequest) = api.createEvent(body)
 

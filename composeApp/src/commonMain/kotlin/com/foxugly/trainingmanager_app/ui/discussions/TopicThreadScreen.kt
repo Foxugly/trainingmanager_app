@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -16,7 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +48,8 @@ fun TopicThreadScreen(
     val s = LocalStrings.current
     LaunchedEffect(teamId, topicId) { viewModel.load(teamId, topicId) }
 
+    var editing by remember { mutableStateOf<TopicMessage?>(null) }
+
     DetailScaffold(title = s.discussionsEntry, onBack = onBack) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
             when {
@@ -61,7 +68,9 @@ fun TopicThreadScreen(
                                 msg = msg,
                                 mine = viewModel.isMine(msg),
                                 editedLabel = s.editedLabel,
+                                editLabel = s.editMessage,
                                 deleteLabel = s.deleteMessage,
+                                onEdit = { editing = msg },
                                 onDelete = { scope.launch { viewModel.delete(teamId, topicId, msg.id) } },
                             )
                             HorizontalDivider()
@@ -86,6 +95,32 @@ fun TopicThreadScreen(
             }
         }
     }
+
+    editing?.let { msg ->
+        var text by remember(msg.id) { mutableStateOf(stripHtml(msg.content)) }
+        AlertDialog(
+            onDismissRequest = { editing = null },
+            title = { Text(s.editMessageTitle) },
+            text = {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val id = msg.id
+                        editing = null
+                        scope.launch { viewModel.edit(teamId, topicId, id, text) }
+                    },
+                    enabled = text.isNotBlank(),
+                ) { Text(s.save) }
+            },
+            dismissButton = { TextButton(onClick = { editing = null }) { Text(s.cancel) } },
+        )
+    }
 }
 
 @Composable
@@ -93,14 +128,19 @@ private fun MessageRow(
     msg: TopicMessage,
     mine: Boolean,
     editedLabel: String,
+    editLabel: String,
     deleteLabel: String,
+    onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
     Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Text(authorName(msg.author), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
             if (msg.editedAt != null) Text(editedLabel, style = MaterialTheme.typography.labelSmall)
-            if (mine) TextButton(onClick = onDelete) { Text(deleteLabel) }
+            if (mine) {
+                TextButton(onClick = onEdit) { Text(editLabel) }
+                TextButton(onClick = onDelete) { Text(deleteLabel) }
+            }
         }
         Text(stripHtml(msg.content), style = MaterialTheme.typography.bodyMedium)
     }

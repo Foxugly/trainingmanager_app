@@ -64,4 +64,15 @@ class TopicThreadViewModel(
             messages = messages.filterNot { it.id == messageId }
         }
     }
+
+    suspend fun edit(teamId: Int, topicId: Int, messageId: Int, content: String) {
+        if (content.isBlank()) return
+        isSending = true
+        sendError = null
+        authRepository.updateMessage(teamId, topicId, messageId, content).fold(
+            onSuccess = { updated -> messages = messages.map { if (it.id == messageId) updated else it } },
+            onFailure = { sendError = strings.postFailed },
+        )
+        isSending = false
+    }
 }

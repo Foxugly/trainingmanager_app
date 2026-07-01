@@ -225,6 +225,14 @@ interface Strings {
     val deleteMessage: String
     val postFailed: String
     val editedLabel: String
+    val newTopic: String
+    val topicTitle: String
+    val topicSaveFailed: String
+    val topicDelete: String
+    val topicDeleteConfirm: String
+    val topicDeleteFailed: String
+    val editMessage: String
+    val editMessageTitle: String
 
     // Notifications
     val notificationsTitle: String
