@@ -255,3 +255,7 @@ fun stringsFor(lang: String): Strings = when (lang) {
 
 /** UI access to the active locale's strings. Default Fr; overridden by App's provider. */
 val LocalStrings = staticCompositionLocalOf<Strings> { StringsFr }
+
+/** Active app language code ("fr", "en", …) — lets locale-aware widgets (date/time
+ *  pickers) follow the in-app language instead of the device locale. */
+val LocalAppLanguage = staticCompositionLocalOf { "fr" }
