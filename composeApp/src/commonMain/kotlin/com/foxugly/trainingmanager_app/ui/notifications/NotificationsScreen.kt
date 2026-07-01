@@ -1,6 +1,6 @@
 package com.foxugly.trainingmanager_app.ui.notifications
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,7 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DoneAll
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -57,13 +57,16 @@ fun NotificationsScreen(
                 viewModel.error != null ->
                     ErrorState(viewModel.error!!, onRetry = { scope.launch { viewModel.load() } }, retryLabel = s.retry)
                 viewModel.notifications.isEmpty() -> EmptyState(s.notificationsEmpty)
-                else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = 16.dp)) {
+                else -> LazyColumn(
+                    Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     items(viewModel.notifications, key = { it.id }) { notif ->
                         NotificationRow(notif) {
                             scope.launch { viewModel.markRead(notif.id) }
                             parseNotificationTarget(notif.url)?.let(onOpen)
                         }
-                        HorizontalDivider()
                     }
                 }
             }
@@ -73,13 +76,15 @@ fun NotificationsScreen(
 
 @Composable
 private fun NotificationRow(notif: Notification, onClick: () -> Unit) {
-    Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 12.dp)) {
-        Text(
-            notif.title,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = if (notif.isRead) FontWeight.Normal else FontWeight.Bold,
-        )
-        if (notif.body.isNotBlank()) Text(notif.body, style = MaterialTheme.typography.bodyMedium)
-        if (notif.createdAt.isNotBlank()) Text(notif.createdAt, style = MaterialTheme.typography.labelSmall)
+    Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth().padding(16.dp)) {
+            Text(
+                notif.title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = if (notif.isRead) FontWeight.Normal else FontWeight.Bold,
+            )
+            if (notif.body.isNotBlank()) Text(notif.body, style = MaterialTheme.typography.bodyMedium)
+            if (notif.createdAt.isNotBlank()) Text(notif.createdAt, style = MaterialTheme.typography.labelSmall)
+        }
     }
 }
