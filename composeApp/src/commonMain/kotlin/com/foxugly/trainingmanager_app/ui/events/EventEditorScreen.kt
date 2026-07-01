@@ -13,13 +13,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,7 +41,13 @@ import com.foxugly.trainingmanager_app.ui.components.DetailScaffold
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import com.foxugly.trainingmanager_app.ui.components.ErrorState
 import com.foxugly.trainingmanager_app.ui.components.LoadingState
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun EventEditorScreen(
@@ -102,9 +114,9 @@ fun EventEditorScreen(
                     Spacer(Modifier.height(12.dp))
                 }
 
-                Field(s.eventFieldDate, viewModel.date) { viewModel.date = it }
-                Field(s.eventFieldHourStart, viewModel.hourStart) { viewModel.hourStart = it }
-                Field(s.eventFieldHourEnd, viewModel.hourEnd) { viewModel.hourEnd = it }
+                DateField(s.eventFieldDate, viewModel.date) { viewModel.date = it }
+                TimeField(s.eventFieldHourStart, viewModel.hourStart) { viewModel.hourStart = it }
+                TimeField(s.eventFieldHourEnd, viewModel.hourEnd) { viewModel.hourEnd = it }
                 Field(s.eventFieldLocation, viewModel.location) { viewModel.location = it }
                 Field(s.eventFieldDistance, viewModel.distance, keyboard = KeyboardType.Number) { viewModel.distance = it }
 
@@ -190,4 +202,74 @@ private fun PickerField(
             })
         }
     }
+}
+
+/** A read-only field that opens a Material date picker; emits an ISO yyyy-MM-dd string. */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
+@Composable
+private fun DateField(label: String, value: String, onPick: (String) -> Unit) {
+    val s = LocalStrings.current
+    Text(label, style = MaterialTheme.typography.labelLarge)
+    var open by remember { mutableStateOf(false) }
+    OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
+        Text(value.ifBlank { "—" })
+    }
+    Spacer(Modifier.height(12.dp))
+    if (open) {
+        val state = rememberDatePickerState(initialSelectedDateMillis = value.toEpochMillisOrNull())
+        DatePickerDialog(
+            onDismissRequest = { open = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    state.selectedDateMillis?.let { millis ->
+                        onPick(Instant.fromEpochMilliseconds(millis).toLocalDateTime(TimeZone.UTC).date.toString())
+                    }
+                    open = false
+                }) { Text("OK") }
+            },
+            dismissButton = { TextButton(onClick = { open = false }) { Text(s.cancel) } },
+        ) {
+            DatePicker(state = state)
+        }
+    }
+}
+
+/** A read-only field that opens a Material 24h time picker; emits an HH:MM string. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TimeField(label: String, value: String, onPick: (String) -> Unit) {
+    val s = LocalStrings.current
+    Text(label, style = MaterialTheme.typography.labelLarge)
+    var open by remember { mutableStateOf(false) }
+    OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
+        Text(value.ifBlank { "—" })
+    }
+    Spacer(Modifier.height(12.dp))
+    if (open) {
+        val (h, m) = parseHhMm(value)
+        val state = rememberTimePickerState(initialHour = h, initialMinute = m, is24Hour = true)
+        AlertDialog(
+            onDismissRequest = { open = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    onPick("${state.hour.toString().padStart(2, '0')}:${state.minute.toString().padStart(2, '0')}")
+                    open = false
+                }) { Text("OK") }
+            },
+            dismissButton = { TextButton(onClick = { open = false }) { Text(s.cancel) } },
+            text = { TimePicker(state = state) },
+        )
+    }
+}
+
+@OptIn(ExperimentalTime::class)
+private fun String.toEpochMillisOrNull(): Long? = runCatching {
+    LocalDate.parse(this).atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds()
+}.getOrNull()
+
+private fun parseHhMm(v: String): Pair<Int, Int> {
+    val parts = v.split(":")
+    val h = parts.getOrNull(0)?.toIntOrNull()?.coerceIn(0, 23) ?: 18
+    val m = parts.getOrNull(1)?.toIntOrNull()?.coerceIn(0, 59) ?: 0
+    return h to m
 }
