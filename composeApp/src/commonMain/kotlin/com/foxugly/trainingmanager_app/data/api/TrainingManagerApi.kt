@@ -7,6 +7,11 @@ import com.foxugly.trainingmanager_app.api.generated.models.DeviceRegisterReques
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceUnregisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.EmailConfirmRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Event
+import com.foxugly.trainingmanager_app.api.generated.models.EventRequest
+import com.foxugly.trainingmanager_app.api.generated.models.Exercise
+import com.foxugly.trainingmanager_app.api.generated.models.ExerciseRequest
+import com.foxugly.trainingmanager_app.api.generated.models.GenerateTrainingRequestRequest
+import com.foxugly.trainingmanager_app.api.generated.models.GenerateTrainingResponse
 import com.foxugly.trainingmanager_app.api.generated.models.MagicLinkExchangeRequestRequest
 import com.foxugly.trainingmanager_app.api.generated.models.MagicLinkRequestRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Me
@@ -18,9 +23,16 @@ import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicMessageList
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordChangeRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetConfirmRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedEventRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedExerciseRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedMeRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedRoundRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetRequestRequest
 import com.foxugly.trainingmanager_app.api.generated.models.RegisterRequest
+import com.foxugly.trainingmanager_app.api.generated.models.ReorderExercisesRequestRequest
+import com.foxugly.trainingmanager_app.api.generated.models.ReorderRoundsRequestRequest
+import com.foxugly.trainingmanager_app.api.generated.models.Round
+import com.foxugly.trainingmanager_app.api.generated.models.RoundRequest
 import com.foxugly.trainingmanager_app.api.generated.models.RotiSummary
 import com.foxugly.trainingmanager_app.api.generated.models.RotiUpsertRequest
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpSummary
@@ -286,6 +298,59 @@ class TrainingManagerApi(
 
     suspend fun deleteMessage(teamId: Int, topicId: Int, messageId: Int): Result<Unit> = apiCall {
         client.delete("teams/$teamId/topics/$topicId/messages/$messageId/")
+    }
+
+    // --- Coach writes: events ---
+    // The backend authorizes these to team managers only (403 otherwise); the UI
+    // mirrors that by only exposing them on teams the caller manages.
+    suspend fun createEvent(body: EventRequest): Result<Event> = apiCall {
+        client.post("events/") { setBody(body) }
+    }
+
+    suspend fun updateEvent(id: Int, body: PatchedEventRequest): Result<Event> = apiCall {
+        client.patch("events/$id/") { setBody(body) }
+    }
+
+    suspend fun deleteEvent(id: Int): Result<Unit> = apiCall {
+        client.delete("events/$id/")
+    }
+
+    suspend fun generateTraining(id: Int, body: GenerateTrainingRequestRequest): Result<GenerateTrainingResponse> = apiCall {
+        client.post("events/$id/generate-training/") { setBody(body) }
+    }
+
+    suspend fun reorderRounds(eventId: Int, body: ReorderRoundsRequestRequest): Result<Unit> = apiCall {
+        client.post("events/$eventId/rounds/reorder/") { setBody(body) }
+    }
+
+    // --- Coach writes: rounds ---
+    suspend fun createRound(body: RoundRequest): Result<Round> = apiCall {
+        client.post("rounds/") { setBody(body) }
+    }
+
+    suspend fun updateRound(id: Int, body: PatchedRoundRequest): Result<Round> = apiCall {
+        client.patch("rounds/$id/") { setBody(body) }
+    }
+
+    suspend fun deleteRound(id: Int): Result<Unit> = apiCall {
+        client.delete("rounds/$id/")
+    }
+
+    suspend fun reorderExercises(roundId: Int, body: ReorderExercisesRequestRequest): Result<Unit> = apiCall {
+        client.post("rounds/$roundId/exercises/reorder/") { setBody(body) }
+    }
+
+    // --- Coach writes: exercises ---
+    suspend fun createExercise(body: ExerciseRequest): Result<Exercise> = apiCall {
+        client.post("exercises/") { setBody(body) }
+    }
+
+    suspend fun updateExercise(id: Int, body: PatchedExerciseRequest): Result<Exercise> = apiCall {
+        client.patch("exercises/$id/") { setBody(body) }
+    }
+
+    suspend fun deleteExercise(id: Int): Result<Unit> = apiCall {
+        client.delete("exercises/$id/")
     }
 
     // --- Helpers ---
