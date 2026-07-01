@@ -155,6 +155,14 @@ interface Strings {
     val trainingGenerateFailed: String
     val trainingClearFailed: String
     val trainingGeneratedOk: String
+    val trainingSaveFailed: String
+    val addRound: String
+    val addExercise: String
+    val exerciseModality: String
+    val exerciseZone: String
+    val exerciseReps: String
+    val exerciseNotes: String
+    val exerciseDialogTitle: String
     val eventGoal: String
     val eventDistance: String
     val eventLocation: String

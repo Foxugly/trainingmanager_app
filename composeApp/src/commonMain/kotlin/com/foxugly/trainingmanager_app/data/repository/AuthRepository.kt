@@ -167,6 +167,10 @@ class AuthRepository(
 
     suspend fun listPrograms(teamId: Int) = api.listPrograms(teamId)
 
+    suspend fun listModalities(sportId: Int) = api.listModalities(sportId)
+
+    suspend fun listEnergySegments() = api.listEnergySegments()
+
     suspend fun listMembers() = api.listMembers()
 
     suspend fun registerDevice(pushToken: String, platform: String, deviceName: String = "") =

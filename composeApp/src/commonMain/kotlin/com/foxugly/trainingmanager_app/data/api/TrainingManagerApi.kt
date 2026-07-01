@@ -17,7 +17,9 @@ import com.foxugly.trainingmanager_app.api.generated.models.MagicLinkRequestRequ
 import com.foxugly.trainingmanager_app.api.generated.models.Me
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedAttachmentList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedEventList
+import com.foxugly.trainingmanager_app.api.generated.models.PaginatedEnergySegmentList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedMemberList
+import com.foxugly.trainingmanager_app.api.generated.models.PaginatedModalityList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedNotificationList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedProgramList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicList
@@ -264,6 +266,19 @@ class TrainingManagerApi(
             parameter("page_size", LIST_PAGE_SIZE)
             parameter("team", teamId)
             parameter("is_active", true)
+        }
+    }
+
+    // Reference data for the manual training editor's exercise pickers.
+    suspend fun listModalities(sportId: Int): Result<PaginatedModalityList> = apiCall {
+        client.get("sports/$sportId/modalities/") {
+            parameter("page_size", LIST_PAGE_SIZE)
+        }
+    }
+
+    suspend fun listEnergySegments(): Result<PaginatedEnergySegmentList> = apiCall {
+        client.get("energy-segments/") {
+            parameter("page_size", LIST_PAGE_SIZE)
         }
     }
 

@@ -4,6 +4,7 @@ import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.i18n.LanguageProvider
+import com.foxugly.trainingmanager_app.api.generated.models.LanguageEnum
 import com.foxugly.trainingmanager_app.i18n.LanguageService
 import com.foxugly.trainingmanager_app.platform.FcmTokenProvider
 import com.foxugly.trainingmanager_app.platform.UrlOpener
@@ -59,7 +60,10 @@ fun appModule(
     factory { DashboardViewModel(get(), get<LanguageService>().strings) }
     factory { EventsListViewModel(get(), get<LanguageService>().strings) }
     factory { EventEditorViewModel(get(), get<LanguageService>().strings) }
-    factory { TrainingEditorViewModel(get(), get<LanguageService>().strings) }
+    factory {
+        val ls = get<LanguageService>()
+        TrainingEditorViewModel(get(), ls.strings, LanguageEnum.decode(ls.activeLang) ?: LanguageEnum.FR)
+    }
     factory { val opener = get<UrlOpener>(); EventDetailViewModel(get(), get<LanguageService>().strings) { url -> opener.open(url) } }
     factory { TeamsListViewModel(get(), get<LanguageService>().strings) }
     factory { TeamDetailViewModel(get(), get<LanguageService>().strings) }
