@@ -146,6 +146,7 @@ object StringsEs : Strings {
     override val rsvpDisabled = "Las respuestas están desactivadas para este equipo."
     override val rsvpFailed = "No se pudo guardar tu respuesta."
     override val rotiLabel = "Valoración de la sesión"
+    override val rotiScaleHint = "1 = decepcionante · 5 = excelente"
     override val rotiFailed = "No se pudo guardar la valoración."
     override val trainingSection = "Entrenamiento"
     override fun roundLabel(order: Int) = "Serie $order"

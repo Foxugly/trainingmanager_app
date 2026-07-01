@@ -146,6 +146,7 @@ object StringsNl : Strings {
     override val rsvpDisabled = "Reageren is uitgeschakeld voor dit team."
     override val rsvpFailed = "Kan je antwoord niet opslaan."
     override val rotiLabel = "Sessiebeoordeling"
+    override val rotiScaleHint = "1 = teleurstellend · 5 = uitstekend"
     override val rotiFailed = "Kan de beoordeling niet opslaan."
     override val trainingSection = "Training"
     override fun roundLabel(order: Int) = "Set $order"

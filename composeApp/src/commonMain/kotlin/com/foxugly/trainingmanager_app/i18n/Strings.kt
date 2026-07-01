@@ -175,6 +175,7 @@ interface Strings {
     val rsvpDisabled: String
     val rsvpFailed: String
     val rotiLabel: String
+    val rotiScaleHint: String
     val rotiFailed: String
     val trainingSection: String
     fun roundLabel(order: Int): String
