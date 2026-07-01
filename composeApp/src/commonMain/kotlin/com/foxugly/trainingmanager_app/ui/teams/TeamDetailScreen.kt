@@ -2,11 +2,14 @@ package com.foxugly.trainingmanager_app.ui.teams
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,6 +31,7 @@ fun TeamDetailScreen(
     viewModel: TeamDetailViewModel,
     teamId: Int,
     onDiscussions: () -> Unit,
+    onCreateEvent: () -> Unit,
     onBack: () -> Unit,
 ) {
     val s = LocalStrings.current
@@ -47,6 +51,12 @@ fun TeamDetailScreen(
                 else -> {
                     val team = viewModel.team!!
                     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
+                        if (viewModel.canManage) {
+                            Button(onClick = onCreateEvent, modifier = Modifier.fillMaxWidth()) {
+                                Text(s.addEvent)
+                            }
+                            Spacer(Modifier.height(12.dp))
+                        }
                         team.sport.name.takeIf { it.isNotBlank() }?.let { Labeled(s.teamSport, it) }
                         Labeled(s.teamOwner, fullName(team.owner))
                         if (team.managers.isNotEmpty()) {

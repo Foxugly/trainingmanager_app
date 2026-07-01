@@ -31,10 +31,19 @@ class EventsListViewModel(
     var filter by mutableStateOf(EventsFilter.UPCOMING)
         private set
 
+    /** True if the caller manages any team — gates the "+" create affordance. */
+    var canCreate by mutableStateOf(false)
+        private set
+    private var canCreateChecked = false
+
     @OptIn(ExperimentalTime::class)
     suspend fun load() {
         isLoading = true
         error = null
+        if (!canCreateChecked) {
+            canCreateChecked = true
+            canCreate = authRepository.getDashboard().getOrNull()?.coachTeams?.isNotEmpty() == true
+        }
         val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         val result = when (filter) {
             EventsFilter.UPCOMING -> authRepository.listEvents(dateGte = today.toString())

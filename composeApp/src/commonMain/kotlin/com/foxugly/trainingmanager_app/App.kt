@@ -22,6 +22,7 @@ import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.navigation.DeepLinkTarget
 import com.foxugly.trainingmanager_app.navigation.EmailConfirmRoute
 import com.foxugly.trainingmanager_app.navigation.EventDetailRoute
+import com.foxugly.trainingmanager_app.navigation.EventEditorRoute
 import com.foxugly.trainingmanager_app.navigation.EventsListRoute
 import com.foxugly.trainingmanager_app.navigation.HomeRoute
 import com.foxugly.trainingmanager_app.navigation.InvitationRoute
@@ -48,6 +49,8 @@ import com.foxugly.trainingmanager_app.ui.dashboard.DashboardScreen
 import com.foxugly.trainingmanager_app.ui.dashboard.DashboardViewModel
 import com.foxugly.trainingmanager_app.ui.events.EventDetailScreen
 import com.foxugly.trainingmanager_app.ui.events.EventDetailViewModel
+import com.foxugly.trainingmanager_app.ui.events.EventEditorScreen
+import com.foxugly.trainingmanager_app.ui.events.EventEditorViewModel
 import com.foxugly.trainingmanager_app.ui.events.EventsListScreen
 import com.foxugly.trainingmanager_app.ui.events.EventsListViewModel
 import com.foxugly.trainingmanager_app.ui.invitation.InvitationScreen
@@ -314,6 +317,7 @@ fun App(
                             viewModel = vm,
                             onSelectTab = navController::selectTab,
                             onEventClick = { id -> navController.navigate(EventDetailRoute(id)) { launchSingleTop = true } },
+                            onCreateEvent = { navController.navigate(EventEditorRoute()) { launchSingleTop = true } },
                         )
                     }
                     composable<EventDetailRoute> { entry ->
@@ -322,6 +326,24 @@ fun App(
                         EventDetailScreen(
                             viewModel = vm,
                             eventId = args.id,
+                            onEdit = { navController.navigate(EventEditorRoute(eventId = args.id)) { launchSingleTop = true } },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<EventEditorRoute> { entry ->
+                        val args = entry.toRoute<EventEditorRoute>()
+                        val vm: EventEditorViewModel = koinInject()
+                        EventEditorScreen(
+                            viewModel = vm,
+                            eventId = args.eventId,
+                            teamId = args.teamId,
+                            onSaved = { id ->
+                                navController.navigate(EventDetailRoute(id)) {
+                                    popUpTo<EventEditorRoute> { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            },
+                            onDeleted = { navController.popBackStack() },
                             onBack = { navController.popBackStack() },
                         )
                     }
@@ -340,6 +362,7 @@ fun App(
                             viewModel = vm,
                             teamId = args.id,
                             onDiscussions = { navController.navigate(TopicsListRoute(args.id)) { launchSingleTop = true } },
+                            onCreateEvent = { navController.navigate(EventEditorRoute(teamId = args.id)) { launchSingleTop = true } },
                             onBack = { navController.popBackStack() },
                         )
                     }

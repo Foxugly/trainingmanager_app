@@ -123,6 +123,25 @@ interface Strings {
     val eventsFilterUpcoming: String
     val eventsFilterPast: String
     val eventsFilterAll: String
+
+    // Event editor (coach)
+    val edit: String
+    val cancel: String
+    val addEvent: String
+    val eventEditorNewTitle: String
+    val eventEditorEditTitle: String
+    val eventFieldName: String
+    val eventFieldTeam: String
+    val eventFieldProgram: String
+    val eventFieldDate: String
+    val eventFieldHourStart: String
+    val eventFieldHourEnd: String
+    val eventFieldLocation: String
+    val eventFieldDistance: String
+    val eventDelete: String
+    val eventDeleteConfirm: String
+    val eventSaveFailed: String
+    val eventDeleteFailed: String
     val eventGoal: String
     val eventDistance: String
     val eventLocation: String

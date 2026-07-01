@@ -9,6 +9,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.RsvpStatusEnum
 import com.foxugly.trainingmanager_app.api.generated.models.RsvpSummary
 import com.foxugly.trainingmanager_app.data.api.ApiException
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
+import com.foxugly.trainingmanager_app.ui.teams.isManagedBy
 import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.i18n.StringsFr
 import kotlinx.coroutines.async
@@ -46,6 +47,10 @@ class EventDetailViewModel(
     var attachmentError by mutableStateOf<String?>(null)
         private set
 
+    /** True if the caller manages this event's team — gates edit/delete. */
+    var canManage by mutableStateOf(false)
+        private set
+
     private var isPast by mutableStateOf(false)
 
     val showDistance: Boolean get() = event?.let { fieldVisible(it.visDistance, isPast) } ?: false
@@ -62,6 +67,7 @@ class EventDetailViewModel(
             val eventDeferred = async { authRepository.getEvent(id) }
             val rsvpDeferred = async { authRepository.getRsvp(id) }
             val attachmentsDeferred = async { authRepository.listEventAttachments(id) }
+            val meDeferred = async { authRepository.getCurrentUser() }
             eventDeferred.await().fold(
                 onSuccess = { e ->
                     event = e
@@ -73,6 +79,11 @@ class EventDetailViewModel(
             rsvpDeferred.await().onSuccess { rsvp = it }
             // Attachments are best-effort too.
             attachmentsDeferred.await().onSuccess { attachments = it.results }
+            // Coach gating: do I manage this event's team? (best-effort)
+            event?.let { e ->
+                val meId = meDeferred.await().getOrNull()?.id
+                canManage = authRepository.getTeam(e.teamId).getOrNull()?.isManagedBy(meId) == true
+            }
         }
         isLoading = false
     }
