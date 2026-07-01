@@ -155,6 +155,7 @@ object StringsNl : Strings {
     override val rsvpFailed = "Kan je antwoord niet opslaan."
     override val rotiLabel = "Sessiebeoordeling"
     override val rotiScaleHint = "1 = teleurstellend · 5 = uitstekend"
+    override val rotiSummaryTitle = "Ervaren moeilijkheid door atleten"
     override val attendanceTitle = "Aanwezigheid"
     override val attendanceEmpty = "Geen leden."
     override val attendanceSaveFailed = "Kan de aanwezigheid niet opslaan."

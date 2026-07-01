@@ -37,6 +37,8 @@ class EventDetailViewModel(
         private set
     var isSavingRsvp by mutableStateOf(false)
         private set
+    var rotiSummary by mutableStateOf<com.foxugly.trainingmanager_app.api.generated.models.RotiSummary?>(null)
+        private set
     var rotiScore by mutableStateOf<Int?>(null)
         private set
     var rotiError by mutableStateOf<String?>(null)
@@ -69,6 +71,7 @@ class EventDetailViewModel(
             val rsvpDeferred = async { authRepository.getRsvp(id) }
             val attachmentsDeferred = async { authRepository.listEventAttachments(id) }
             val meDeferred = async { authRepository.getCurrentUser() }
+            val rotiDeferred = async { authRepository.getRotiSummary(id) }
             eventDeferred.await().fold(
                 onSuccess = { e ->
                     event = e
@@ -78,6 +81,8 @@ class EventDetailViewModel(
             )
             // RSVP is best-effort (a member may not be able to read it on some teams).
             rsvpDeferred.await().onSuccess { rsvp = it }
+            // ROTI summary (aggregate difficulty) — best-effort; also carries my score.
+            rotiDeferred.await().onSuccess { rotiSummary = it; rotiScore = it.myScore }
             // Attachments are best-effort too.
             attachmentsDeferred.await().onSuccess { attachments = it.results }
             // Coach gating: do I manage this event's team? (best-effort)
@@ -122,7 +127,7 @@ class EventDetailViewModel(
         isSavingRoti = true
         rotiError = null
         authRepository.setRoti(id, score).fold(
-            onSuccess = { rotiScore = it.myScore ?: score },
+            onSuccess = { rotiScore = it.myScore ?: score; rotiSummary = it },
             onFailure = { rotiError = strings.rotiFailed },
         )
         isSavingRoti = false

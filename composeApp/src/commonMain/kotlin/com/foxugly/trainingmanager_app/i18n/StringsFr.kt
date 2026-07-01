@@ -155,6 +155,7 @@ object StringsFr : Strings {
     override val rsvpFailed = "Impossible d'enregistrer votre réponse."
     override val rotiLabel = "Évaluation de la séance"
     override val rotiScaleHint = "1 = décevant · 5 = excellent"
+    override val rotiSummaryTitle = "Difficulté ressentie par les athlètes"
     override val attendanceTitle = "Présences"
     override val attendanceEmpty = "Aucun membre."
     override val attendanceSaveFailed = "Impossible d'enregistrer la présence."
