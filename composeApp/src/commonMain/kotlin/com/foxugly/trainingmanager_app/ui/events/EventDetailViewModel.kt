@@ -49,6 +49,8 @@ class EventDetailViewModel(
         private set
     var attachmentError by mutableStateOf<String?>(null)
         private set
+    var isUploadingAttachment by mutableStateOf(false)
+        private set
 
     /** True if the caller manages this event's team — gates edit/delete. */
     var canManage by mutableStateOf(false)
@@ -106,6 +108,25 @@ class EventDetailViewModel(
         authRepository.attachmentDownloadUrl(attachmentId).fold(
             onSuccess = { openUrl(it.url) },
             onFailure = { attachmentError = strings.downloadFailed },
+        )
+    }
+
+    suspend fun uploadAttachment(filename: String, contentType: String, bytes: ByteArray) {
+        val id = event?.id ?: return
+        isUploadingAttachment = true
+        attachmentError = null
+        authRepository.uploadEventAttachment(id, filename, contentType, bytes).fold(
+            onSuccess = { authRepository.listEventAttachments(id).onSuccess { attachments = it.results } },
+            onFailure = { attachmentError = strings.attachmentUploadFailed },
+        )
+        isUploadingAttachment = false
+    }
+
+    suspend fun deleteAttachment(attachmentId: Int) {
+        attachmentError = null
+        authRepository.deleteAttachment(attachmentId).fold(
+            onSuccess = { attachments = attachments.filterNot { it.id == attachmentId } },
+            onFailure = { attachmentError = strings.attachmentDeleteFailed },
         )
     }
 

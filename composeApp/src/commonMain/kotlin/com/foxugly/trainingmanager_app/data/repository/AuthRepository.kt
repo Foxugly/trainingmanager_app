@@ -165,6 +165,29 @@ class AuthRepository(
 
     suspend fun attachmentDownloadUrl(id: Int) = api.attachmentDownloadUrl(id)
 
+    /** Upload a file to an event: presign -> direct S3 PUT -> complete. */
+    suspend fun uploadEventAttachment(
+        eventId: Int,
+        filename: String,
+        contentType: String,
+        bytes: ByteArray,
+    ): Result<com.foxugly.trainingmanager_app.api.generated.models.Attachment> {
+        val presign = api.presignAttachment(
+            com.foxugly.trainingmanager_app.api.generated.models.PresignUploadRequestRequest(
+                targetType = com.foxugly.trainingmanager_app.api.generated.models.TargetTypeEnum.EVENT,
+                targetId = eventId,
+                filename = filename,
+                contentType = contentType,
+                propertySize = bytes.size,
+            ),
+        ).getOrElse { return Result.failure(it) }
+        api.putToPresignedUrl(presign.uploadUrl, bytes, presign.headers.contentType)
+            .getOrElse { return Result.failure(it) }
+        return api.completeAttachment(presign.attachmentId)
+    }
+
+    suspend fun deleteAttachment(id: Int) = api.deleteAttachment(id)
+
     suspend fun getTeam(id: Int) = api.getTeam(id)
 
     suspend fun listPrograms(teamId: Int) = api.listPrograms(teamId)
