@@ -249,6 +249,10 @@ class TrainingManagerApi(
         client.put("events/$eventId/roti/") { setBody(body) }
     }
 
+    suspend fun getRotiSummary(eventId: Int): Result<RotiSummary> = apiCall {
+        client.get("events/$eventId/roti/summary/")
+    }
+
     suspend fun listAttachments(targetType: String, targetId: Int): Result<PaginatedAttachmentList> = apiCall {
         client.get("attachments/") {
             parameter("page_size", LIST_PAGE_SIZE)

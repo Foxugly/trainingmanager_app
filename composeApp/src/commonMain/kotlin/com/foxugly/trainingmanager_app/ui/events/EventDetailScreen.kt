@@ -39,6 +39,7 @@ import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import com.foxugly.trainingmanager_app.ui.components.ErrorState
 import com.foxugly.trainingmanager_app.ui.components.LoadingState
 import com.foxugly.trainingmanager_app.ui.components.stripHtml
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 @Composable
@@ -129,6 +130,30 @@ fun EventDetailScreen(
                                 selected = viewModel.rotiScore == n,
                                 enabled = !viewModel.isSavingRoti,
                             ) { scope.launch { viewModel.setRoti(eventId, n) } }
+                        }
+                    }
+
+                    if (viewModel.canManage) {
+                        viewModel.rotiSummary?.takeIf { it.count > 0 }?.let { sum ->
+                            Spacer(Modifier.height(12.dp))
+                            Text(s.rotiSummaryTitle, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                            Spacer(Modifier.height(4.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                val emojis = listOf("😞", "🙁", "😐", "🙂", "😄")
+                                (1..5).forEach { n ->
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(emojis[n - 1])
+                                        Text("${sum.distribution[n.toString()] ?: 0}", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                            }
+                            sum.average?.let { avg ->
+                                Text(
+                                    "⌀ ${(avg * 10).roundToInt() / 10.0}/5 · ${sum.count}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
 

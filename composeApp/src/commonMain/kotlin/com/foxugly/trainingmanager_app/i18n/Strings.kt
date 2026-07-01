@@ -184,6 +184,7 @@ interface Strings {
     val rsvpFailed: String
     val rotiLabel: String
     val rotiScaleHint: String
+    val rotiSummaryTitle: String
     val attendanceTitle: String
     val attendanceEmpty: String
     val attendanceSaveFailed: String
