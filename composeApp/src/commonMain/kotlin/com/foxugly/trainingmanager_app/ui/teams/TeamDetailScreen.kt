@@ -57,6 +57,7 @@ import com.foxugly.trainingmanager_app.i18n.supportedLanguages
 import com.foxugly.trainingmanager_app.ui.components.DetailScaffold
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import com.foxugly.trainingmanager_app.ui.components.ErrorState
+import com.foxugly.trainingmanager_app.ui.components.LabeledValue
 import com.foxugly.trainingmanager_app.ui.components.LoadingState
 import kotlinx.coroutines.launch
 
@@ -145,16 +146,16 @@ fun TeamDetailScreen(
                                                 IconButton(onClick = { editing = true }) { Icon(Icons.Filled.Edit, contentDescription = s.edit) }
                                             }
                                         }
-                                        team.sport.name.takeIf { it.isNotBlank() }?.let { Labeled(s.teamSport, it) }
-                                        team.level?.name?.takeIf { it.isNotBlank() }?.let { Labeled(s.teamLevel, it) }
-                                        Labeled(s.teamOwner, fullName(team.owner))
+                                        team.sport.name.takeIf { it.isNotBlank() }?.let { LabeledValue(s.teamSport, it) }
+                                        team.level?.name?.takeIf { it.isNotBlank() }?.let { LabeledValue(s.teamLevel, it) }
+                                        LabeledValue(s.teamOwner, fullName(team.owner))
                                         if (team.managers.isNotEmpty()) {
-                                            Labeled(s.teamManagers, team.managers.joinToString(", ") { fullName(it) })
+                                            LabeledValue(s.teamManagers, team.managers.joinToString(", ") { fullName(it) })
                                         }
-                                        team.language?.let { Labeled(s.languageLabel, languageDisplayNames[it.value] ?: it.value) }
-                                        Labeled(s.teamPublic, if (team.isPublic == true) s.yes else s.no)
-                                        Labeled(s.teamRotiEnabled, if (team.rotiEnabled == true) s.yes else s.no)
-                                        Labeled(s.teamRsvpEnabled, if (team.rsvpEnabled == true) s.yes else s.no)
+                                        team.language?.let { LabeledValue(s.languageLabel, languageDisplayNames[it.value] ?: it.value) }
+                                        LabeledValue(s.teamPublic, if (team.isPublic == true) s.yes else s.no)
+                                        LabeledValue(s.teamRotiEnabled, if (team.rotiEnabled == true) s.yes else s.no)
+                                        LabeledValue(s.teamRsvpEnabled, if (team.rsvpEnabled == true) s.yes else s.no)
                                     }
                                 }
                                 1 -> {
@@ -201,9 +202,9 @@ fun TeamDetailScreen(
                                     }
                                 }
                                 2 -> {
-                                    Labeled(s.teamOwner, fullName(team.owner))
-                                    if (team.managers.isNotEmpty()) Labeled(s.teamManagers, team.managers.joinToString(", ") { fullName(it) })
-                                    Labeled(
+                                    LabeledValue(s.teamOwner, fullName(team.owner))
+                                    if (team.managers.isNotEmpty()) LabeledValue(s.teamManagers, team.managers.joinToString(", ") { fullName(it) })
+                                    LabeledValue(
                                         s.teamMembers,
                                         if (viewModel.members.isEmpty()) "—" else viewModel.members.joinToString(", ") { it.fullname.ifBlank { listOf(it.firstname, it.lastname).filter { p -> p.isNotBlank() }.joinToString(" ") } },
                                     )
@@ -335,14 +336,6 @@ fun TeamDetailScreen(
 
 private fun fullName(u: CustomUserPublic): String =
     listOf(u.firstName, u.lastName).filter { it.isNotBlank() }.joinToString(" ").ifBlank { "#${u.id}" }
-
-@Composable
-private fun Labeled(label: String, value: String) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-        Text(label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
-        Text(value, style = MaterialTheme.typography.bodyMedium)
-    }
-}
 
 @Composable
 private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {

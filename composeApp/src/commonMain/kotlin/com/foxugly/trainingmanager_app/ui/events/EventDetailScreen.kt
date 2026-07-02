@@ -53,6 +53,7 @@ import io.github.vinceglb.filekit.readBytes
 import com.foxugly.trainingmanager_app.ui.components.DetailScaffold
 import com.foxugly.trainingmanager_app.ui.components.ErrorBanner
 import com.foxugly.trainingmanager_app.ui.components.ErrorState
+import com.foxugly.trainingmanager_app.ui.components.LabeledValue
 import com.foxugly.trainingmanager_app.ui.components.LoadingState
 import com.foxugly.trainingmanager_app.ui.components.stripHtml
 import kotlin.math.roundToInt
@@ -157,7 +158,7 @@ private fun EventInfoHeader(event: Event, viewModel: EventDetailViewModel, s: St
 @Composable
 private fun TrainingTab(event: Event, viewModel: EventDetailViewModel, s: Strings, onEditTraining: () -> Unit) {
     event.equipment?.takeIf { it.isNotBlank() }?.let {
-        Field(s.eventEquipment, stripHtml(it))
+        LabeledValue(s.eventEquipment, stripHtml(it))
         Spacer(Modifier.height(8.dp))
     }
     if (viewModel.showRounds && event.roundsDetail.isNotEmpty()) {
@@ -317,7 +318,7 @@ private fun NotesVisibilityTab(
             }
         }
         val debrief = event.debrief?.let { stripHtml(it) }?.takeIf { it.isNotBlank() }
-        Field(s.eventFieldDebrief, debrief ?: "—")
+        LabeledValue(s.eventFieldDebrief, debrief ?: "—")
         Spacer(Modifier.height(12.dp))
         Text(s.eventVisSection, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(4.dp))
@@ -365,14 +366,6 @@ private fun ExerciseRow(ex: Exercise) {
         Text(main, style = MaterialTheme.typography.bodyMedium)
         if (meta.isNotBlank()) Text(meta, style = MaterialTheme.typography.bodySmall)
         if (notes.isNotBlank() && main != notes) Text(notes, style = MaterialTheme.typography.bodySmall)
-    }
-}
-
-@Composable
-private fun Field(label: String?, value: String) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-        if (label != null) Text(label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
-        Text(value, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
