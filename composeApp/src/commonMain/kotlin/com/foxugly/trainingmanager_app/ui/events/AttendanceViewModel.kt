@@ -28,6 +28,7 @@ class AttendanceViewModel(
     private val strings: Strings = StringsFr,
 ) {
     private var eventId: Int = 0
+    private var loadedEventId: Int? = null
 
     var isLoading by mutableStateOf(true)
         private set
@@ -43,6 +44,9 @@ class AttendanceViewModel(
         private set
 
     suspend fun load(eventId: Int) {
+        // Load once per event: the Présences tab re-enters composition on every
+        // tab switch, so guard against redundant re-fetches.
+        if (loadedEventId == eventId) return
         this.eventId = eventId
         isLoading = true
         loadError = null
@@ -70,6 +74,7 @@ class AttendanceViewModel(
                 recordId = rec?.id,
             )
         }.sortedBy { it.memberName }
+        loadedEventId = eventId
         isLoading = false
     }
 

@@ -212,7 +212,10 @@ class AuthRepository(
 
     suspend fun getProgram(id: Int) = api.getProgram(id)
 
-    suspend fun listEquipment() = api.listEquipment()
+    suspend fun listEquipment(sport: Int? = null) = api.listEquipment(sport)
+
+    suspend fun updatePlace(id: Int, name: String, address: String) =
+        api.updatePlace(id, com.foxugly.trainingmanager_app.api.generated.models.PatchedPlaceRequest(name = name.trim(), address = address.trim().ifBlank { null }))
 
     suspend fun listInvitations() = api.listInvitations()
 

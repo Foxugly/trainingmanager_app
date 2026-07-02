@@ -36,6 +36,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.PasswordChangeReques
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetConfirmRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedAttendanceRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedEventRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PatchedPlaceRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedTeamRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedTopicMessageRequest
 import com.foxugly.trainingmanager_app.api.generated.models.Place
@@ -347,8 +348,15 @@ class TrainingManagerApi(
         client.get("programs/$id/")
     }
 
-    suspend fun listEquipment(): Result<PaginatedEquipmentList> = apiCall {
-        client.get("equipment/") { parameter("page_size", LIST_PAGE_SIZE) }
+    suspend fun listEquipment(sport: Int? = null): Result<PaginatedEquipmentList> = apiCall {
+        client.get("equipment/") {
+            parameter("page_size", LIST_PAGE_SIZE)
+            sport?.let { parameter("sport", it) }
+        }
+    }
+
+    suspend fun updatePlace(id: Int, body: PatchedPlaceRequest): Result<Place> = apiCall {
+        client.patch("places/$id/") { setBody(body) }
     }
 
     suspend fun getTeam(id: Int): Result<Team> = apiCall {

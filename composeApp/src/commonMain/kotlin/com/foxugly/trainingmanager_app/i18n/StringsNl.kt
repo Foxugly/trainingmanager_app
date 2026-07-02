@@ -210,6 +210,7 @@ object StringsNl : Strings {
     override val teamName = "Teamnaam"
     override val teamSaveFailed = "Kan het team niet opslaan."
     override val addPlace = "Locatie toevoegen"
+    override val editPlace = "Locatie bewerken"
     override val placeName = "Naam locatie"
     override val placeAddress = "Adres"
     override val addSlot = "Tijdslot toevoegen"

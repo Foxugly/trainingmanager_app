@@ -210,6 +210,7 @@ object StringsEs : Strings {
     override val teamName = "Nombre del equipo"
     override val teamSaveFailed = "No se pudo guardar el equipo."
     override val addPlace = "Añadir lugar"
+    override val editPlace = "Editar lugar"
     override val placeName = "Nombre del lugar"
     override val placeAddress = "Dirección"
     override val addSlot = "Añadir franja"
