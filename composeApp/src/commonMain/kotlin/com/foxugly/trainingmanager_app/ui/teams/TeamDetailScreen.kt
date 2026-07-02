@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import com.foxugly.trainingmanager_app.api.generated.models.CustomUserPublic
 import com.foxugly.trainingmanager_app.api.generated.models.Equipment
 import com.foxugly.trainingmanager_app.api.generated.models.LanguageEnum
+import com.foxugly.trainingmanager_app.api.generated.models.PlaceMinimal
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.i18n.languageDisplayNames
 import com.foxugly.trainingmanager_app.i18n.supportedLanguages
@@ -230,6 +231,9 @@ fun TeamDetailScreen(
                                     }
                                 }
                                 3 -> {
+                                    var editingPlace by remember { mutableStateOf<PlaceMinimal?>(null) }
+                                    var showAddPlace by remember { mutableStateOf(false) }
+                                    var showAddSlot by remember { mutableStateOf(false) }
                                     viewModel.placesError?.let { ErrorBanner(it); Spacer(Modifier.height(8.dp)) }
                                     Text(s.teamPlacesSection, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                     Spacer(Modifier.height(4.dp))
@@ -240,23 +244,15 @@ fun TeamDetailScreen(
                                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                                                 Text(listOfNotNull(p.name.ifBlank { null }, p.address.ifBlank { null }).joinToString(" — "), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                                                 if (viewModel.canManage) {
-                                                    IconButton(onClick = { scope.launch { viewModel.removePlace(p.id) } }) {
-                                                        Icon(Icons.Filled.Delete, contentDescription = s.cancel)
-                                                    }
+                                                    IconButton(onClick = { editingPlace = p }) { Icon(Icons.Filled.Edit, contentDescription = s.edit) }
+                                                    IconButton(onClick = { scope.launch { viewModel.removePlace(p.id) } }) { Icon(Icons.Filled.Delete, contentDescription = s.cancel) }
                                                 }
                                             }
                                         }
                                     }
                                     if (viewModel.canManage) {
-                                        var showAddPlace by remember { mutableStateOf(false) }
                                         Spacer(Modifier.height(8.dp))
                                         OutlinedButton(onClick = { showAddPlace = true }, modifier = Modifier.fillMaxWidth()) { Text(s.addPlace) }
-                                        if (showAddPlace) {
-                                            PlaceDialog(
-                                                onDismiss = { showAddPlace = false },
-                                                onConfirm = { n, a -> showAddPlace = false; scope.launch { viewModel.addPlace(n, a) } },
-                                            )
-                                        }
                                     }
                                     Spacer(Modifier.height(16.dp))
                                     Text(s.teamSlotsSection, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -269,23 +265,37 @@ fun TeamDetailScreen(
                                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                                                 Text("${s.weekdayName(slot.weekday.value)} ${slot.hourStart}–${slot.hourEnd}$place", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                                                 if (viewModel.canManage) {
-                                                    IconButton(onClick = { scope.launch { viewModel.removeSlot(slot.id) } }) {
-                                                        Icon(Icons.Filled.Delete, contentDescription = s.cancel)
-                                                    }
+                                                    IconButton(onClick = { scope.launch { viewModel.removeSlot(slot.id) } }) { Icon(Icons.Filled.Delete, contentDescription = s.cancel) }
                                                 }
                                             }
                                         }
                                     }
                                     if (viewModel.canManage) {
-                                        var showAddSlot by remember { mutableStateOf(false) }
                                         Spacer(Modifier.height(8.dp))
                                         OutlinedButton(onClick = { showAddSlot = true }, modifier = Modifier.fillMaxWidth()) { Text(s.addSlot) }
-                                        if (showAddSlot) {
-                                            SlotDialog(
-                                                onDismiss = { showAddSlot = false },
-                                                onConfirm = { wd, hs, he -> showAddSlot = false; scope.launch { viewModel.addSlot(wd, hs, he) } },
-                                            )
-                                        }
+                                    }
+                                    if (showAddPlace) {
+                                        PlaceDialog(
+                                            title = s.addPlace,
+                                            onDismiss = { showAddPlace = false },
+                                            onConfirm = { n, a -> showAddPlace = false; scope.launch { viewModel.addPlace(n, a) } },
+                                        )
+                                    }
+                                    editingPlace?.let { p ->
+                                        PlaceDialog(
+                                            title = s.editPlace,
+                                            initialName = p.name,
+                                            initialAddress = p.address,
+                                            onDismiss = { editingPlace = null },
+                                            onConfirm = { n, a -> val id = p.id; editingPlace = null; scope.launch { viewModel.editPlace(id, n, a) } },
+                                        )
+                                    }
+                                    if (showAddSlot) {
+                                        SlotDialog(
+                                            places = team.places,
+                                            onDismiss = { showAddSlot = false },
+                                            onConfirm = { wd, hs, he, pid -> showAddSlot = false; scope.launch { viewModel.addSlot(wd, hs, he, pid) } },
+                                        )
                                     }
                                 }
                                 else -> {
@@ -363,13 +373,19 @@ private fun LanguagePicker(selected: LanguageEnum?, onSelect: (LanguageEnum) -> 
 }
 
 @Composable
-private fun PlaceDialog(onDismiss: () -> Unit, onConfirm: (name: String, address: String) -> Unit) {
+private fun PlaceDialog(
+    title: String,
+    initialName: String = "",
+    initialAddress: String = "",
+    onDismiss: () -> Unit,
+    onConfirm: (name: String, address: String) -> Unit,
+) {
     val s = LocalStrings.current
-    var name by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf(initialName) }
+    var address by remember { mutableStateOf(initialAddress) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(s.addPlace) },
+        title = { Text(title) },
         text = {
             Column {
                 OutlinedTextField(name, { name = it }, label = { Text(s.placeName) }, singleLine = true, modifier = Modifier.fillMaxWidth())
@@ -383,28 +399,45 @@ private fun PlaceDialog(onDismiss: () -> Unit, onConfirm: (name: String, address
 }
 
 @Composable
-private fun SlotDialog(onDismiss: () -> Unit, onConfirm: (weekday: Int, hourStart: String, hourEnd: String) -> Unit) {
+private fun SlotDialog(
+    places: List<PlaceMinimal>,
+    onDismiss: () -> Unit,
+    onConfirm: (weekday: Int, hourStart: String, hourEnd: String, placeId: Int?) -> Unit,
+) {
     val s = LocalStrings.current
     var weekday by remember { mutableStateOf(0) }
     var start by remember { mutableStateOf("18:00") }
     var end by remember { mutableStateOf("19:00") }
-    var expanded by remember { mutableStateOf(false) }
+    var placeId by remember { mutableStateOf<Int?>(null) }
+    var dayExpanded by remember { mutableStateOf(false) }
+    var placeExpanded by remember { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(s.addSlot) },
         text = {
             Column {
-                OutlinedButton(onClick = { expanded = true }) { Text(s.weekdayName(weekday)) }
-                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    (0..6).forEach { d -> DropdownMenuItem(text = { Text(s.weekdayName(d)) }, onClick = { weekday = d; expanded = false }) }
+                OutlinedButton(onClick = { dayExpanded = true }) { Text(s.weekdayName(weekday)) }
+                DropdownMenu(expanded = dayExpanded, onDismissRequest = { dayExpanded = false }) {
+                    (0..6).forEach { d -> DropdownMenuItem(text = { Text(s.weekdayName(d)) }, onClick = { weekday = d; dayExpanded = false }) }
                 }
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(start, { start = it }, label = { Text(s.eventFieldHourStart) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(end, { end = it }, label = { Text(s.eventFieldHourEnd) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                if (places.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(s.teamPlacesSection, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                    OutlinedButton(onClick = { placeExpanded = true }) {
+                        Text(places.firstOrNull { it.id == placeId }?.name ?: "—")
+                    }
+                    DropdownMenu(expanded = placeExpanded, onDismissRequest = { placeExpanded = false }) {
+                        DropdownMenuItem(text = { Text("—") }, onClick = { placeId = null; placeExpanded = false })
+                        places.forEach { p -> DropdownMenuItem(text = { Text(p.name) }, onClick = { placeId = p.id; placeExpanded = false }) }
+                    }
+                }
             }
         },
-        confirmButton = { TextButton(onClick = { onConfirm(weekday, start, end) }, enabled = start.isNotBlank() && end.isNotBlank()) { Text(s.save) } },
+        confirmButton = { TextButton(onClick = { onConfirm(weekday, start, end, placeId) }, enabled = start.isNotBlank() && end.isNotBlank()) { Text(s.save) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(s.cancel) } },
     )
 }

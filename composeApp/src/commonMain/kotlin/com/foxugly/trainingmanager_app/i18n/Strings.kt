@@ -243,6 +243,7 @@ interface Strings {
     val teamName: String
     val teamSaveFailed: String
     val addPlace: String
+    val editPlace: String
     val placeName: String
     val placeAddress: String
     val addSlot: String

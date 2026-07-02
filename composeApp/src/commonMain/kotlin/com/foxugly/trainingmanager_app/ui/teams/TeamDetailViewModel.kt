@@ -167,15 +167,25 @@ class TeamDetailViewModel(
         )
     }
 
-    suspend fun addSlot(weekday: Int, hourStart: String, hourEnd: String) {
+    suspend fun addSlot(weekday: Int, hourStart: String, hourEnd: String, placeId: Int?) {
         placesError = null
         val body = TrainingSlotRequest(
             weekday = WeekdayEnum.decode(weekday) ?: WeekdayEnum._0,
             hourStart = hourStart,
             hourEnd = hourEnd,
+            placeId = placeId,
         )
         authRepository.createTrainingSlot(teamId, body).fold(
             onSuccess = { reloadSlots() },
+            onFailure = { placesError = strings.placeSaveFailed },
+        )
+    }
+
+    suspend fun editPlace(id: Int, name: String, address: String) {
+        if (name.isBlank()) return
+        placesError = null
+        authRepository.updatePlace(id, name, address).fold(
+            onSuccess = { reloadTeam() },
             onFailure = { placesError = strings.placeSaveFailed },
         )
     }
@@ -195,7 +205,7 @@ class TeamDetailViewModel(
         private set
 
     suspend fun loadEquipmentCatalog() {
-        authRepository.listEquipment().onSuccess { equipmentCatalog = it.results }
+        authRepository.listEquipment(sport = team?.sport?.id).onSuccess { equipmentCatalog = it.results }
     }
 
     suspend fun setEquipment(ids: List<Int>) {
