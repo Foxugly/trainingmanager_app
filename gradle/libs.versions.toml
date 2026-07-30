@@ -33,7 +33,7 @@ navigationCompose = "2.9.2"
 googleServices = "4.4.2"
 firebaseBom = "33.7.0"
 openapiGenerator = "7.24.0"
-sentry = "7.18.0"
+sentry = "7.22.6"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
