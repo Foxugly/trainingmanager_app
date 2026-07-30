@@ -32,7 +32,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout app
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Gate on backend token
         id: gate
@@ -49,7 +49,7 @@ jobs:
       # Only the backend's schema file is needed — sparse checkout keeps it fast.
       - name: Checkout backend schema
         if: steps.gate.outputs.enabled == 'true'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: Foxugly/trainingmanager_server
           ref: main
