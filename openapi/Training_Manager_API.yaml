@@ -5665,6 +5665,64 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/staff/users/:
+    get:
+      operationId: staff_users_retrieve
+      description: Search accounts by email or name. Without `q`, returns the accounts
+        that currently have offered access. Staff only.
+      summary: Search accounts (staff)
+      parameters:
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Case-insensitive substring matched against email, first and last
+          name.
+      tags:
+      - staff
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StaffUserListResponse'
+          description: ''
+  /api/v1/staff/users/{id}/:
+    patch:
+      operationId: staff_users_partial_update
+      description: Grant or revoke offered access on an account. Granting stamps `bypass_granted_at`;
+        revoking keeps it, so the original grant stays auditable. Staff only.
+      summary: Toggle offered access (staff)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - staff
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStaffUserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStaffUserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStaffUserRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StaffUser'
+          description: ''
   /api/v1/teams/:
     get:
       operationId: teams_list
@@ -7535,6 +7593,8 @@ components:
       - session_unshared
       - attachment_deleted
       - team_config_updated
+      - subscription_bypass_granted
+      - subscription_bypass_revoked
       type: string
       description: |-
         * `member_anonymized` - Member anonymized
@@ -7544,6 +7604,8 @@ components:
         * `session_unshared` - Session sharing disabled
         * `attachment_deleted` - Attachment deleted
         * `team_config_updated` - Team configuration updated
+        * `subscription_bypass_granted` - Offered access granted
+        * `subscription_bypass_revoked` - Offered access revoked
     ActionProposedEnum:
       enum:
       - accept
@@ -7879,6 +7941,8 @@ components:
             * `session_unshared` - Session sharing disabled
             * `attachment_deleted` - Attachment deleted
             * `team_config_updated` - Team configuration updated
+            * `subscription_bypass_granted` - Offered access granted
+            * `subscription_bypass_revoked` - Offered access revoked
         action_display:
           type: string
           readOnly: true
@@ -8753,6 +8817,11 @@ components:
           maximum: 9223372036854775807
           minimum: 0
           format: int64
+        total_target:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
         refer_program:
           allOf:
           - $ref: '#/components/schemas/ProgramMinimal'
@@ -9008,6 +9077,11 @@ components:
           maximum: 9223372036854775807
           minimum: 0
           format: int64
+        total_target:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
         refer_program_id:
           type: integer
           writeOnly: true
@@ -9185,15 +9259,21 @@ components:
           type: string
           maxLength: 200
         t_start:
-          type: string
           nullable: true
           description: MM:SS format, e.g. 1:30.
-          pattern: ^\d{1,3}:[0-5]\d$
+          oneOf:
+          - type: string
+            pattern: ^\d{1,3}:[0-5]\d$
+          - type: string
+            maxLength: 0
         t_break:
-          type: string
           nullable: true
           description: MM:SS format, e.g. 1:30.
-          pattern: ^\d{1,3}:[0-5]\d$
+          oneOf:
+          - type: string
+            pattern: ^\d{1,3}:[0-5]\d$
+          - type: string
+            maxLength: 0
         modality:
           allOf:
           - $ref: '#/components/schemas/Modality'
@@ -9245,15 +9325,21 @@ components:
           type: string
           maxLength: 200
         t_start:
-          type: string
           nullable: true
           description: MM:SS format, e.g. 1:30.
-          pattern: ^\d{1,3}:[0-5]\d$
+          oneOf:
+          - type: string
+            pattern: ^\d{1,3}:[0-5]\d$
+          - type: string
+            maxLength: 0
         t_break:
-          type: string
           nullable: true
           description: MM:SS format, e.g. 1:30.
-          pattern: ^\d{1,3}:[0-5]\d$
+          oneOf:
+          - type: string
+            pattern: ^\d{1,3}:[0-5]\d$
+          - type: string
+            maxLength: 0
         modality_id:
           type: integer
           writeOnly: true
@@ -9791,6 +9877,12 @@ components:
           allOf:
           - $ref: '#/components/schemas/TeamQuotaStatus'
           readOnly: true
+        subscription_bypass:
+          type: boolean
+          readOnly: true
+          description: 'When True, grants every paid feature without a subscription
+            (offered access): the team quota becomes unlimited. Distinct from is_staff,
+            which grants no business entitlement.'
         calendar_token:
           type: string
           readOnly: true
@@ -9811,6 +9903,7 @@ components:
       - is_superuser
       - last_login
       - member_id
+      - subscription_bypass
       - team_quota
     Member:
       type: object
@@ -9828,10 +9921,13 @@ components:
           type: string
           readOnly: true
         email:
-          type: string
-          format: email
           nullable: true
-          maxLength: 254
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
         phonenumber:
           type: string
           nullable: true
@@ -9874,10 +9970,13 @@ components:
           minLength: 1
           maxLength: 100
         email:
-          type: string
-          format: email
           nullable: true
-          maxLength: 254
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
         phonenumber:
           type: string
           nullable: true
@@ -11069,6 +11168,11 @@ components:
           maximum: 9223372036854775807
           minimum: 0
           format: int64
+        total_target:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
         refer_program_id:
           type: integer
           writeOnly: true
@@ -11129,15 +11233,21 @@ components:
           type: string
           maxLength: 200
         t_start:
-          type: string
           nullable: true
           description: MM:SS format, e.g. 1:30.
-          pattern: ^\d{1,3}:[0-5]\d$
+          oneOf:
+          - type: string
+            pattern: ^\d{1,3}:[0-5]\d$
+          - type: string
+            maxLength: 0
         t_break:
-          type: string
           nullable: true
           description: MM:SS format, e.g. 1:30.
-          pattern: ^\d{1,3}:[0-5]\d$
+          oneOf:
+          - type: string
+            pattern: ^\d{1,3}:[0-5]\d$
+          - type: string
+            maxLength: 0
         modality_id:
           type: integer
           writeOnly: true
@@ -11255,10 +11365,13 @@ components:
           minLength: 1
           maxLength: 100
         email:
-          type: string
-          format: email
           nullable: true
-          maxLength: 254
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
         phonenumber:
           type: string
           nullable: true
@@ -11389,12 +11502,6 @@ components:
         team_id:
           type: integer
           writeOnly: true
-        frequency_per_week:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-          nullable: true
         description:
           type: string
         is_active:
@@ -11418,15 +11525,21 @@ components:
           minimum: 0
           format: int64
         t_start:
-          type: string
           nullable: true
           description: MM:SS format, e.g. 1:30.
-          pattern: ^\d{1,3}:[0-5]\d$
+          oneOf:
+          - type: string
+            pattern: ^\d{1,3}:[0-5]\d$
+          - type: string
+            maxLength: 0
         t_break:
-          type: string
           nullable: true
           description: MM:SS format, e.g. 1:30.
-          pattern: ^\d{1,3}:[0-5]\d$
+          oneOf:
+          - type: string
+            pattern: ^\d{1,3}:[0-5]\d$
+          - type: string
+            maxLength: 0
         exercises:
           type: array
           items:
@@ -11487,6 +11600,22 @@ components:
 
             * `structured` - Structured (rounds & exercises)
             * `freeform` - Free text
+    PatchedStaffUserRequest:
+      type: object
+      description: |-
+        Vue staff d'un compte : identité + état de l'accès offert. Seuls
+        subscription_bypass et bypass_note sont mutables ; bypass_granted_at est
+        horodaté par la vue, jamais transmis par le client.
+      properties:
+        subscription_bypass:
+          type: boolean
+          description: 'When True, grants every paid feature without a subscription
+            (offered access): the team quota becomes unlimited. Distinct from is_staff,
+            which grants no business entitlement.'
+        bypass_note:
+          type: string
+          description: 'Audit only: why this account was offered access.'
+          maxLength: 200
     PatchedTeamJoinRequestRequest:
       type: object
       description: |-
@@ -11970,12 +12099,6 @@ components:
           items:
             type: integer
           readOnly: true
-        frequency_per_week:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-          nullable: true
         description:
           type: string
         generated_by_ai:
@@ -12040,12 +12163,6 @@ components:
         team_id:
           type: integer
           writeOnly: true
-        frequency_per_week:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-          nullable: true
         description:
           type: string
         is_active:
@@ -12371,15 +12488,21 @@ components:
           minimum: 0
           format: int64
         t_start:
-          type: string
           nullable: true
           description: MM:SS format, e.g. 1:30.
-          pattern: ^\d{1,3}:[0-5]\d$
+          oneOf:
+          - type: string
+            pattern: ^\d{1,3}:[0-5]\d$
+          - type: string
+            maxLength: 0
         t_break:
-          type: string
           nullable: true
           description: MM:SS format, e.g. 1:30.
-          pattern: ^\d{1,3}:[0-5]\d$
+          oneOf:
+          - type: string
+            pattern: ^\d{1,3}:[0-5]\d$
+          - type: string
+            maxLength: 0
         exercises:
           type: array
           items:
@@ -12421,15 +12544,21 @@ components:
           minimum: 0
           format: int64
         t_start:
-          type: string
           nullable: true
           description: MM:SS format, e.g. 1:30.
-          pattern: ^\d{1,3}:[0-5]\d$
+          oneOf:
+          - type: string
+            pattern: ^\d{1,3}:[0-5]\d$
+          - type: string
+            maxLength: 0
         t_break:
-          type: string
           nullable: true
           description: MM:SS format, e.g. 1:30.
-          pattern: ^\d{1,3}:[0-5]\d$
+          oneOf:
+          - type: string
+            pattern: ^\d{1,3}:[0-5]\d$
+          - type: string
+            maxLength: 0
         exercises:
           type: array
           items:
@@ -12743,6 +12872,58 @@ components:
             * `freeform` - Free text
       required:
       - slug
+    StaffUser:
+      type: object
+      description: |-
+        Vue staff d'un compte : identité + état de l'accès offert. Seuls
+        subscription_bypass et bypass_note sont mutables ; bypass_granted_at est
+        horodaté par la vue, jamais transmis par le client.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: Email address
+        first_name:
+          type: string
+          readOnly: true
+        last_name:
+          type: string
+          readOnly: true
+        subscription_bypass:
+          type: boolean
+          description: 'When True, grants every paid feature without a subscription
+            (offered access): the team quota becomes unlimited. Distinct from is_staff,
+            which grants no business entitlement.'
+        bypass_note:
+          type: string
+          description: 'Audit only: why this account was offered access.'
+          maxLength: 200
+        bypass_granted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          description: 'Audit only: when the access was first granted.'
+      required:
+      - bypass_granted_at
+      - email
+      - first_name
+      - id
+      - last_name
+    StaffUserListResponse:
+      type: object
+      description: Enveloppe de la recherche staff (liste nue, pas de pagination).
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StaffUser'
+      required:
+      - results
     StatsAttendance:
       type: object
       properties:
