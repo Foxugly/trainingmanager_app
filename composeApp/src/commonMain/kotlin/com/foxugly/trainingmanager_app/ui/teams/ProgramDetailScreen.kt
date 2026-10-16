@@ -59,7 +59,6 @@ fun ProgramDetailScreen(
                 Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp)) {
                     val dates = listOfNotNull(p.dateStart, p.dateEnd).joinToString(" → ")
                     if (dates.isNotBlank()) LabeledValue(s.programDatesLabel, dates)
-                    p.frequencyPerWeek?.let { LabeledValue(s.programFrequencyLabel, it.toString()) }
                     p.description?.takeIf { it.isNotBlank() }?.let { LabeledValue(s.programDescriptionField, stripHtml(it)) }
 
                     Spacer(Modifier.height(16.dp))

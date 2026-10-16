@@ -219,7 +219,6 @@ object StringsNl : Strings {
     override val equipmentSaveFailed = "Kan het materiaal niet opslaan."
     override val programEventsLabel = "Evenementen"
     override val programDatesLabel = "Datums"
-    override val programFrequencyLabel = "Frequentie / week"
     override val programDescriptionField = "Beschrijving"
     override val programActive = "Actief"
     override val programLoadFailed = "Kan het programma niet laden."
