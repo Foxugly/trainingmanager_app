@@ -1,0 +1,56 @@
+name: CI
+
+# Compiles and tests the app on every push / PR. Before this workflow the repo
+# only ran api-drift, so a dependency bump requiring compileSdk 37 (#90) broke
+# main without any red check (fixed in #93).
+#
+# google-services.json is git-ignored. assembleDebug uses the real file from the
+# GOOGLE_SERVICES_JSON_B64 secret when it is set, otherwise a placeholder
+# (.github/ci/google-services.placeholder.json) — enough to compile, never shipped.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Host unit tests (commonMain + androidMain)
+        run: ./gradlew :composeApp:testAndroidHostTest --no-configuration-cache
+
+  build-debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: test
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Provide google-services.json
+        env:
+          GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_B64 }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON_B64" ]; then
+            echo "$GOOGLE_SERVICES_JSON_B64" | base64 -d > androidApp/google-services.json
+          else
+            cp .github/ci/google-services.placeholder.json androidApp/google-services.json
+          fi
+      - name: Assemble debug APK
+        run: ./gradlew :androidApp:assembleDebug --no-configuration-cache
