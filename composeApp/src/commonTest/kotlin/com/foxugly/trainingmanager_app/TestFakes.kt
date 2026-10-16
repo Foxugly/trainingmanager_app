@@ -23,7 +23,7 @@ internal class FakeTokenStore(
 /**
  * Complete `GET /me/` JSON for the generated [com.foxugly.trainingmanager_app.api.generated.models.Me]
  * model. Unlike the old hand-written `UserProfile`, `Me` marks `email_confirmed`, `is_staff`,
- * `is_superuser`, `last_login` (key must be present), `date_joined`, `team_quota`, `calendar_token`
+ * `is_superuser`, `subscription_bypass`, `last_login` (key must be present), `date_joined`, `team_quota`, `calendar_token`
  * and `member_id` (key must be present) as required, so any mocked profile response MUST include them
  * or kotlinx.serialization throws at decode. Use this helper everywhere a profile/login response is
  * mocked. Optional fields are emitted only when explicitly provided (the server may omit them).
@@ -43,6 +43,7 @@ internal fun meJson(
         add("\"email_confirmed\":true")
         add("\"is_staff\":false")
         add("\"is_superuser\":false")
+        add("\"subscription_bypass\":false")
         add("\"last_login\":null")
         add("\"date_joined\":\"2026-01-01T00:00:00Z\"")
         add("\"team_quota\":{\"used\":0,\"max\":3,\"can_create\":true}")
