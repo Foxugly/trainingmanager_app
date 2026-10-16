@@ -252,7 +252,6 @@ interface Strings {
     val equipmentSaveFailed: String
     val programEventsLabel: String
     val programDatesLabel: String
-    val programFrequencyLabel: String
     val programDescriptionField: String
     val programActive: String
     val programLoadFailed: String

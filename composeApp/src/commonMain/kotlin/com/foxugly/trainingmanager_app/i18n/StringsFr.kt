@@ -219,7 +219,6 @@ object StringsFr : Strings {
     override val equipmentSaveFailed = "Impossible d'enregistrer le matériel."
     override val programEventsLabel = "Événements"
     override val programDatesLabel = "Dates"
-    override val programFrequencyLabel = "Fréquence / semaine"
     override val programDescriptionField = "Description"
     override val programActive = "Actif"
     override val programLoadFailed = "Impossible de charger le programme."
