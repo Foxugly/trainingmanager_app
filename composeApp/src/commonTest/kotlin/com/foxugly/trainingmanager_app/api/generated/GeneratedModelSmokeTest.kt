@@ -24,7 +24,7 @@ class GeneratedModelSmokeTest {
     fun generatedMeDeserializesFromBackendJson() {
         val body = """
             {"id":7,"email":"a@b.co","email_confirmed":true,"is_staff":false,
-             "is_superuser":false,"last_login":null,"date_joined":"2026-01-01T00:00:00Z",
+             "is_superuser":false,"subscription_bypass":false,"last_login":null,"date_joined":"2026-01-01T00:00:00Z",
              "team_quota":{"used":0,"max":3,"can_create":true},
              "calendar_token":"tok","member_id":null,
              "first_name":"Ann","last_name":"Lee","language":"fr",
@@ -38,6 +38,7 @@ class GeneratedModelSmokeTest {
         assertTrue(me.emailConfirmed)
         assertEquals("Ann", me.firstName)
         assertEquals(LanguageEnum.FR, me.language)
+        assertEquals(false, me.subscriptionBypass)
         assertEquals(3, me.teamQuota.max)
         assertTrue(me.teamQuota.canCreate)
     }
@@ -50,6 +51,7 @@ class GeneratedModelSmokeTest {
             emailConfirmed = false,
             isStaff = false,
             isSuperuser = false,
+            subscriptionBypass = false,
             lastLogin = null,
             dateJoined = "2026-06-30T00:00:00Z",
             teamQuota = com.foxugly.trainingmanager_app.api.generated.models.TeamQuotaStatus(
