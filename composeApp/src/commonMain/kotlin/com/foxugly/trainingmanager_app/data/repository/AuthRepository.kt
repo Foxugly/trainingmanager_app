@@ -377,9 +377,18 @@ class AuthRepository(
     /** PATCH me/ — partial profile update. */
     suspend fun updateProfile(body: PatchedMeRequest): Result<Me> = api.patchMe(body)
 
-    /** POST auth/password/change/ — no logout; tokens stay valid. */
+    /**
+     * POST auth/password/change/. The server blacklists every refresh token of
+     * the user (other devices must sign in again) and returns a fresh pair for
+     * this session: store it, or the next refresh presents a revoked token and
+     * the user is signed out. A failure leaves the stored tokens untouched.
+     */
     suspend fun changePassword(currentPassword: String, newPassword: String): Result<Unit> =
         api.changePassword(PasswordChangeRequest(currentPassword, newPassword))
+            .map { pair ->
+                tokenStorage.setAccessToken(pair.access)
+                tokenStorage.setRefreshToken(pair.refresh)
+            }
             .onFailure { if (it is CancellationException) throw it }
 
     fun isAuthenticated(): Boolean = tokenStorage.getAccessToken() != null

@@ -27,9 +27,11 @@ class ProfileApiTest {
         assertEquals("nl", p.language?.value)
     }
 
-    @Test fun changePasswordSuccessOn200() = runTest {
-        val api = api(MockEngine { respond("""{"detail":"ok"}""", HttpStatusCode.OK, jsonHeader) })
-        assertTrue(api.changePassword(PasswordChangeRequest("old12345", "new12345")).isSuccess)
+    @Test fun changePasswordReturnsTheNewTokenPair() = runTest {
+        val api = api(MockEngine { respond("""{"detail":"ok","access":"a2","refresh":"r2"}""", HttpStatusCode.OK, jsonHeader) })
+        val pair = api.changePassword(PasswordChangeRequest("old12345", "new12345")).getOrThrow()
+        assertEquals("a2", pair.access)
+        assertEquals("r2", pair.refresh)
     }
 
     @Test fun changePasswordSurfaces400() = runTest {

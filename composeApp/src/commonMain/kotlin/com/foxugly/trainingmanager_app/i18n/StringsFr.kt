@@ -41,7 +41,7 @@ object StringsFr : Strings {
 
     override val emailConfirmLoading = "Confirmation en cours…"
     override val emailInvalidTitle = "Lien invalide ou expiré"
-    override val emailInvalidBody = "Ce lien de confirmation n'est plus valide."
+    override val emailInvalidBody = "Ce lien de confirmation est invalide, a expiré ou a déjà été utilisé. Si votre e-mail est déjà confirmé, connectez-vous simplement."
 
     override val resetTitle = "Nouveau mot de passe"
     override val resetFailed = "La réinitialisation a échoué. Réessayez."
