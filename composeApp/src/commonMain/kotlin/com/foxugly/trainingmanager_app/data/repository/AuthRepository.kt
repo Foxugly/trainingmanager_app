@@ -76,10 +76,10 @@ class AuthRepository(
         return Result.success(Unit)
     }
 
-    /** POST auth/magic-link/request/ — always-200, no token handling. */
-    suspend fun requestMagicLink(email: String): Result<Unit> {
+    /** POST auth/magic-link/request/ — always-200; carries the captcha token. */
+    suspend fun requestMagicLink(email: String, turnstileToken: String): Result<Unit> {
         AppLogger.info(tag, "Magic-link requested")
-        return api.magicLinkRequest(MagicLinkRequestRequest(email.trim()))
+        return api.magicLinkRequest(MagicLinkRequestRequest(email = email.trim(), turnstileToken = turnstileToken))
             .onFailure { if (it is CancellationException) throw it }
     }
 

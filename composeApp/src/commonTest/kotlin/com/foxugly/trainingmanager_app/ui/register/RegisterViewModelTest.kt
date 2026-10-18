@@ -6,7 +6,9 @@ import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.StringsFr
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -15,6 +17,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class RegisterViewModelTest {
+    private val jsonHeader = headersOf(HttpHeaders.ContentType, "application/json")
     private fun vm(engine: MockEngine): RegisterViewModel {
         val s = FakeTokenStore(access = "x")
         return RegisterViewModel(
@@ -58,6 +61,24 @@ class RegisterViewModelTest {
         assertEquals(StringsFr.registerInvalid, sut.error)
         assertNull(sut.turnstileToken) // single-use token cleared so user re-solves
         assertFalse(sut.registered)
+        assertEquals(1, sut.turnstileResetKey) // widget reloaded for a fresh challenge
+    }
+
+    @Test fun captchaFailureShowsTurnstileErrorAndReloadsWidget() = runTest {
+        val sut = vm(MockEngine { respond("""{"code":"captcha_failed","detail":"Captcha verification failed."}""", HttpStatusCode.BadRequest, jsonHeader) })
+        sut.fillValid(); sut.onTurnstileToken("tok")
+        sut.submit()
+        assertEquals(StringsFr.turnstileFailed, sut.error) // not the generic registerInvalid
+        assertNull(sut.turnstileToken)
+        assertFalse(sut.registered)
+        assertEquals(1, sut.turnstileResetKey)
+    }
+
+    @Test fun successDoesNotReloadWidget() = runTest {
+        val sut = vm(MockEngine { respond("", HttpStatusCode.Created) })
+        sut.fillValid(); sut.onTurnstileToken("tok")
+        sut.submit()
+        assertEquals(0, sut.turnstileResetKey)
     }
 
     @Test fun turnstileErrorClearsTokenAndSetsMessage() = runTest {
