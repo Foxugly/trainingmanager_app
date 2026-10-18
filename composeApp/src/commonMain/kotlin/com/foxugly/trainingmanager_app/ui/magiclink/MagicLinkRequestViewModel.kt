@@ -15,6 +15,8 @@ class MagicLinkRequestViewModel(
     private val strings: Strings = StringsFr,
 ) {
     var email by mutableStateOf("")
+    var turnstileToken by mutableStateOf<String?>(null)
+        private set
     var isLoading by mutableStateOf(false)
         private set
     var sent by mutableStateOf(false)
@@ -22,17 +24,32 @@ class MagicLinkRequestViewModel(
     var error by mutableStateOf<String?>(null)
         private set
 
-    val canSubmit: Boolean get() = !isLoading && email.isNotBlank()
+    val canSubmit: Boolean get() = !isLoading && email.isNotBlank() && turnstileToken != null
 
     fun clearError() { error = null }
 
+    fun onTurnstileToken(token: String) {
+        turnstileToken = token
+        if (error != null) error = null
+    }
+
+    fun onTurnstileError() {
+        turnstileToken = null
+        error = strings.turnstileFailed
+    }
+
     suspend fun submit() {
-        if (isLoading || email.isBlank()) return
+        val token = turnstileToken
+        if (isLoading || email.isBlank() || token == null) return
         isLoading = true
         error = null
-        authRepository.requestMagicLink(email).fold(
+        authRepository.requestMagicLink(email, token).fold(
             onSuccess = { sent = true },
-            onFailure = { error = mapError(it) },
+            onFailure = {
+                error = mapError(it)
+                // Turnstile tokens are single-use: force a fresh challenge.
+                turnstileToken = null
+            },
         )
         isLoading = false
     }

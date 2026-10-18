@@ -49,7 +49,7 @@ class AuthRepositoryMagicLinkTest {
     @Test fun requestReturnsSuccess() = runTest {
         val store = FakeTokenStore()
         val engine = MockEngine { respond("""{"detail":"ok"}""", HttpStatusCode.OK, jsonHeader) }
-        assertTrue(repo(store, engine).requestMagicLink("a@b.co").isSuccess)
+        assertTrue(repo(store, engine).requestMagicLink("a@b.co", "tok").isSuccess)
         assertNull(store.getAccessToken())
         assertFalse(store.getRemember())
     }
