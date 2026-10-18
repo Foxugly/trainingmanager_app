@@ -41,7 +41,7 @@ object StringsNl : Strings {
 
     override val emailConfirmLoading = "Bezig met bevestigen…"
     override val emailInvalidTitle = "Ongeldige of verlopen link"
-    override val emailInvalidBody = "Deze bevestigingslink is niet meer geldig."
+    override val emailInvalidBody = "Deze bevestigingslink is ongeldig, verlopen of al gebruikt. Is je e-mail al bevestigd? Log dan gewoon in."
 
     override val resetTitle = "Nieuw wachtwoord"
     override val resetFailed = "Het opnieuw instellen is mislukt. Probeer opnieuw."

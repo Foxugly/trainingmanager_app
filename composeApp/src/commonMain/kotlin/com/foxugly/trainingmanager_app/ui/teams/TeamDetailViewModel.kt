@@ -14,6 +14,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.Program
 import com.foxugly.trainingmanager_app.api.generated.models.Team
 import com.foxugly.trainingmanager_app.api.generated.models.TeamInvitation
 import com.foxugly.trainingmanager_app.api.generated.models.TrainingSlot
+import com.foxugly.trainingmanager_app.data.api.ApiException
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.Strings
 import com.foxugly.trainingmanager_app.i18n.StringsFr
@@ -97,9 +98,15 @@ class TeamDetailViewModel(
         if (email.isBlank()) return
         isSavingInvite = true
         inviteError = null
+        // The server answers the same 201 whether or not the e-mail already has
+        // an account (no user_already_registered any more: an existing user gets
+        // a "request to join" notice instead), so success just reloads the list.
+        // Invitations are throttled per user: 429 gets its own message.
         authRepository.createInvitation(teamId, email, firstname, lastname).fold(
             onSuccess = { reloadInvitations() },
-            onFailure = { inviteError = strings.inviteFailed },
+            onFailure = {
+                inviteError = if (it is ApiException && it.statusCode == 429) strings.magicRateLimited else strings.inviteFailed
+            },
         )
         isSavingInvite = false
     }

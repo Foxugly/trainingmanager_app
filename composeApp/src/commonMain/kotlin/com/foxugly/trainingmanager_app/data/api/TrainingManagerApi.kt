@@ -34,6 +34,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTeamInvitat
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicList
 import com.foxugly.trainingmanager_app.api.generated.models.PaginatedTopicMessageList
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordChangeRequest
+import com.foxugly.trainingmanager_app.api.generated.models.PasswordChangeResponse
 import com.foxugly.trainingmanager_app.api.generated.models.PasswordResetConfirmRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedAttendanceRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PatchedEventRequest
@@ -201,7 +202,13 @@ class TrainingManagerApi(
         client.patch("me/") { setBody(body) }
     }
 
-    suspend fun changePassword(body: PasswordChangeRequest): Result<Unit> = apiCall {
+    /**
+     * POST auth/password/change/ {current_password, new_password}. 200 returns
+     * {detail, access, refresh}: the server has revoked EVERY refresh token of
+     * the user, so the caller must store this new pair. 400
+     * code=current_password_invalid | password_unchanged | validator errors.
+     */
+    suspend fun changePassword(body: PasswordChangeRequest): Result<PasswordChangeResponse> = apiCall {
         client.post("auth/password/change/") { setBody(body) }
     }
 
@@ -407,6 +414,12 @@ class TrainingManagerApi(
         client.get("invitations/") { parameter("page_size", LIST_PAGE_SIZE) }
     }
 
+    /**
+     * POST invitations/. 201 whether or not the e-mail already has an account
+     * (an existing account is never enrolled directly; its owner is told to
+     * request to join). 400 code=email_already_invited | not_a_manager |
+     * team_not_active; 429 when the per-user invitation throttle is hit.
+     */
     suspend fun createInvitation(body: CreateInvitationRequest): Result<TeamInvitation> = apiCall {
         client.post("invitations/") { setBody(body) }
     }

@@ -41,7 +41,7 @@ object StringsIt : Strings {
 
     override val emailConfirmLoading = "Conferma in corso…"
     override val emailInvalidTitle = "Link non valido o scaduto"
-    override val emailInvalidBody = "Questo link di conferma non è più valido."
+    override val emailInvalidBody = "Questo link di conferma non è valido, è scaduto o è già stato utilizzato. Se la tua email è già confermata, accedi semplicemente."
 
     override val resetTitle = "Nuova password"
     override val resetFailed = "Reimpostazione non riuscita. Riprova."

@@ -23,14 +23,14 @@ class ChangePasswordViewModelTest {
     }
 
     @Test fun mismatchSetsError() = runTest {
-        val sut = vm(MockEngine { respond("""{"detail":"ok"}""", HttpStatusCode.OK, jsonHeader) })
+        val sut = vm(MockEngine { respond("""{"detail":"ok","access":"a2","refresh":"r2"}""", HttpStatusCode.OK, jsonHeader) })
         sut.currentPassword = "old12345"; sut.newPassword = "new12345"; sut.confirmPassword = "nope12345"
         sut.submit()
         assertEquals(StringsFr.mismatch, sut.error)
     }
 
     @Test fun successSetsSuccess() = runTest {
-        val sut = vm(MockEngine { respond("""{"detail":"ok"}""", HttpStatusCode.OK, jsonHeader) })
+        val sut = vm(MockEngine { respond("""{"detail":"ok","access":"a2","refresh":"r2"}""", HttpStatusCode.OK, jsonHeader) })
         sut.currentPassword = "old12345"; sut.newPassword = "new12345"; sut.confirmPassword = "new12345"
         sut.submit()
         assertTrue(sut.success)

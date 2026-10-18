@@ -41,7 +41,7 @@ object StringsEs : Strings {
 
     override val emailConfirmLoading = "Confirmando…"
     override val emailInvalidTitle = "Enlace no válido o caducado"
-    override val emailInvalidBody = "Este enlace de confirmación ya no es válido."
+    override val emailInvalidBody = "Este enlace de confirmación no es válido, ha caducado o ya se ha utilizado. Si tu correo ya está confirmado, simplemente inicia sesión."
 
     override val resetTitle = "Nueva contraseña"
     override val resetFailed = "El restablecimiento falló. Inténtalo de nuevo."
