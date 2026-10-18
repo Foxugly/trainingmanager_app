@@ -303,6 +303,21 @@ interface Strings {
     val turnstilePrompt: String
     val createAccount: String
     val forgotPasswordLink: String
+
+    // Link sign-in confirmation (magic link / e-mail confirmation deep links)
+    val linkSignInTitle: String
+    fun linkSignInAs(email: String): String
+    fun linkSignInReplaces(currentEmail: String): String
+    val linkSignInWarning: String
+    val linkSignInConfirm: String
+
+    // Account deletion
+    val deleteAccountCta: String
+    val deleteAccountTitle: String
+    val deleteAccountBody: String
+    val deleteAccountConfirm: String
+    val deleteAccountOwnsTeams: String
+    val deleteAccountFailed: String
 }
 
 /** Native language display names (always shown in their own language, never translated). */

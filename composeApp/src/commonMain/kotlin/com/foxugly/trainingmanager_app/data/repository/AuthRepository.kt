@@ -1,5 +1,6 @@
 package com.foxugly.trainingmanager_app.data.repository
 
+import com.foxugly.trainingmanager_app.api.generated.models.AccountDeleteRequest
 import com.foxugly.trainingmanager_app.api.generated.models.CompleteInvitationRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceRegisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DeviceUnregisterRequest
@@ -27,10 +28,22 @@ import com.foxugly.trainingmanager_app.api.generated.models.TokenObtainPairRespo
 import com.foxugly.trainingmanager_app.api.generated.models.TokenRefreshRequest
 import com.foxugly.trainingmanager_app.api.generated.models.ValidateInvitation
 import com.foxugly.trainingmanager_app.api.generated.models.VerifiedTokenObtainPairRequest
+import com.foxugly.trainingmanager_app.data.api.ApiException
+import com.foxugly.trainingmanager_app.data.api.AuthInterceptor
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CancellationException
+
+/**
+ * A token pair obtained from a link (magic link, e-mail confirmation) and the
+ * account it belongs to, held in memory until the user confirms the sign-in.
+ * Nothing is persisted while pending; dropping it discards the session.
+ */
+class PendingLogin(val access: String, val refresh: String, val me: Me) {
+    override fun toString(): String = "PendingLogin(email=<redacted>)"
+}
 
 class AuthRepository(
     private val api: TrainingManagerApi,
@@ -111,13 +124,63 @@ class AuthRepository(
             PasswordResetRequestRequest(email = email.trim(), turnstileToken = turnstileToken),
         ).onFailure { if (it is CancellationException) throw it }
 
-    /** POST auth/magic-link/exchange/ → auto-login. */
-    suspend fun exchangeMagicLink(token: String): Result<Me> =
-        autoLogin { api.magicLinkExchange(MagicLinkExchangeRequestRequest(token)) }
+    /**
+     * POST auth/magic-link/exchange/ → a [PendingLogin] that is NOT stored yet.
+     * A link opened from outside the app (mail, browser, another app) must not
+     * silently replace the session (login CSRF): the caller shows which account
+     * it signs into and only [commitPendingLogin] makes it the active session.
+     */
+    suspend fun previewMagicLink(token: String): Result<PendingLogin> =
+        previewLogin { api.magicLinkExchange(MagicLinkExchangeRequestRequest(token)) }
 
-    /** POST auth/email/confirm/ → auto-login. */
-    suspend fun confirmEmail(key: String): Result<Me> =
-        autoLogin { api.confirmEmail(EmailConfirmRequest(key)) }
+    /** POST auth/email/confirm/ (confirms the address) → a [PendingLogin], see [previewMagicLink]. */
+    suspend fun previewEmailConfirm(key: String): Result<PendingLogin> =
+        previewLogin { api.confirmEmail(EmailConfirmRequest(key)) }
+
+    /** E-mail of the account currently signed in on this device, or null if none / unknown. */
+    suspend fun currentAccountEmail(): String? {
+        if (tokenStorage.getRefreshToken() == null && tokenStorage.getAccessToken() == null) return null
+        return api.getMe().getOrNull()?.email
+    }
+
+    /**
+     * Make a confirmed [PendingLogin] the active session. A previous session on
+     * this device is signed out first (device unregistered, refresh revoked) so
+     * pushes for the old account stop here.
+     */
+    suspend fun commitPendingLogin(pending: PendingLogin): Me {
+        if (tokenStorage.getRefreshToken() != null || tokenStorage.getAccessToken() != null) {
+            logout()
+        }
+        tokenStorage.setAccessToken(pending.access)
+        tokenStorage.setRefreshToken(pending.refresh)
+        tokenStorage.setRemember(true)
+        return pending.me
+    }
+
+    private suspend inline fun previewLogin(
+        crossinline tokenCall: suspend () -> Result<TokenObtainPairResponse>,
+    ): Result<PendingLogin> = tokenCall().mapCatching { pair ->
+        val me = api.getMeWithAccessToken(pair.access).getOrThrow()
+        PendingLogin(access = pair.access, refresh = pair.refresh, me = me)
+    }.onFailure {
+        if (it is CancellationException) throw it
+        AppLogger.error(tag, "Link sign-in preview failed: ${it::class.simpleName}")
+    }
+
+    /**
+     * POST auth/account/delete/ {current_password}. On 204 the account no longer
+     * exists server-side (devices and tokens go with it), so the local session is
+     * wiped without calling logout. Failures (400 current_password_invalid,
+     * 409 owns_teams, offline) leave the session untouched.
+     */
+    suspend fun deleteAccount(currentPassword: String): Result<Unit> =
+        api.deleteAccount(AccountDeleteRequest(currentPassword))
+            .onSuccess {
+                AppLogger.info(tag, "Account deleted; clearing the local session")
+                tokenStorage.clearAuthTokens()
+            }
+            .onFailure { if (it is CancellationException) throw it }
 
     /** POST auth/password/reset/confirm/ → auto-login. */
     suspend fun confirmPasswordReset(key: String, newPassword: String): Result<Me> =
@@ -340,9 +403,18 @@ class AuthRepository(
             },
             onFailure = {
                 if (it is CancellationException) throw it
-                AppLogger.error(tag, "Startup token refresh failed", it)
-                tokenStorage.clearAuthTokens()
-                false
+                if (it is ApiException && AuthInterceptor.isSessionRejected(HttpStatusCode.fromValue(it.statusCode))) {
+                    // The refresh token itself was refused: the session is over.
+                    AppLogger.warn(tag, "Startup token refresh rejected (HTTP ${it.statusCode}); signing out")
+                    tokenStorage.clearAuthTokens()
+                    false
+                } else {
+                    // Offline, timeout, 5xx (e.g. during a deploy): keep the session and
+                    // open the app signed in — the stored refresh token is still valid and
+                    // the next API call refreshes again once the server is reachable.
+                    AppLogger.warn(tag, "Startup token refresh failed transiently; keeping the session", it)
+                    true
+                }
             },
         )
     }

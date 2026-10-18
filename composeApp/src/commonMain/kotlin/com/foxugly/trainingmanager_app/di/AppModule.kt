@@ -27,6 +27,7 @@ import com.foxugly.trainingmanager_app.ui.login.LoginViewModel
 import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkExchangeViewModel
 import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkRequestViewModel
 import com.foxugly.trainingmanager_app.ui.profile.ChangePasswordViewModel
+import com.foxugly.trainingmanager_app.ui.profile.DeleteAccountViewModel
 import com.foxugly.trainingmanager_app.ui.profile.ProfileViewModel
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -59,6 +60,7 @@ fun appModule(
     factory { InvitationViewModel(get(), get<LanguageService>().strings) }
     factory { ProfileViewModel(get(), get<LanguageService>().strings) }
     factory { ChangePasswordViewModel(get(), get<LanguageService>().strings) }
+    factory { DeleteAccountViewModel(get(), get<LanguageService>().strings) }
     factory { DashboardViewModel(get(), get<LanguageService>().strings) }
     factory { EventsListViewModel(get(), get<LanguageService>().strings) }
     factory { EventEditorViewModel(get(), get<LanguageService>().strings) }

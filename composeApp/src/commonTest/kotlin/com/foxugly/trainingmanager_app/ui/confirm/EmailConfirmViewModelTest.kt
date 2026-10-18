@@ -29,14 +29,17 @@ class EmailConfirmViewModelTest {
             }
         }
         val sut = vm(engine); var ok = false
-        sut.confirm("k") { ok = true }
+        sut.confirm("k")
+        assertEquals(EmailConfirmViewModel.State.AwaitingConfirmation, sut.state)
+        assertEquals("a@b.co", sut.targetEmail)
+        sut.signIn { ok = true }
         assertTrue(ok)
         assertEquals(EmailConfirmViewModel.State.Success, sut.state)
     }
 
     @Test fun invalidOn400() = runTest {
         val sut = vm(MockEngine { respond("""{"code":"invalid_or_expired_token"}""", HttpStatusCode.BadRequest, jsonHeader) })
-        sut.confirm("k") {}
+        sut.confirm("k")
         assertEquals(EmailConfirmViewModel.State.Invalid, sut.state)
     }
 }

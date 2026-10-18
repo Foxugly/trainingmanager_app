@@ -124,4 +124,30 @@ class AuthRepositoryTest {
         assertTrue(store.cleared, "tokens must be cleared even when API fails")
         api.close()
     }
+
+    @Test
+    fun tryRefreshKeepsTheSessionOnServerError() = runTest {
+        val store = FakeTokenStore(access = "a1", refresh = "r1")
+        val engine = MockEngine { respond("", HttpStatusCode.ServiceUnavailable) }
+        val api = TrainingManagerApi(store, baseUrl = "https://test/api/v1/", engine = engine)
+        val repo = AuthRepository(api, store)
+
+        // A 503 during a deploy is not a sign-out: stay signed in with the stored tokens.
+        assertTrue(repo.tryRefresh())
+        assertFalse(store.cleared)
+        assertEquals("r1", store.getRefreshToken())
+        api.close()
+    }
+
+    @Test
+    fun tryRefreshKeepsTheSessionWhenOffline() = runTest {
+        val store = FakeTokenStore(access = "a1", refresh = "r1")
+        val engine = MockEngine { throw io.ktor.utils.io.errors.IOException("offline") }
+        val api = TrainingManagerApi(store, baseUrl = "https://test/api/v1/", engine = engine)
+        val repo = AuthRepository(api, store)
+
+        assertTrue(repo.tryRefresh())
+        assertFalse(store.cleared)
+        api.close()
+    }
 }

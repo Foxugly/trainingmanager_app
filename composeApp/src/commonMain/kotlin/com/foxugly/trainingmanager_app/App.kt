@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.LanguageService
 import com.foxugly.trainingmanager_app.i18n.LocalAppLanguage
@@ -29,6 +32,7 @@ import com.foxugly.trainingmanager_app.navigation.TrainingEditorRoute
 import com.foxugly.trainingmanager_app.navigation.HomeRoute
 import com.foxugly.trainingmanager_app.navigation.InvitationRoute
 import com.foxugly.trainingmanager_app.navigation.ChangePasswordRoute
+import com.foxugly.trainingmanager_app.navigation.DeleteAccountRoute
 import com.foxugly.trainingmanager_app.navigation.LoginRoute
 import com.foxugly.trainingmanager_app.navigation.MagicLinkExchangeRoute
 import com.foxugly.trainingmanager_app.navigation.ForgotPasswordRoute
@@ -78,6 +82,8 @@ import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkRequestScreen
 import com.foxugly.trainingmanager_app.ui.magiclink.MagicLinkRequestViewModel
 import com.foxugly.trainingmanager_app.ui.profile.ChangePasswordScreen
 import com.foxugly.trainingmanager_app.ui.profile.ChangePasswordViewModel
+import com.foxugly.trainingmanager_app.ui.profile.DeleteAccountScreen
+import com.foxugly.trainingmanager_app.ui.profile.DeleteAccountViewModel
 import com.foxugly.trainingmanager_app.ui.profile.ProfileScreen
 import com.foxugly.trainingmanager_app.ui.profile.ProfileViewModel
 import com.foxugly.trainingmanager_app.ui.teams.ProgramDetailScreen
@@ -118,12 +124,32 @@ fun App(
     authRepository: AuthRepository = koinInject(),
     languageService: LanguageService = koinInject(),
     fcmTokenProvider: FcmTokenProvider = koinInject(),
+    api: TrainingManagerApi = koinInject(),
     deepLink: DeepLinkTarget? = null,
     onDeepLinkConsumed: () -> Unit = {},
     notificationUrl: String? = null,
     onNotificationConsumed: () -> Unit = {},
 ) {
     var route by remember { mutableStateOf(StartupRoute.Loading) }
+    // Bumped by the API layer when the server refuses the refresh token (session
+    // really over, not a network blip): the UI then returns to Login.
+    var sessionEndedCount by remember { mutableStateOf(0) }
+    DisposableEffect(api) {
+        api.onAuthFailure = { sessionEndedCount++ }
+        onDispose { api.onAuthFailure = null }
+    }
+    val appScope = rememberCoroutineScope()
+    // Register this device's FCM token for push (best-effort; null on iOS until the
+    // SDK is wired). Run at startup when signed in AND after every sign-in.
+    val registerDevice: () -> Unit = {
+        appScope.launch {
+            runCatching {
+                fcmTokenProvider.token()?.let { token ->
+                    authRepository.registerDevice(token, fcmTokenProvider.platform)
+                }
+            }
+        }
+    }
     LaunchedEffect(authRepository) {
         val hasRefresh = authRepository.hasRefreshToken()
         val refreshed = hasRefresh && authRepository.tryRefresh()
@@ -136,14 +162,7 @@ fun App(
         route = resolved
         // FCM token fetch + device registration are pure side effects; run them off the
         // critical path so they never gate first render.
-        if (resolved == StartupRoute.Authenticated) {
-            launch {
-                // Register this device's FCM token for push (best-effort; null on iOS until the SDK is wired).
-                fcmTokenProvider.token()?.let { token ->
-                    authRepository.registerDevice(token, fcmTokenProvider.platform)
-                }
-            }
-        }
+        if (resolved == StartupRoute.Authenticated) registerDevice()
     }
 
     TrainingManagerTheme {
@@ -160,6 +179,37 @@ fun App(
                 val navController = rememberNavController()
                 val startDestination: Any =
                     if (route == StartupRoute.Authenticated) HomeRoute else LoginRoute
+
+                // Signed in (password, link, invitation): Home on a fresh back stack.
+                val onSignedIn: () -> Unit = {
+                    registerDevice()
+                    navController.navigate(HomeRoute) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+                val toLogin: () -> Unit = {
+                    navController.navigate(LoginRoute) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+                // A declined (or failed) link sign-in goes back to where the user was:
+                // Home if a session is still active, Login otherwise.
+                val afterDeclinedLink: () -> Unit = {
+                    if (authRepository.isAuthenticated()) {
+                        navController.navigate(HomeRoute) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    } else {
+                        toLogin()
+                    }
+                }
+
+                LaunchedEffect(sessionEndedCount) {
+                    if (sessionEndedCount > 0) toLogin()
+                }
 
                 // Route an incoming deep link once the graph is live.
                 LaunchedEffect(deepLink) {
@@ -205,12 +255,7 @@ fun App(
                         val vm: LoginViewModel = koinInject()
                         LoginScreen(
                             viewModel = vm,
-                            onLoginSuccess = {
-                                navController.navigate(HomeRoute) {
-                                    popUpTo<LoginRoute> { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            },
+                            onLoginSuccess = onSignedIn,
                             onMagicLink = {
                                 navController.navigate(MagicLinkRequestRoute) { launchSingleTop = true }
                             },
@@ -240,18 +285,9 @@ fun App(
                         MagicLinkExchangeScreen(
                             viewModel = vm,
                             token = args.token,
-                            onSuccess = {
-                                navController.navigate(HomeRoute) {
-                                    popUpTo<LoginRoute> { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            },
-                            onBackToLogin = {
-                                navController.navigate(LoginRoute) {
-                                    popUpTo(0) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            },
+                            onSuccess = onSignedIn,
+                            onBackToLogin = afterDeclinedLink,
+                            onCancel = afterDeclinedLink,
                         )
                     }
                     composable<EmailConfirmRoute> { entry ->
@@ -260,18 +296,9 @@ fun App(
                         EmailConfirmScreen(
                             viewModel = vm,
                             key = args.key,
-                            onSuccess = {
-                                navController.navigate(HomeRoute) {
-                                    popUpTo<LoginRoute> { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            },
-                            onBackToLogin = {
-                                navController.navigate(LoginRoute) {
-                                    popUpTo(0) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            },
+                            onSuccess = onSignedIn,
+                            onBackToLogin = afterDeclinedLink,
+                            onCancel = afterDeclinedLink,
                         )
                     }
                     composable<ResetPasswordRoute> { entry ->
@@ -280,12 +307,7 @@ fun App(
                         ResetPasswordScreen(
                             viewModel = vm,
                             key = args.key,
-                            onSuccess = {
-                                navController.navigate(HomeRoute) {
-                                    popUpTo<LoginRoute> { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            },
+                            onSuccess = onSignedIn,
                             onBackToLogin = {
                                 navController.navigate(LoginRoute) {
                                     popUpTo(0) { inclusive = true }
@@ -300,12 +322,7 @@ fun App(
                         InvitationScreen(
                             viewModel = vm,
                             token = args.token,
-                            onSuccess = {
-                                navController.navigate(HomeRoute) {
-                                    popUpTo<LoginRoute> { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            },
+                            onSuccess = onSignedIn,
                             onBackToLogin = {
                                 navController.navigate(LoginRoute) {
                                     popUpTo(0) { inclusive = true }
@@ -447,12 +464,16 @@ fun App(
                             authRepository = authRepository,
                             onSelectTab = navController::selectTab,
                             onChangePassword = { navController.navigate(ChangePasswordRoute) { launchSingleTop = true } },
-                            onLoggedOut = {
-                                navController.navigate(LoginRoute) {
-                                    popUpTo(0) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            },
+                            onDeleteAccount = { navController.navigate(DeleteAccountRoute) { launchSingleTop = true } },
+                            onLoggedOut = toLogin,
+                        )
+                    }
+                    composable<DeleteAccountRoute> {
+                        val vm: DeleteAccountViewModel = koinInject()
+                        DeleteAccountScreen(
+                            viewModel = vm,
+                            onBack = { navController.popBackStack() },
+                            onDeleted = toLogin,
                         )
                     }
                     composable<ChangePasswordRoute> {

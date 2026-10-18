@@ -12,10 +12,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
+import com.foxugly.trainingmanager_app.ui.components.LinkSignInConfirmation
+import kotlinx.coroutines.launch
 
 @Composable
 fun MagicLinkExchangeScreen(
@@ -23,9 +26,11 @@ fun MagicLinkExchangeScreen(
     token: String,
     onSuccess: () -> Unit,
     onBackToLogin: () -> Unit,
+    onCancel: () -> Unit,
 ) {
     val s = LocalStrings.current
-    LaunchedEffect(token) { viewModel.exchange(token, onSuccess) }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(token) { viewModel.exchange(token) }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -39,6 +44,13 @@ fun MagicLinkExchangeScreen(
                 Spacer(Modifier.height(16.dp))
                 Text(s.magicExchangeLoading)
             }
+            MagicLinkExchangeViewModel.ExchangeState.AwaitingConfirmation ->
+                LinkSignInConfirmation(
+                    targetEmail = viewModel.targetEmail.orEmpty(),
+                    currentEmail = viewModel.currentEmail,
+                    onConfirm = { scope.launch { viewModel.confirm(onSuccess) } },
+                    onCancel = { viewModel.cancel(); onCancel() },
+                )
             MagicLinkExchangeViewModel.ExchangeState.Expired -> {
                 Text(s.magicExpiredTitle, style = MaterialTheme.typography.headlineSmall)
                 Spacer(Modifier.height(8.dp))
