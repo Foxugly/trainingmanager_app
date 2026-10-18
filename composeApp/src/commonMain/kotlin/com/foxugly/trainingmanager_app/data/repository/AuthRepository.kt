@@ -162,7 +162,13 @@ class AuthRepository(
         crossinline tokenCall: suspend () -> Result<TokenObtainPairResponse>,
     ): Result<PendingLogin> = tokenCall().mapCatching { pair ->
         val me = api.getMeWithAccessToken(pair.access).getOrThrow()
-        PendingLogin(access = pair.access, refresh = pair.refresh, me = me)
+        PendingLogin(
+            access = pair.access,
+            // Body mode (no X-Auth-Mode header): the server always returns `refresh`;
+            // the schema marks it optional only because the web SPA gets it as a cookie.
+            refresh = checkNotNull(pair.refresh) { "refresh token missing from body-mode response" },
+            me = me,
+        )
     }.onFailure {
         if (it is CancellationException) throw it
         AppLogger.error(tag, "Link sign-in preview failed: ${it::class.simpleName}")
