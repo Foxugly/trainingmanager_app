@@ -18,6 +18,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -63,11 +64,14 @@ fun MagicLinkRequestScreen(viewModel: MagicLinkRequestViewModel, onBack: () -> U
 
         Text(s.turnstilePrompt, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.height(8.dp))
-        TurnstileWebView(
-            onToken = { viewModel.onTurnstileToken(it) },
-            onError = { viewModel.onTurnstileError() },
-            modifier = Modifier.fillMaxWidth().height(320.dp),
-        )
+        // Re-keyed after a failed request: the WebView is rebuilt and shows a fresh challenge.
+        key(viewModel.turnstileResetKey) {
+            TurnstileWebView(
+                onToken = { viewModel.onTurnstileToken(it) },
+                onError = { viewModel.onTurnstileError() },
+                modifier = Modifier.fillMaxWidth().height(320.dp),
+            )
+        }
         Spacer(Modifier.height(16.dp))
 
         Button(

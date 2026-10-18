@@ -70,16 +70,31 @@ class MagicLinkRequestViewModelTest {
         assertNull(sut.turnstileToken)
     }
 
-    @Test fun captchaFailureShowsGenericErrorAndResetsToken() = runTest {
-        val sut = vm(MockEngine {
-            respond("""{"detail":"x","code":"captcha_failed"}""", HttpStatusCode.BadRequest, jsonHeader)
-        })
+    @Test fun captchaFailureShowsTurnstileErrorAndReloadsWidget() = runTest {
+        val sut = vm(MockEngine { respond("""{"code":"captcha_failed","detail":"Captcha verification failed."}""", HttpStatusCode.BadRequest, jsonHeader) })
         sut.email = "a@b.co"; sut.onTurnstileToken("tok")
+        val keyBefore = sut.turnstileResetKey
         sut.submit()
         assertFalse(sut.sent)
-        assertEquals(StringsFr.magicRequestFailed, sut.error)
+        assertEquals(StringsFr.turnstileFailed, sut.error)
         assertNull(sut.turnstileToken)
         assertFalse(sut.canSubmit)
+        assertEquals(keyBefore + 1, sut.turnstileResetKey)
+    }
+
+    @Test fun otherFailureKeepsGenericErrorAndReloadsWidget() = runTest {
+        val sut = vm(MockEngine { respond("""{"code":"server_error","detail":"x"}""", HttpStatusCode.InternalServerError, jsonHeader) })
+        sut.email = "a@b.co"; sut.onTurnstileToken("tok")
+        sut.submit()
+        assertEquals(StringsFr.magicRequestFailed, sut.error)
+        assertEquals(1, sut.turnstileResetKey)
+    }
+
+    @Test fun successDoesNotReloadWidget() = runTest {
+        val sut = vm(MockEngine { respond("""{"detail":"ok"}""", HttpStatusCode.OK, jsonHeader) })
+        sut.email = "a@b.co"; sut.onTurnstileToken("tok")
+        sut.submit()
+        assertEquals(0, sut.turnstileResetKey)
     }
 
     @Test fun turnstileErrorClearsTokenAndShowsError() = runTest {
