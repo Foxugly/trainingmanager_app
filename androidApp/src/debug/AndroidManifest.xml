@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug-only additions, merged into src/main/AndroidManifest.xml.
+     The trainingmanager:// custom scheme lets a debug build be driven by adb
+     (`adb shell am start -a android.intent.action.VIEW -d "trainingmanager://app/auth/magic-link/TOKEN"`)
+     without hosted assetlinks. It is NOT shipped in release: any page or app can
+     fire a custom scheme, and link sign-ins must come from verified App Links. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="trainingmanager"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

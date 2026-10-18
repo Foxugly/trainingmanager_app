@@ -28,7 +28,11 @@ class AuthInterceptor(
             val path = request.url.encodedPath
             val isAuthPath = AUTH_PATHS.any { path.contains(it) }
             val token = tokenStorage.getAccessToken()
-            if (token != null && !isAuthPath) {
+            // A request that already carries an Authorization header (e.g. the
+            // pending-login preview, which authenticates with tokens that are not
+            // stored yet) keeps it.
+            val hasExplicitAuth = request.headers.contains(HttpHeaders.Authorization)
+            if (token != null && !isAuthPath && !hasExplicitAuth) {
                 request.headers.append(HttpHeaders.Authorization, "Bearer $token")
                 AppLogger.debug(tag, "Authorization header attached to $path")
             }
@@ -84,10 +88,16 @@ class AuthInterceptor(
                     tokenStorage.setRefreshToken(body.refresh)
                     AppLogger.info(tag, "Access token refresh succeeded")
                     true
-                } else {
-                    AppLogger.warn(tag, "Access token refresh failed with HTTP ${refreshResponse.status.value}")
+                } else if (isSessionRejected(refreshResponse.status)) {
+                    // The server refused the refresh token itself: the session is over.
+                    AppLogger.warn(tag, "Access token refresh rejected with HTTP ${refreshResponse.status.value}; signing out")
                     tokenStorage.clearAuthTokens()
                     onAuthFailure?.invoke()
+                    false
+                } else {
+                    // 5xx / unexpected status (e.g. a 502 during a deploy): keep the
+                    // session, the caller surfaces the error and a later call retries.
+                    AppLogger.warn(tag, "Access token refresh failed with HTTP ${refreshResponse.status.value}; keeping the session")
                     false
                 }
             } catch (e: CancellationException) {
@@ -95,14 +105,23 @@ class AuthInterceptor(
                 // onAuthFailure; the user was not logged out, the operation was cancelled.
                 throw e
             } catch (e: Exception) {
-                AppLogger.error(tag, "Access token refresh threw an exception", e)
-                tokenStorage.clearAuthTokens()
-                onAuthFailure?.invoke()
+                // Offline / timeout / decoding error: not a verdict on the session.
+                // Keep the tokens so the user is not signed out by a network blip.
+                AppLogger.warn(tag, "Access token refresh threw an exception; keeping the session", e)
                 false
             }
         }
 
     companion object {
+        /**
+         * Only these refresh responses mean the refresh token is no longer valid
+         * (expired, blacklisted, user gone): simplejwt answers 401 for an invalid
+         * token, 403 for an inactive account. Anything else (5xx, offline) must
+         * NOT sign the user out.
+         */
+        fun isSessionRejected(status: HttpStatusCode): Boolean =
+            status == HttpStatusCode.Unauthorized || status == HttpStatusCode.Forbidden
+
         // Paths that NEVER receive a bearer and are NEVER refreshed: the token
         // lifecycle + unauthenticated onboarding endpoints (S1 spec §3).
         val AUTH_PATHS: List<String> = listOf(
@@ -115,10 +134,10 @@ class AuthInterceptor(
             "auth/password/reset/confirm/",
             "auth/magic-link/request/",
             "auth/magic-link/exchange/",
-            // Unauthenticated invitation-lookup endpoint. TODO: narrow to the exact
-            // path once the API contract is finalized — a future authenticated
-            // /invitations/ endpoint must not accidentally lose its bearer.
-            "invitations/",
+            // Public invitation endpoint only (GET lookup + POST accept, AllowAny on the
+            // server). The coach endpoints `invitations/` and `invitations/{id}/` are
+            // authenticated and MUST keep their bearer.
+            "invitations/lookup/",
         )
     }
 }

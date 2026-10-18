@@ -19,7 +19,7 @@ class AuthRepositoryConfirmTest {
     private fun repo(store: FakeTokenStore, engine: MockEngine) =
         AuthRepository(TrainingManagerApi(store, baseUrl = "https://test/api/v1/", engine = engine), store)
 
-    @Test fun confirmEmailStoresTokensAndReturnsProfile() = runTest {
+    @Test fun confirmEmailStoresTokensOnlyAfterCommit() = runTest {
         val store = FakeTokenStore()
         val engine = MockEngine { request ->
             when {
@@ -27,7 +27,10 @@ class AuthRepositoryConfirmTest {
                 else -> respond(meJson(id = 3), HttpStatusCode.OK, jsonHeader)
             }
         }
-        val p = repo(store, engine).confirmEmail("k").getOrThrow()
+        val repo = repo(store, engine)
+        val pending = repo.previewEmailConfirm("k").getOrThrow()
+        assertNull(store.getAccessToken())
+        val p = repo.commitPendingLogin(pending)
         assertEquals(3, p.id)
         assertEquals("a", store.getAccessToken())
         assertTrue(store.getRemember())

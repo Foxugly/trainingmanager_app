@@ -30,6 +30,9 @@ object ProfileRoute
 object ChangePasswordRoute
 
 @Serializable
+object DeleteAccountRoute
+
+@Serializable
 object EventsListRoute
 
 @Serializable

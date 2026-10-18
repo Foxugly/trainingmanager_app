@@ -20,28 +20,64 @@ class AuthRepositoryMagicLinkTest {
     private fun repo(store: FakeTokenStore, engine: MockEngine) =
         AuthRepository(TrainingManagerApi(store, baseUrl = "https://test/api/v1/", engine = engine), store)
 
-    @Test fun exchangeStoresTokensAndReturnsProfile() = runTest {
+    @Test fun previewDoesNotStoreTokensUntilCommitted() = runTest {
         val store = FakeTokenStore()
+        var meAuth: String? = null
         val engine = MockEngine { request ->
             when {
                 request.url.encodedPath.endsWith("magic-link/exchange/") ->
                     respond("""{"access":"acc","refresh":"ref"}""", HttpStatusCode.OK, jsonHeader)
-                request.url.encodedPath.endsWith("me/") ->
-                    respond(meJson(id = 9), HttpStatusCode.OK, jsonHeader)
+                request.url.encodedPath.endsWith("me/") -> {
+                    meAuth = request.headers[HttpHeaders.Authorization]
+                    respond(meJson(id = 9, email = "target@x.co"), HttpStatusCode.OK, jsonHeader)
+                }
                 else -> respond("", HttpStatusCode.NotFound)
             }
         }
-        val profile = repo(store, engine).exchangeMagicLink("tok").getOrThrow()
+        val repo = repo(store, engine)
+        val pending = repo.previewMagicLink("tok").getOrThrow()
+        // The preview identifies the account with the NEW access token...
+        assertEquals("Bearer acc", meAuth)
+        assertEquals("target@x.co", pending.me.email)
+        // ...but nothing is persisted before the user confirms.
+        assertNull(store.getAccessToken())
+        assertNull(store.getRefreshToken())
+
+        val profile = repo.commitPendingLogin(pending)
         assertEquals(9, profile.id)
         assertEquals("acc", store.getAccessToken())
         assertEquals("ref", store.getRefreshToken())
         assertTrue(store.getRemember())
     }
 
+    @Test fun previewKeepsTheCurrentSessionUntilCommitted() = runTest {
+        val store = FakeTokenStore(access = "old-acc", refresh = "old-ref")
+        val engine = MockEngine { request ->
+            when {
+                request.url.encodedPath.endsWith("magic-link/exchange/") ->
+                    respond("""{"access":"acc","refresh":"ref"}""", HttpStatusCode.OK, jsonHeader)
+                request.url.encodedPath.endsWith("me/") ->
+                    if (request.headers[HttpHeaders.Authorization] == "Bearer old-acc") {
+                        respond(meJson(id = 1, email = "me@x.co"), HttpStatusCode.OK, jsonHeader)
+                    } else {
+                        respond(meJson(id = 9, email = "other@x.co"), HttpStatusCode.OK, jsonHeader)
+                    }
+                else -> respond("", HttpStatusCode.OK)
+            }
+        }
+        val repo = repo(store, engine)
+        val pending = repo.previewMagicLink("tok").getOrThrow()
+        assertEquals("other@x.co", pending.me.email)
+        assertEquals("me@x.co", repo.currentAccountEmail())
+        // Declining = dropping the pending login: the current session is untouched.
+        assertEquals("old-acc", store.getAccessToken())
+        assertEquals("old-ref", store.getRefreshToken())
+    }
+
     @Test fun exchangeFailureLeavesTokensUntouched() = runTest {
         val store = FakeTokenStore()
         val engine = MockEngine { respond("""{"detail":"token_expired"}""", HttpStatusCode.Gone, jsonHeader) }
-        val result = repo(store, engine).exchangeMagicLink("tok")
+        val result = repo(store, engine).previewMagicLink("tok")
         assertTrue(result.isFailure)
         assertNull(store.getAccessToken())
     }

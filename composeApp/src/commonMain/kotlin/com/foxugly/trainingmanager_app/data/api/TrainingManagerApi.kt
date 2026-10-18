@@ -4,6 +4,7 @@ import com.foxugly.trainingmanager_app.api.generated.models.Attachment
 import com.foxugly.trainingmanager_app.api.generated.models.AttachmentDownloadResponse
 import com.foxugly.trainingmanager_app.api.generated.models.Attendance
 import com.foxugly.trainingmanager_app.api.generated.models.AttendanceRequest
+import com.foxugly.trainingmanager_app.api.generated.models.AccountDeleteRequest
 import com.foxugly.trainingmanager_app.api.generated.models.CompleteInvitationRequest
 import com.foxugly.trainingmanager_app.api.generated.models.CreateInvitationRequest
 import com.foxugly.trainingmanager_app.api.generated.models.DashboardSummary
@@ -88,6 +89,7 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
@@ -202,6 +204,30 @@ class TrainingManagerApi(
     suspend fun changePassword(body: PasswordChangeRequest): Result<Unit> = apiCall {
         client.post("auth/password/change/") { setBody(body) }
     }
+
+    /**
+     * POST auth/account/delete/ {current_password} — irreversible. 204 on success;
+     * 400 code=current_password_invalid; 409 code=owns_teams (the user must hand
+     * over their teams first, nothing is deleted).
+     */
+    suspend fun deleteAccount(body: AccountDeleteRequest): Result<Unit> = apiCall {
+        client.post("auth/account/delete/") { setBody(body) }
+    }
+
+    /**
+     * GET me/ authenticated with an access token that is NOT (yet) in the token
+     * store — used to show which account a magic / confirmation link signs into
+     * before the user accepts the switch. No refresh/replay: a 401 here simply
+     * fails. The explicit header wins over the stored one (see AuthInterceptor).
+     */
+    suspend fun getMeWithAccessToken(accessToken: String): Result<Me> = runCatching {
+        val response = client.get("me/") {
+            header(HttpHeaders.Authorization, "Bearer $accessToken")
+        }
+        logResponse("Me(preview)", response)
+        if (!response.status.isSuccess()) throw response.toApiException("Me(preview)")
+        response.decodeBody<Me>("Me(preview)", json)
+    }.onFailure { if (it is CancellationException) throw it }
 
     suspend fun logout(refreshToken: String): Result<Unit> = runCatching {
         val response = client.post("auth/logout/") { setBody(TokenRefreshRequest(refreshToken)) }

@@ -50,6 +50,7 @@ fun ProfileScreen(
     authRepository: AuthRepository,
     onSelectTab: (MainTab) -> Unit,
     onChangePassword: () -> Unit,
+    onDeleteAccount: () -> Unit,
     onLoggedOut: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -66,6 +67,7 @@ fun ProfileScreen(
                     viewModel = viewModel,
                     languageService = languageService,
                     onChangePassword = onChangePassword,
+                    onDeleteAccount = onDeleteAccount,
                     onLogout = { scope.launch { authRepository.logout(); onLoggedOut() } },
                 )
             }
@@ -78,6 +80,7 @@ private fun ProfileForm(
     viewModel: ProfileViewModel,
     languageService: LanguageService,
     onChangePassword: () -> Unit,
+    onDeleteAccount: () -> Unit,
     onLogout: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -163,6 +166,10 @@ private fun ProfileForm(
         }
         TextButton(onClick = onLogout, modifier = Modifier.fillMaxWidth()) {
             Text(s.logout, color = MaterialTheme.colorScheme.error)
+        }
+        Spacer(Modifier.height(24.dp))
+        TextButton(onClick = onDeleteAccount, modifier = Modifier.fillMaxWidth()) {
+            Text(s.deleteAccountCta, color = MaterialTheme.colorScheme.error)
         }
     }
 }
