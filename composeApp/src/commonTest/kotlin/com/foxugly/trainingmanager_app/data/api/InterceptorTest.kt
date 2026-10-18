@@ -211,12 +211,12 @@ class InterceptorTest {
     // ── Test 5 ───────────────────────────────────────────────────────────────
 
     /**
-     * Transport failure during token refresh: AuthInterceptor catches the exception,
-     * clears auth tokens, and invokes onAuthFailure. Returns false so the caller
-     * (apiCall in Task 6) can surface a NetworkException to the UI.
+     * Transport failure during token refresh: AuthInterceptor catches the exception
+     * and returns false so the caller surfaces the error, but KEEPS the tokens and
+     * does not fire onAuthFailure: being offline must not sign the user out.
      */
     @Test
-    fun transportFailureDuringRefreshClearsTokensAndSignalsAuthFailure() = runTest {
+    fun transportFailureDuringRefreshKeepsTheSession() = runTest {
         var authFailureCalled = false
         val store = FakeTokenStore(access = "old-tok", refresh = "ref-tok")
         val authInterceptor = AuthInterceptor(store) { authFailureCalled = true }
@@ -230,8 +230,10 @@ class InterceptorTest {
         val ok = authInterceptor.refreshIfNeeded(client, "old-tok")
 
         assertFalse(ok, "refreshIfNeeded should return false on transport failure")
-        assertTrue(store.cleared, "Tokens must be cleared after transport failure")
-        assertTrue(authFailureCalled, "onAuthFailure must be invoked on transport failure")
+        // Offline is not a verdict on the session: keep the tokens, no sign-out.
+        assertFalse(store.cleared, "Tokens must be kept after a transport failure")
+        assertEquals("ref-tok", store.getRefreshToken())
+        assertFalse(authFailureCalled, "onAuthFailure must not fire on a transport failure")
 
         client.close()
     }
@@ -283,6 +285,58 @@ class InterceptorTest {
         assertEquals(1, refreshCalls, "Single-flight: refresh endpoint must be hit exactly once")
         assertEquals(1, authFailureCount, "onAuthFailure must be invoked exactly once")
 
+        client.close()
+    }
+
+    // ── Invitations: only the public lookup endpoint goes without a bearer ──
+
+    @Test
+    fun coachInvitationEndpointsKeepTheBearer() = runTest {
+        val captured = mutableMapOf<String, String?>()
+        val client = headerClient(FakeTokenStore(access = "tok"), LanguageProvider("fr"), captured)
+        client.get("https://test/api/v1/invitations/")
+        assertEquals("Bearer tok", captured["auth"])
+        client.get("https://test/api/v1/invitations/12/")
+        assertEquals("Bearer tok", captured["auth"])
+        client.close()
+    }
+
+    @Test
+    fun publicInvitationLookupHasNoBearer() = runTest {
+        val captured = mutableMapOf<String, String?>()
+        val client = headerClient(FakeTokenStore(access = "tok"), LanguageProvider("fr"), captured)
+        client.get("https://test/api/v1/invitations/lookup/abc/")
+        assertNull(captured["auth"])
+        client.close()
+    }
+
+    // ── Only a refused refresh token ends the session ──
+
+    @Test
+    fun serverErrorDuringRefreshKeepsTheSession() = runTest {
+        var authFailureCalled = false
+        val store = FakeTokenStore(access = "old-tok", refresh = "ref-tok")
+        val authInterceptor = AuthInterceptor(store) { authFailureCalled = true }
+        val engine = MockEngine { respond("bad gateway", HttpStatusCode.BadGateway) }
+        val client = refreshClient(authInterceptor, engine)
+
+        assertFalse(authInterceptor.refreshIfNeeded(client, "old-tok"))
+        assertFalse(store.cleared, "A 5xx must not clear the tokens")
+        assertFalse(authFailureCalled)
+        client.close()
+    }
+
+    @Test
+    fun forbiddenRefreshEndsTheSession() = runTest {
+        var authFailureCalled = false
+        val store = FakeTokenStore(access = "old-tok", refresh = "ref-tok")
+        val authInterceptor = AuthInterceptor(store) { authFailureCalled = true }
+        val engine = MockEngine { respond("{}", HttpStatusCode.Forbidden, jsonCt) }
+        val client = refreshClient(authInterceptor, engine)
+
+        assertFalse(authInterceptor.refreshIfNeeded(client, "old-tok"))
+        assertTrue(store.cleared)
+        assertTrue(authFailureCalled)
         client.close()
     }
 }
