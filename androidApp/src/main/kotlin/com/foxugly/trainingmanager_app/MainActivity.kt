@@ -38,6 +38,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installCrashLogger()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         AppContextHolder.context = applicationContext
@@ -79,6 +80,32 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val TAG = "TM/MainActivity"
+
+        @Volatile
+        private var crashLoggerInstalled = false
+
+        /**
+         * Log uncaught exceptions, then hand them to the previous default handler
+         * (Sentry's when a DSN is built in: TrainingManagerApplication installs it
+         * first, and it chains to the platform's), so the process still dies and
+         * Play Vitals records the crash. Installed once per process: onCreate runs
+         * again on every recreate(), and re-wrapping would chain onto itself.
+         */
+        @Synchronized
+        private fun installCrashLogger() {
+            if (crashLoggerInstalled) return
+            val previous = Thread.getDefaultUncaughtExceptionHandler()
+            Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+                runCatching { android.util.Log.e(TAG, "Uncaught exception on ${thread.name}", throwable) }
+                if (previous != null) {
+                    previous.uncaughtException(thread, throwable)
+                } else {
+                    android.os.Process.killProcess(android.os.Process.myPid())
+                    kotlin.system.exitProcess(10)
+                }
+            }
+            crashLoggerInstalled = true
+        }
         // Both release and debug builds talk to prod; debug only adds HTTP logging.
         private const val PROD_API_BASE_URL = "https://tm-api.foxugly.com/api/v1/"
     }

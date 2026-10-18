@@ -170,3 +170,10 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().con
     dependsOn(tasks.named("openApiGenerate"))
     dependsOn(pruneOpenApiOrphans)
 }
+// The Android release pipeline also scans every commonMain source dir (art /
+// baseline profiles under `<srcDir>/../baselineProfiles`), so those tasks must
+// run after generation too, or Gradle's validation fails assembleRelease.
+tasks.matching { it.name.endsWith("ArtProfile") }.configureEach {
+    dependsOn(tasks.named("openApiGenerate"))
+    dependsOn(pruneOpenApiOrphans)
+}

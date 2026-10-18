@@ -24,13 +24,35 @@ val keystoreProperties = Properties().apply {
 fun releaseProp(name: String): String? = keystoreProperties.getProperty(name) ?: System.getenv(name)
 val hasReleaseSigning = releaseProp("RELEASE_STORE_FILE") != null
 
-// Sentry DSN for the `tm-app` project. A DSN is NOT a secret — it ships in every
-// client — so it's committed as the default and applied to RELEASE builds only
-// (see the release buildType). Overridable via the SENTRY_DSN env var / gradle
-// property. Debug builds keep an empty DSN (defaultConfig) so dev crashes never
-// reach the prod Sentry project.
-val sentryDsn = releaseProp("SENTRY_DSN")
-    ?: "https://fbb0ccfc2a3a80f62e86008ce7c5843d@o4511389786701824.ingest.de.sentry.io/4511656601387088"
+fun envOrProp(name: String): String? =
+    (findProperty(name) as String?)?.takeIf { it.isNotBlank() } ?: System.getenv(name)?.takeIf { it.isNotBlank() }
+
+// Sentry DSN (project tm-app, org foxugly-srl, de.sentry.io): Gradle property
+// -PTM_SENTRY_DSN=... or env var TM_SENTRY_DSN (CI secret, set by release.yml).
+// Empty => the app does not initialise Sentry (local / PR builds), see
+// TrainingManagerApplication.
+val sentryDsn: String = envOrProp("TM_SENTRY_DSN").orEmpty()
+
+// Versioning. versionName: gradle.properties `tm.versionName` (single source).
+// versionCode must strictly increase on every Play upload; resolved in order:
+//   1. -PTM_VERSION_CODE / env TM_VERSION_CODE (explicit override),
+//   2. env GITHUB_RUN_NUMBER (CI: the workflow's run counter, monotonic),
+//   3. `git rev-list --count HEAD` (local builds),
+//   4. 1 (no git available).
+// Only AABs built by .github/workflows/release.yml go to Play, so the release
+// workflow's counter is the one that matters; local codes are for side-loaded tests.
+val appVersionName: String = (findProperty("tm.versionName") as String?) ?: "0.0.0"
+val gitCommitCount: Int? = runCatching {
+    providers.exec {
+        commandLine("git", "rev-list", "--count", "HEAD")
+        isIgnoreExitValue = true
+    }.standardOutput.asText.get().trim().toIntOrNull()
+}.getOrNull()
+val appVersionCode: Int =
+    envOrProp("TM_VERSION_CODE")?.toIntOrNull()
+        ?: envOrProp("GITHUB_RUN_NUMBER")?.toIntOrNull()
+        ?: gitCommitCount
+        ?: 1
 
 android {
     namespace = "com.foxugly.trainingmanager_app"
@@ -40,12 +62,10 @@ android {
         applicationId = "com.foxugly.trainingmanager_app"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0.0"
-        // Default: no DSN → Sentry auto-init treats a blank DSN as "off". This
-        // covers debug builds; the release buildType overrides it with the real
-        // DSN so only release crashes reach the prod Sentry project.
-        manifestPlaceholders["sentryDsn"] = ""
+        // See "Versioning" above: never hard-code these.
+        versionCode = appVersionCode
+        versionName = appVersionName
+        buildConfigField("String", "SENTRY_DSN", "\"${sentryDsn.replace("\"", "")}\"")
     }
     buildFeatures {
         // BuildConfig.DEBUG is read in MainActivity to enable HTTP logging only
@@ -73,8 +93,6 @@ android {
             // Drop unreferenced resources alongside R8 code shrinking — minify
             // without this leaves the (often larger) resource table untrimmed.
             isShrinkResources = true
-            // Activate Sentry on release builds (real DSN); debug stays disabled.
-            manifestPlaceholders["sentryDsn"] = sentryDsn
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -106,8 +124,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
     // Crash + error reporting (OPERATIONS.md §3.8 parity with the backend/web).
-    // Auto-initializes from the io.sentry.* manifest meta-data; disabled while
-    // the DSN placeholder is empty.
+    // Initialised manually in TrainingManagerApplication when TM_SENTRY_DSN is set.
     implementation(libs.sentry.android)
     debugImplementation(libs.compose.uiTooling)
 }
