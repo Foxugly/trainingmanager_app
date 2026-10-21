@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_channel_name">Teamactiviteit</string>
+    <string name="notification_channel_description">Evenementen, uitnodigingen en teamberichten</string>
+</resources>

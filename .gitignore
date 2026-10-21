@@ -12,3 +12,5 @@ GoogleService-Info.plist
 captures/
 xcuserdata/
 *.xcworkspace/xcuserdata/
+# Agent scratch output (subagent reports): never commit
+.superpowers/

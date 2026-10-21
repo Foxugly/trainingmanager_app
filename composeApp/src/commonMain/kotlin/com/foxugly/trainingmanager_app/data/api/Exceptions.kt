@@ -8,19 +8,16 @@ import kotlinx.serialization.json.jsonPrimitive
 /** Backend error code for a rejected/missing Cloudflare Turnstile token. */
 const val CAPTCHA_FAILED_CODE = "captcha_failed"
 
+/**
+ * An HTTP error status. The body is kept in [responseBody] for callers that
+ * match on the backend's error code, but it is deliberately NOT part of the
+ * exception message: messages travel to logcat and Sentry (audit A-M1).
+ */
 class ApiException(
     val statusCode: Int,
     operation: String,
     val responseBody: String,
-) : Exception(
-    buildString {
-        append("API $operation failed with HTTP $statusCode")
-        if (responseBody.isNotBlank()) {
-            append(": ")
-            append(responseBody)
-        }
-    }
-) {
+) : Exception("API $operation failed with HTTP $statusCode") {
     /** The backend's normalised `{code, detail}` error code, if the body carries one. */
     val errorCode: String? by lazy {
         runCatching {
@@ -44,20 +41,13 @@ class NetworkException(
     cause: Throwable,
 ) : Exception(message, cause)
 
+/**
+ * A 2xx body that did not match the expected schema. The body itself is never
+ * kept: on auth endpoints it would hold JWTs, and the message ends up in logcat
+ * and Sentry (audit A-M1). The cause names the offending field, not its value.
+ */
 class ResponseDecodingException(
     val statusCode: Int,
     operation: String,
-    responseBody: String,
     cause: Throwable,
-) : Exception(
-    buildString {
-        append("API ")
-        append(operation)
-        append(" returned an unexpected response")
-        if (responseBody.isNotBlank()) {
-            append(": ")
-            append(responseBody)
-        }
-    },
-    cause,
-)
+) : Exception("API $operation returned an unexpected response (HTTP $statusCode)", cause)

@@ -34,7 +34,7 @@ class ResetPasswordViewModel(
         authRepository.confirmPasswordReset(key, newPassword).fold(
             onSuccess = { onSuccess() },
             onFailure = { t ->
-                if (t is ApiException && t.statusCode == 400 && t.message?.contains("invalid_or_expired_token") == true) {
+                if (t is ApiException && t.statusCode == 400 && t.responseBody.contains("invalid_or_expired_token")) {
                     tokenInvalid = true
                 } else {
                     error = strings.resetFailed

@@ -42,7 +42,7 @@ class ChangePasswordViewModel(
 
     private fun mapError(t: Throwable): String {
         if (t is ApiException && t.statusCode == 400) {
-            val m = t.message ?: ""
+            val m = t.responseBody
             return when {
                 m.contains("current_password_invalid") -> strings.cpCurrentInvalid
                 m.contains("password_unchanged") -> strings.cpUnchanged

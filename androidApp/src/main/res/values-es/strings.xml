@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_channel_name">Actividad de los equipos</string>
+    <string name="notification_channel_description">Eventos, invitaciones y mensajes del equipo</string>
+</resources>

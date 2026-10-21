@@ -6,4 +6,6 @@ actual class FcmTokenProvider actual constructor() {
     // Firebase iOS SDK is not wired yet (needs the CocoaPods/SPM Firebase setup + APNs,
     // Mac-only). Returns null for now → no device registration on iOS until then.
     actual suspend fun token(): String? = null
+
+    actual suspend fun deleteToken() = Unit
 }

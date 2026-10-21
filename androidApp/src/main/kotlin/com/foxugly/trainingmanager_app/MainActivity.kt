@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         parseDeepLink(intent.dataString)?.let { deepLink.value = it }
-        intent.getStringExtra(TMFirebaseMessagingService.EXTRA_NOTIF_URL)?.let { notificationUrl.value = it }
+        TMFirebaseMessagingService.trustedNotificationUrl(this, intent)?.let { notificationUrl.value = it }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,7 +43,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         AppContextHolder.context = applicationContext
         deepLink.value = parseDeepLink(intent?.dataString)
-        notificationUrl.value = intent?.getStringExtra(TMFirebaseMessagingService.EXTRA_NOTIF_URL)
+        notificationUrl.value = TMFirebaseMessagingService.trustedNotificationUrl(this, intent)
+        // Channel created up front (localized name) so FCM "notification" messages
+        // shown by the SDK while the app is in background land in it too.
+        TMFirebaseMessagingService.ensureChannel(this)
         maybeRequestNotificationPermission()
 
         // Start Koin once for the process. The graph is prod-only: fixed base URL,

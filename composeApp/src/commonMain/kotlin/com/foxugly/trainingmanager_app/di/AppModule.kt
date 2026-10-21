@@ -46,7 +46,14 @@ fun appModule(
     single { tokenStore }
     single { LanguageProvider() }
     single { TrainingManagerApi(get(), apiBaseUrl, enableHttpLogging, get()) }
-    single { AuthRepository(get(), get(), fcmTokenProvider = { get<FcmTokenProvider>().token() }) }
+    single {
+        AuthRepository(
+            get(),
+            get(),
+            fcmTokenProvider = { get<FcmTokenProvider>().token() },
+            fcmTokenRevoker = { get<FcmTokenProvider>().deleteToken() },
+        )
+    }
     single { LanguageService(get(), get()) }
     single { UrlOpener() }
     single { FcmTokenProvider() }
