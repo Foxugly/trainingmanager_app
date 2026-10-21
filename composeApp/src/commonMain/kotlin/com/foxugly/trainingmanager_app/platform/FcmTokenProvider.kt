@@ -4,4 +4,7 @@ package com.foxugly.trainingmanager_app.platform
 expect class FcmTokenProvider() {
     val platform: String
     suspend fun token(): String?
+
+    /** Deletes this device's FCM token (session expired server-side). Best-effort. */
+    suspend fun deleteToken()
 }

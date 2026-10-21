@@ -190,6 +190,9 @@ class TrainingManagerApi(
         client.post("auth/token/") { setBody(request) }
     }
 
+    /** Startup refresh, serialized with the 401 refresh path (same mutex). */
+    suspend fun refreshSession(): AuthInterceptor.RefreshOutcome = authInterceptor.refreshSession(client)
+
     suspend fun refresh(request: TokenRefreshRequest): Result<TokenRefresh> = apiCall {
         client.post("auth/token/refresh/") { setBody(request) }
     }
@@ -617,8 +620,8 @@ class TrainingManagerApi(
         }
     }.onFailure { e ->
         if (e is CancellationException) throw e
-        // Log only safe, non-secret detail — never the raw response body or message
-        // (ResponseDecodingException / ApiException embed up to 500 chars of body).
+        // Log only safe, non-secret detail — never the raw response body
+        // (ApiException.responseBody keeps up to 500 chars of the error body).
         val detail = when (e) {
             is ApiException -> "ApiException status=${e.statusCode}"
             // The cause (kotlinx SerializationException) names the offending
@@ -662,7 +665,6 @@ private suspend inline fun <reified T> HttpResponse.decodeBody(operation: String
         throw ResponseDecodingException(
             operation = operation,
             statusCode = status.value,
-            responseBody = rawBody.take(500),
             cause = cause,
         )
     }

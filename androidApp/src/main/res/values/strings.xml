@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">TrainingManager</string>
+    <string name="app_name" translatable="false">TrainingManager</string>
+    <string name="notification_channel_name">Team activity</string>
+    <string name="notification_channel_description">Events, invitations and team messages</string>
 </resources>

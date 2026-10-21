@@ -17,4 +17,15 @@ actual class FcmTokenProvider actual constructor() {
         // Firebase not initialized (no google-services.json at runtime) → no token.
         null
     }
+
+    actual suspend fun deleteToken() {
+        try {
+            suspendCancellableCoroutine { cont ->
+                FirebaseMessaging.getInstance().deleteToken().addOnCompleteListener { cont.resume(Unit) }
+            }
+        } catch (e: Throwable) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            // Firebase not initialized: nothing was registered from this device anyway.
+        }
+    }
 }

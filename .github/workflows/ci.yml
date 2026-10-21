@@ -54,6 +54,9 @@ jobs:
           fi
       - name: Assemble debug APK
         run: ./gradlew :androidApp:assembleDebug --no-configuration-cache
+      # Android lint (errors fail the job, warnings are only reported).
+      - name: Android lint
+        run: ./gradlew :androidApp:lintDebug --no-configuration-cache
       # Release build too (unsigned when no keystore is configured, no Sentry DSN),
       # so an R8 / keep-rules regression fails CI instead of surfacing only at
       # publish time. The signed AAB is built by release.yml.

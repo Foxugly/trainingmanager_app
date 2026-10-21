@@ -67,50 +67,74 @@ class AuthInterceptor(
                 return@withLock false
             }
             // Still holding the stale token — we are the caller that performs the refresh.
-            val refreshToken = tokenStorage.getRefreshToken() ?: run {
-                AppLogger.warn(tag, "Unauthorized response and no refresh token available")
-                onAuthFailure?.invoke()
-                return@withLock false
-            }
-            try {
-                AppLogger.info(tag, "Refreshing access token after HTTP 401")
-                val refreshResponse = client.post("auth/token/refresh/") {
-                    contentType(ContentType.Application.Json)
-                    setBody(TokenRefreshRequest(refreshToken))
-                }
-                if (refreshResponse.status == HttpStatusCode.OK) {
-                    val body = refreshResponse.body<TokenRefresh>()
-                    tokenStorage.setAccessToken(body.access)
-                    // Persist the rotated refresh token (ROTATE_REFRESH_TOKENS +
-                    // BLACKLIST_AFTER_ROTATION). The generated TokenRefresh always carries a
-                    // refresh (rotation is on server-side), so write it unconditionally —
-                    // else the next refresh sends a blacklisted token and ejects the user.
-                    tokenStorage.setRefreshToken(body.refresh)
-                    AppLogger.info(tag, "Access token refresh succeeded")
-                    true
-                } else if (isSessionRejected(refreshResponse.status)) {
-                    // The server refused the refresh token itself: the session is over.
-                    AppLogger.warn(tag, "Access token refresh rejected with HTTP ${refreshResponse.status.value}; signing out")
-                    tokenStorage.clearAuthTokens()
+            when (performRefresh(client)) {
+                RefreshOutcome.REFRESHED -> true
+                RefreshOutcome.NO_REFRESH_TOKEN -> {
+                    AppLogger.warn(tag, "Unauthorized response and no refresh token available")
                     onAuthFailure?.invoke()
                     false
-                } else {
-                    // 5xx / unexpected status (e.g. a 502 during a deploy): keep the
-                    // session, the caller surfaces the error and a later call retries.
-                    AppLogger.warn(tag, "Access token refresh failed with HTTP ${refreshResponse.status.value}; keeping the session")
+                }
+                RefreshOutcome.REJECTED -> {
+                    onAuthFailure?.invoke()
                     false
                 }
-            } catch (e: CancellationException) {
-                // Propagate coroutine cancellation — do NOT clear tokens or fire
-                // onAuthFailure; the user was not logged out, the operation was cancelled.
-                throw e
-            } catch (e: Exception) {
-                // Offline / timeout / decoding error: not a verdict on the session.
-                // Keep the tokens so the user is not signed out by a network blip.
-                AppLogger.warn(tag, "Access token refresh threw an exception; keeping the session", e)
-                false
+                RefreshOutcome.TRANSIENT -> false
             }
         }
+
+    /**
+     * Startup refresh. Runs under the same [refreshMutex] as the 401 path, so a
+     * request fired while the app starts cannot race it and present a refresh
+     * token that the rotation has just blacklisted (audit A-M5). Does not fire
+     * [onAuthFailure]: the startup flow routes to Login itself.
+     */
+    suspend fun refreshSession(client: HttpClient): RefreshOutcome =
+        refreshMutex.withLock { performRefresh(client) }
+
+    /** One auth/token/refresh/ round-trip. The caller holds [refreshMutex]. */
+    private suspend fun performRefresh(client: HttpClient): RefreshOutcome {
+        val refreshToken = tokenStorage.getRefreshToken() ?: return RefreshOutcome.NO_REFRESH_TOKEN
+        return try {
+            AppLogger.info(tag, "Refreshing access token")
+            val refreshResponse = client.post("auth/token/refresh/") {
+                contentType(ContentType.Application.Json)
+                setBody(TokenRefreshRequest(refreshToken))
+            }
+            if (refreshResponse.status == HttpStatusCode.OK) {
+                val body = refreshResponse.body<TokenRefresh>()
+                tokenStorage.setAccessToken(body.access)
+                // Persist the rotated refresh token (ROTATE_REFRESH_TOKENS +
+                // BLACKLIST_AFTER_ROTATION). The generated TokenRefresh always carries a
+                // refresh (rotation is on server-side), so write it unconditionally —
+                // else the next refresh sends a blacklisted token and ejects the user.
+                tokenStorage.setRefreshToken(body.refresh)
+                AppLogger.info(tag, "Access token refresh succeeded")
+                RefreshOutcome.REFRESHED
+            } else if (isSessionRejected(refreshResponse.status)) {
+                // The server refused the refresh token itself: the session is over.
+                AppLogger.warn(tag, "Access token refresh rejected with HTTP ${refreshResponse.status.value}; signing out")
+                tokenStorage.clearAuthTokens()
+                RefreshOutcome.REJECTED
+            } else {
+                // 5xx / unexpected status (e.g. a 502 during a deploy): keep the
+                // session, the caller surfaces the error and a later call retries.
+                AppLogger.warn(tag, "Access token refresh failed with HTTP ${refreshResponse.status.value}; keeping the session")
+                RefreshOutcome.TRANSIENT
+            }
+        } catch (e: CancellationException) {
+            // Propagate coroutine cancellation — do NOT clear tokens or fire
+            // onAuthFailure; the user was not logged out, the operation was cancelled.
+            throw e
+        } catch (e: Exception) {
+            // Offline / timeout / decoding error: not a verdict on the session.
+            // Keep the tokens so the user is not signed out by a network blip.
+            AppLogger.warn(tag, "Access token refresh threw an exception; keeping the session", e)
+            RefreshOutcome.TRANSIENT
+        }
+    }
+
+    /** Result of one refresh attempt. Only [REJECTED] ends the session (tokens cleared). */
+    enum class RefreshOutcome { REFRESHED, REJECTED, TRANSIENT, NO_REFRESH_TOKEN }
 
     companion object {
         /**

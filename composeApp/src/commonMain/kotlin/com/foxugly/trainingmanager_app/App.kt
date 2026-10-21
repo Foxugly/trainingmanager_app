@@ -99,7 +99,9 @@ import com.foxugly.trainingmanager_app.ui.discussions.TopicsListViewModel
 import com.foxugly.trainingmanager_app.ui.components.MainTab
 import com.foxugly.trainingmanager_app.ui.theme.TrainingManagerTheme
 import androidx.navigation.NavController
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
 
 /** Bottom-nav switch between the five top-level destinations: single back-stack
@@ -134,11 +136,15 @@ fun App(
     // Bumped by the API layer when the server refuses the refresh token (session
     // really over, not a network blip): the UI then returns to Login.
     var sessionEndedCount by remember { mutableStateOf(0) }
+    val appScope = rememberCoroutineScope()
     DisposableEffect(api) {
-        api.onAuthFailure = { sessionEndedCount++ }
+        api.onAuthFailure = {
+            sessionEndedCount++
+            // No bearer left to unregister the device: drop the local push token.
+            appScope.launch { authRepository.onSessionExpired() }
+        }
         onDispose { api.onAuthFailure = null }
     }
-    val appScope = rememberCoroutineScope()
     // Register this device's FCM token for push (best-effort; null on iOS until the
     // SDK is wired). Run at startup when signed in AND after every sign-in.
     val registerDevice: () -> Unit = {
@@ -461,11 +467,18 @@ fun App(
                         ProfileScreen(
                             viewModel = vm,
                             languageService = languageService,
-                            authRepository = authRepository,
                             onSelectTab = navController::selectTab,
                             onChangePassword = { navController.navigate(ChangePasswordRoute) { launchSingleTop = true } },
                             onDeleteAccount = { navController.navigate(DeleteAccountRoute) { launchSingleTop = true } },
-                            onLoggedOut = toLogin,
+                            // App-level scope + NonCancellable: leaving the Profile screen
+                            // (tab switch, rotation) must not cancel the device unregister /
+                            // refresh revocation half-way (audit A-M4).
+                            onLogout = {
+                                appScope.launch {
+                                    withContext(NonCancellable) { authRepository.logout() }
+                                    toLogin()
+                                }
+                            },
                         )
                     }
                     composable<DeleteAccountRoute> {

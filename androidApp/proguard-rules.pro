@@ -14,3 +14,12 @@
 -keep class io.ktor.** { *; }
 -dontwarn io.ktor.**
 -dontwarn kotlinx.coroutines.**
+
+# Release builds drop verbose/debug/info logcat calls (audit A-M2): AppLogger.debug/info
+# log request paths, some of which carry link tokens. Warnings and errors stay.
+-assumenosideeffects class android.util.Log {
+    public static int v(...);
+    public static int d(...);
+    public static int i(...);
+    public static boolean isLoggable(java.lang.String, int);
+}

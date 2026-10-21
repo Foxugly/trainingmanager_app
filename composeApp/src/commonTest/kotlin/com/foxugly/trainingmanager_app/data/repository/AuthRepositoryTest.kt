@@ -150,4 +150,31 @@ class AuthRepositoryTest {
         assertFalse(store.cleared)
         api.close()
     }
+
+    @Test
+    fun tryRefreshRevokesThePushTokenWhenTheSessionIsRejected() = runTest {
+        val store = FakeTokenStore(access = "a1", refresh = "bad")
+        val engine = MockEngine { respond("", HttpStatusCode.Unauthorized) }
+        val api = TrainingManagerApi(store, baseUrl = "https://test/api/v1/", engine = engine)
+        var revoked = 0
+        val repo = AuthRepository(api, store, fcmTokenRevoker = { revoked++ })
+
+        assertFalse(repo.tryRefresh())
+        assertEquals(1, revoked)
+        assertEquals(1, engine.requestHistory.size, "a refused refresh must not be retried")
+        api.close()
+    }
+
+    @Test
+    fun tryRefreshKeepsThePushTokenOnServerError() = runTest {
+        val store = FakeTokenStore(access = "a1", refresh = "r1")
+        val engine = MockEngine { respond("", HttpStatusCode.ServiceUnavailable) }
+        val api = TrainingManagerApi(store, baseUrl = "https://test/api/v1/", engine = engine)
+        var revoked = 0
+        val repo = AuthRepository(api, store, fcmTokenRevoker = { revoked++ })
+
+        assertTrue(repo.tryRefresh())
+        assertEquals(0, revoked)
+        api.close()
+    }
 }

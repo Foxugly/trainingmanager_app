@@ -18,6 +18,15 @@
              (TM_SENTRY_DSN), never by its auto-init ContentProvider. -->
         <meta-data android:name="io.sentry.auto-init" android:value="false" />
 
+        <!-- Pushes rendered by the FCM SDK itself (app in background) use the app's
+             monochrome icon and channel, not the defaults. -->
+        <meta-data
+                android:name="com.google.firebase.messaging.default_notification_icon"
+                android:resource="@drawable/ic_stat_notification" />
+        <meta-data
+                android:name="com.google.firebase.messaging.default_notification_channel_id"
+                android:value="tm_default" />
+
         <activity
                 android:exported="true"
                 android:launchMode="singleTop"

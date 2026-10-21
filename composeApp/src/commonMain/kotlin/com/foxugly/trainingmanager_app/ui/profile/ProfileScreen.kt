@@ -31,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.foxugly.trainingmanager_app.data.repository.AuthRepository
 import com.foxugly.trainingmanager_app.i18n.LanguageService
 import com.foxugly.trainingmanager_app.i18n.LocalStrings
 import com.foxugly.trainingmanager_app.i18n.languageDisplayNames
@@ -47,11 +46,12 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(
     viewModel: ProfileViewModel,
     languageService: LanguageService,
-    authRepository: AuthRepository,
     onSelectTab: (MainTab) -> Unit,
     onChangePassword: () -> Unit,
     onDeleteAccount: () -> Unit,
-    onLoggedOut: () -> Unit,
+    // Runs the logout outside this screen's scope (see App.kt), so leaving the
+    // screen cannot cancel it half-way.
+    onLogout: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val s = LocalStrings.current
@@ -68,7 +68,7 @@ fun ProfileScreen(
                     languageService = languageService,
                     onChangePassword = onChangePassword,
                     onDeleteAccount = onDeleteAccount,
-                    onLogout = { scope.launch { authRepository.logout(); onLoggedOut() } },
+                    onLogout = onLogout,
                 )
             }
         }

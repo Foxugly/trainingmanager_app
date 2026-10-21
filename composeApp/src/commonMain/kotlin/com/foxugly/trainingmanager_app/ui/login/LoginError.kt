@@ -20,7 +20,7 @@ fun mapLoginError(throwable: Throwable, strings: Strings): String? = when {
     throwable is ApiException && throwable.statusCode in 500..599 -> strings.serverError
     throwable is ApiException && throwable.statusCode == 401 -> strings.invalidCredentials
     throwable is ApiException && throwable.statusCode == 400 &&
-        throwable.message?.contains("email_not_verified") == true -> strings.emailNotVerified
+        throwable.responseBody.contains("email_not_verified") -> strings.emailNotVerified
     throwable is ApiException -> strings.loginFailed
     else -> strings.loginFailed
 }

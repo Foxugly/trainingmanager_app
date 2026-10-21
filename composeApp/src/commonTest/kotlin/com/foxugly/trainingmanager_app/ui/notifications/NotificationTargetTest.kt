@@ -17,4 +17,10 @@ class NotificationTargetTest {
     @Test fun nullForUnknown() = assertNull(parseNotificationTarget("/dashboard"))
 
     @Test fun nullForNull() = assertNull(parseNotificationTarget(null))
+
+    @Test fun nullForAbsoluteUrl() = assertNull(parseNotificationTarget("https://evil.example/events/5"))
+
+    @Test fun nullForPathNotAtRoot() = assertNull(parseNotificationTarget("/x/teams/3"))
+
+    @Test fun nullForTrailingGarbage() = assertNull(parseNotificationTarget("/events/5abc"))
 }

@@ -25,15 +25,12 @@ import com.foxugly.trainingmanager_app.api.generated.models.PatchedMeRequest
 import com.foxugly.trainingmanager_app.api.generated.models.PlatformEnum
 import com.foxugly.trainingmanager_app.api.generated.models.RegisterRequest
 import com.foxugly.trainingmanager_app.api.generated.models.TokenObtainPairResponse
-import com.foxugly.trainingmanager_app.api.generated.models.TokenRefreshRequest
 import com.foxugly.trainingmanager_app.api.generated.models.ValidateInvitation
 import com.foxugly.trainingmanager_app.api.generated.models.VerifiedTokenObtainPairRequest
-import com.foxugly.trainingmanager_app.data.api.ApiException
 import com.foxugly.trainingmanager_app.data.api.AuthInterceptor
 import com.foxugly.trainingmanager_app.data.api.TrainingManagerApi
 import com.foxugly.trainingmanager_app.data.storage.TokenStore
 import com.foxugly.trainingmanager_app.diagnostics.AppLogger
-import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CancellationException
 
 /**
@@ -51,6 +48,9 @@ class AuthRepository(
     // Supplies the current FCM token so logout can unregister this device. Default
     // no-op keeps tests and non-push platforms simple.
     private val fcmTokenProvider: suspend () -> String? = { null },
+    // Deletes the local FCM token when the session expires server-side (no bearer
+    // left to call devices/unregister/). Default no-op for tests / non-push platforms.
+    private val fcmTokenRevoker: suspend () -> Unit = {},
 ) {
     private val tag = "TM/AuthRepository"
 
@@ -401,36 +401,38 @@ class AuthRepository(
 
     fun hasRefreshToken(): Boolean = tokenStorage.getRefreshToken() != null
 
-    /** Startup refresh: POST auth/token/refresh/, persisting the rotated token pair. */
+    /**
+     * Startup refresh: POST auth/token/refresh/, persisting the rotated token pair.
+     * Runs under the interceptor's refresh mutex (see [TrainingManagerApi.refreshSession]).
+     */
     suspend fun tryRefresh(): Boolean {
-        val refreshToken = tokenStorage.getRefreshToken() ?: return false
+        if (tokenStorage.getRefreshToken() == null) return false
         AppLogger.info(tag, "Trying startup token refresh")
-        return api.refresh(TokenRefreshRequest(refreshToken)).fold(
-            onSuccess = { response ->
-                tokenStorage.setAccessToken(response.access)
-                // Persist the rotated refresh token (ROTATE_REFRESH_TOKENS +
-                // BLACKLIST_AFTER_ROTATION). The generated TokenRefresh always carries a
-                // refresh (rotation is on server-side), so write it unconditionally —
-                // skipping it would send a blacklisted token on the next refresh and eject the user.
-                tokenStorage.setRefreshToken(response.refresh)
-                AppLogger.info(tag, "Startup token refresh succeeded")
-                true
-            },
-            onFailure = {
-                if (it is CancellationException) throw it
-                if (it is ApiException && AuthInterceptor.isSessionRejected(HttpStatusCode.fromValue(it.statusCode))) {
-                    // The refresh token itself was refused: the session is over.
-                    AppLogger.warn(tag, "Startup token refresh rejected (HTTP ${it.statusCode}); signing out")
-                    tokenStorage.clearAuthTokens()
-                    false
-                } else {
-                    // Offline, timeout, 5xx (e.g. during a deploy): keep the session and
-                    // open the app signed in — the stored refresh token is still valid and
-                    // the next API call refreshes again once the server is reachable.
-                    AppLogger.warn(tag, "Startup token refresh failed transiently; keeping the session", it)
-                    true
-                }
-            },
-        )
+        return when (api.refreshSession()) {
+            AuthInterceptor.RefreshOutcome.REFRESHED -> true
+            AuthInterceptor.RefreshOutcome.NO_REFRESH_TOKEN -> false
+            AuthInterceptor.RefreshOutcome.REJECTED -> {
+                // The refresh token itself was refused (tokens already cleared).
+                onSessionExpired()
+                false
+            }
+            // Offline, timeout, 5xx (e.g. during a deploy): keep the session and
+            // open the app signed in — the stored refresh token is still valid and
+            // the next API call refreshes again once the server is reachable.
+            AuthInterceptor.RefreshOutcome.TRANSIENT -> true
+        }
+    }
+
+    /**
+     * The server ended the session (refresh token refused). The bearer is gone, so
+     * devices/unregister/ cannot be called: drop the local FCM token instead. The
+     * server's next push to it gets UNREGISTERED and marks the device invalid, so
+     * pushes for the old account stop reaching this phone (audit A-M5). A later
+     * sign-in registers a fresh token.
+     */
+    suspend fun onSessionExpired() {
+        AppLogger.info(tag, "Session expired; revoking the local push token")
+        runCatching { fcmTokenRevoker() }
+            .onFailure { if (it is CancellationException) throw it }
     }
 }
