@@ -30,11 +30,11 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout app
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Only the backend's schema file is needed — sparse checkout keeps it fast.
       - name: Checkout backend schema
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: Foxugly/trainingmanager_server
           ref: main
