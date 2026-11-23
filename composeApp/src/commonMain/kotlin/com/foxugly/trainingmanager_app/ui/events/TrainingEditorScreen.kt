@@ -99,61 +99,65 @@ fun TrainingEditorScreen(
                     modifier = Modifier.fillMaxWidth(),
                 ) { roundIndex, round, _ ->
                     key(round.id) {
-                        Column(Modifier.fillMaxWidth()) {
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                                Icon(
-                                    Icons.Filled.DragHandle,
-                                    contentDescription = null,
-                                    modifier = Modifier.draggableHandle(),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                Spacer(Modifier.width(4.dp))
-                                Text(
-                                    s.roundLabel(roundIndex + 1),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.weight(1f),
-                                )
-                                IconButton(onClick = { scope.launch { viewModel.setRoundCount(round.id, round.count - 1) } }, enabled = !viewModel.busy && round.count > 1) {
-                                    Icon(Icons.Filled.Remove, contentDescription = null)
+                        ReorderableItem {
+                            Column(Modifier.fillMaxWidth()) {
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                                    Icon(
+                                        Icons.Filled.DragHandle,
+                                        contentDescription = null,
+                                        modifier = Modifier.draggableHandle(),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        s.roundLabel(roundIndex + 1),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    IconButton(onClick = { scope.launch { viewModel.setRoundCount(round.id, round.count - 1) } }, enabled = !viewModel.busy && round.count > 1) {
+                                        Icon(Icons.Filled.Remove, contentDescription = null)
+                                    }
+                                    Text("×${round.count}", style = MaterialTheme.typography.bodyMedium)
+                                    IconButton(onClick = { scope.launch { viewModel.setRoundCount(round.id, round.count + 1) } }, enabled = !viewModel.busy) {
+                                        Icon(Icons.Filled.Add, contentDescription = null)
+                                    }
+                                    IconButton(onClick = { scope.launch { viewModel.removeRound(round.id) } }, enabled = !viewModel.busy) {
+                                        Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                    }
                                 }
-                                Text("×${round.count}", style = MaterialTheme.typography.bodyMedium)
-                                IconButton(onClick = { scope.launch { viewModel.setRoundCount(round.id, round.count + 1) } }, enabled = !viewModel.busy) {
-                                    Icon(Icons.Filled.Add, contentDescription = null)
-                                }
-                                IconButton(onClick = { scope.launch { viewModel.removeRound(round.id) } }, enabled = !viewModel.busy) {
-                                    Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                                }
-                            }
-                            ReorderableColumn(
-                                list = round.exercises.sortedBy { it.order ?: 0 },
-                                onSettle = { from, to -> scope.launch { viewModel.moveExercise(round.id, from, to) } },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) { _, ex, _ ->
-                                key(ex.id) {
-                                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                                        Icon(
-                                            Icons.Filled.DragHandle,
-                                            contentDescription = null,
-                                            modifier = Modifier.draggableHandle(),
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                        ExerciseSummary(
-                                            ex = ex,
-                                            modifier = Modifier.weight(1f)
-                                                .clickable(enabled = !viewModel.busy) { editingExercise = ex; dialogRoundId = round.id }
-                                                .padding(start = 8.dp, top = 4.dp, bottom = 4.dp),
-                                        )
-                                        IconButton(onClick = { scope.launch { viewModel.removeExercise(ex.id) } }, enabled = !viewModel.busy) {
-                                            Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                ReorderableColumn(
+                                    list = round.exercises.sortedBy { it.order ?: 0 },
+                                    onSettle = { from, to -> scope.launch { viewModel.moveExercise(round.id, from, to) } },
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) { _, ex, _ ->
+                                    key(ex.id) {
+                                        ReorderableItem {
+                                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                                                Icon(
+                                                    Icons.Filled.DragHandle,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.draggableHandle(),
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                )
+                                                ExerciseSummary(
+                                                    ex = ex,
+                                                    modifier = Modifier.weight(1f)
+                                                        .clickable(enabled = !viewModel.busy) { editingExercise = ex; dialogRoundId = round.id }
+                                                        .padding(start = 8.dp, top = 4.dp, bottom = 4.dp),
+                                                )
+                                                IconButton(onClick = { scope.launch { viewModel.removeExercise(ex.id) } }, enabled = !viewModel.busy) {
+                                                    Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                                }
+                                            }
                                         }
                                     }
                                 }
+                                TextButton(onClick = { editingExercise = null; dialogRoundId = round.id }, enabled = !viewModel.busy) {
+                                    Text(s.addExercise)
+                                }
+                                Spacer(Modifier.height(12.dp))
                             }
-                            TextButton(onClick = { editingExercise = null; dialogRoundId = round.id }, enabled = !viewModel.busy) {
-                                Text(s.addExercise)
-                            }
-                            Spacer(Modifier.height(12.dp))
                         }
                     }
                 }
